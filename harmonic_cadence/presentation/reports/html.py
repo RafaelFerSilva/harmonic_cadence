@@ -184,10 +184,6 @@ class HTMLReportGenerator(ReportGenerator):
     </style>
 </head>
 <body>
-    <div id="pdf-header">
-        Análise Harmônica de Música &mdash; {analysis['artist']} &mdash; {analysis['name']}
-    </div>
-
     <div class="container py-4">
         <header class="pb-3 mb-4 border-bottom">
             <h1 class="display-5 fw-bold">Análise Harmônica de Música</h1>
