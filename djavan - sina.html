@@ -1,0 +1,810 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise Harmônica - Djavan - Sina</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --chord-color: #2D6CDF;
+            --section-color: #666;
+        }
+
+        body {
+            background: #f8f9fa;
+            line-height: 1.5;
+        }
+
+        @page {
+            size: A4;
+            margin: 2.5cm 2cm 2.5cm 2cm;
+        }
+
+        @page {
+            @top-center {
+                content: element(header);
+            }
+            @bottom-center {
+                content: "Página " counter(page) " de " counter(pages);
+                font-size: 0.95em;
+                color: #888;
+                border-top: 1px solid #ddd;
+                padding-top: 0.2cm;
+                margin-top: 0.5cm;
+            }
+        }
+
+        #pdf-header {
+            position: running(header);
+            text-align: center;
+            font-size: 1.1em;
+            color: #2D6CDF;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 0.2cm;
+            margin-bottom: 0.5cm;
+        }
+
+        .cifra-container {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .cifra-column--left {
+            flex: 2;
+            min-width: 0;
+        }
+
+        .cifra-column--right {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .cifra-content {
+            font-family: 'Roboto Mono', monospace;
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .chord-line {
+            color: var(--chord-color);
+            font-weight: 500;
+            padding: 0.2rem 0;
+            white-space: pre;
+        }
+
+        .lyric-line {
+            padding: 0.2rem 0;
+            white-space: pre;
+        }
+
+        .lyric-line .chord {
+            color: var(--chord-color);
+            font-weight: 500;
+        }
+
+        .empty-line {
+            height: 1rem;
+        }
+
+        .section-name {
+            color: var(--section-color);
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .cifra-container {
+                flex-direction: column;
+            }
+            .cifra-column--right {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="pdf-header">
+        Análise Harmônica de Música &mdash; Djavan &mdash; Sina
+    </div>
+
+    <div class="container py-4">
+        <header class="pb-3 mb-4 border-bottom">
+            <h1 class="display-5 fw-bold">Análise Harmônica de Música</h1>
+        </header>
+
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h2 class="h4">Informações Gerais</h2>
+                <p><strong>Artista:</strong> Djavan</p>
+                <p><strong>Música:</strong> Sina</p>
+                <p><strong>Tonalidade sugerida:</strong> D (major)</p>
+                <a href="https://www.youtube.com/results?search_query=Djavan+Sina" target="_blank" class="btn btn-primary">
+                    🔊 Ouvir no YouTube
+                </a>
+            </div>
+        </div>
+
+        <div class="cifra-container">
+            <div class="cifra-column--left">
+                <div class="cifra-content">
+                    <div class="lyric-line">(Dicas)</div>
+<div class="chord-line"><b class="chord">A</b>                       <b class="chord">G#m7</b>(11)    <b class="chord">C#7</b>(9-)</div>
+<div class="lyric-line">D7M                     <b class="chord">D#</b>o</div>
+<div class="lyric-line">Pai e mãe, ouro de mina</div>
+<div class="chord-line"><b class="chord">A</b>          <b class="chord">G#m7</b>(11)    <b class="chord">C#7</b>(9-)</div>
+<div class="lyric-line">Coração,   desejo  e  sina</div>
+<div class="lyric-line"><b class="chord">F#m7</b>        <b class="chord">C#m7</b>           D7M</div>
+<div class="lyric-line">Tudo mais, pura rotina, jazz</div>
+<div class="chord-line"><b class="chord">D</b>#°                      <b class="chord">A</b></div>
+<div class="lyric-line">Tocarei seu nome prá poder falar de amor</div>
+<div class="lyric-line">Minha princesa, art-nouveau</div>
+<div class="chord-line"><b class="chord">G#m7</b>(11)      <b class="chord">C#7</b>(9-)  <b class="chord">F#m7</b></div>
+<div class="lyric-line">Da natureza,    tudo o mais</div>
+<div class="lyric-line"><b class="chord">C#m7</b>           D7M   <b class="chord">D</b>#°</div>
+<div class="lyric-line">Pura beleza, jazz</div>
+<div class="chord-line"><b class="chord">E4</b>(7/9)</div>
+<div class="lyric-line"><b class="chord">A</b> luz de um grande prazer</div>
+<div class="chord-line"><b class="chord">D4</b>(7/9) <b class="chord">D7</b>(9) <b class="chord">C#7</b>(9+) <b class="chord">C#7</b>(9-/13-) <b class="chord">F#m7</b></div>
+<div class="lyric-line">É irre___medi___ável   neon</div>
+<div class="chord-line"><b class="chord">E4</b>(7/9)            <b class="chord">D4</b>(7/9)     <b class="chord">E4</b>(7/9)</div>
+<div class="lyric-line">Quando o grito do prazer açoitar   o ar, reveillon</div>
+<div class="chord-line"><b class="chord">A</b>                       <b class="chord">G#m7</b>(11)    <b class="chord">C#7</b>(9-)</div>
+<div class="lyric-line">D7M                     <b class="chord">E4</b>(7/9)</div>
+<div class="lyric-line">O luar, estrela do mar</div>
+<div class="chord-line"><b class="chord">A</b>                <b class="chord">G#m7</b>(11)     <b class="chord">C#7</b>(9-)</div>
+<div class="lyric-line">O sol e o dom, quiçá, um dia    a fúria</div>
+<div class="lyric-line">Desse front virá lapidar</div>
+<div class="lyric-line"><b class="chord">C#m7</b>                     D7M</div>
+<div class="lyric-line">O sonho até gerar o som</div>
+<div class="chord-line"><b class="chord">E4</b>(7/9)                  <b class="chord">A</b></div>
+<div class="lyric-line">Como querer  Caetanear o que há de bom</div>
+<div class="lyric-line">O luar, estrela do mar</div>
+<div class="chord-line"><b class="chord">A</b>                <b class="chord">G#m7</b>(11)     <b class="chord">C#7</b>(9-)</div>
+<div class="lyric-line">O sol e o dom, quiçá, um dia    a fúria</div>
+<div class="lyric-line">Desse front virá lapidar</div>
+<div class="lyric-line"><b class="chord">C#m7</b>                     D7M</div>
+<div class="lyric-line">O sonho até gerar o som</div>
+<div class="chord-line"><b class="chord">E4</b>(7/9)</div>
+<div class="lyric-line">Como querer  Caetanear o que há de bom</div>
+<div class="lyric-line">( <b class="chord">A</b>  <b class="chord">D/A</b>  <b class="chord">A</b>  <b class="chord">D/A</b> )</div>
+                </div>
+            </div>
+
+            <div class="cifra-column--right">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h2 class="h5 card-title">Estatísticas Gerais</h2>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Total de acordes: 60</li>
+                            <li class="list-group-item">Acordes maiores: 30 (50.0%)</li>
+                            <li class="list-group-item">Acordes menores: 13 (21.7%)</li>
+                            <li class="list-group-item">Acordes únicos: 15</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="h5 card-title">Acordes únicos</h2>
+                        <p class="card-text">A, C, C#7(9+), C#7(9-), C#7(9-/13-), C#m7, D, D#, D#°, D/A, D7, D7(9), E, F#m7, G#m7(11)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="h4">Análise harmônica dos acordes</h2>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Acorde</th>
+                                <th>Grau</th>
+                                <th>Qualidade</th>
+                                <th>Função</th>
+                                <th>Código</th>
+                                <th>Descrição</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                <tr>
+                    <td>D</td>
+                    <td>I</td>
+                    <td>major</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>A</td>
+                    <td>V</td>
+                    <td>major</td>
+                    <td>Dominante</td>
+                    <td>D</td>
+                    <td>Cria tensão e pede resolução para a tônica</td>
+                </tr>
+
+                <tr>
+                    <td>G#m7(11)</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7 || Modo lócrio de D: [D D# F G G# A# C] | Campo harmônico: i: Dm7b5 | ii°: D#maj7 | III: Fm7 | iv: Gm7 | v: G#maj7 | VI: A#7 | VII: Cm7</td>
+                </tr>
+
+                <tr>
+                    <td>C#7(9-)</td>
+                    <td>-</td>
+                    <td>dominant</td>
+                    <td>Substituto de Dominante</td>
+                    <td>SubV</td>
+                    <td>Dominante substituto (bII7), resolve na tônica por movimento cromático</td>
+                </tr>
+
+                <tr>
+                    <td>D7</td>
+                    <td>I</td>
+                    <td>dominant</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>D#</td>
+                    <td>-</td>
+                    <td>major</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Modo frígio de D: [D D# F G A A# C] | Campo harmônico: i: Dm7 | ii°: D#maj7 | III: F7 | iv: Gm7 | v: Am7b5 | VI: A#maj7 | VII: C7 || Modo lócrio de D: [D D# F G G# A# C] | Campo harmônico: i: Dm7b5 | ii°: D#maj7 | III: Fm7 | iv: Gm7 | v: G#maj7 | VI: A#7 | VII: Cm7</td>
+                </tr>
+
+                <tr>
+                    <td>A</td>
+                    <td>V</td>
+                    <td>major</td>
+                    <td>Dominante</td>
+                    <td>D</td>
+                    <td>Cria tensão e pede resolução para a tônica</td>
+                </tr>
+
+                <tr>
+                    <td>G#m7(11)</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7 || Modo lócrio de D: [D D# F G G# A# C] | Campo harmônico: i: Dm7b5 | ii°: D#maj7 | III: Fm7 | iv: Gm7 | v: G#maj7 | VI: A#7 | VII: Cm7</td>
+                </tr>
+
+                <tr>
+                    <td>C#7(9-)</td>
+                    <td>-</td>
+                    <td>dominant</td>
+                    <td>Substituto de Dominante</td>
+                    <td>SubV</td>
+                    <td>Dominante substituto (bII7), resolve na tônica por movimento cromático</td>
+                </tr>
+
+                <tr>
+                    <td>C</td>
+                    <td>VII°</td>
+                    <td>major</td>
+                    <td>Função não identificada</td>
+                    <td>Outro</td>
+                    <td>Acorde com função harmônica não classificada</td>
+                </tr>
+
+                <tr>
+                    <td>F#m7</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Maior paralela de D: [D E F# G A B C#] | Campo harmônico: I: Dmaj7 | ii: Em7 | iii: F#m7 | IV: Gmaj7 | V: A7 | vi: Bm7 | vii°: C#m7b5 || Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7 || Modo mixolídio de D: [D E F# G A B C] | Campo harmônico: i: D7 | ii°: Em7 | III: F#m7 | iv: Gmaj7 | v: Am7 | VI: Bm7b5 | VII: Cmaj7</td>
+                </tr>
+
+                <tr>
+                    <td>C#m7</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Maior paralela de D: [D E F# G A B C#] | Campo harmônico: I: Dmaj7 | ii: Em7 | iii: F#m7 | IV: Gmaj7 | V: A7 | vi: Bm7 | vii°: C#m7b5 || Menor harmônica paralela de D: [D E F G A A# C#] | Campo harmônico: i: Dm(maj7) | ii°: Em7b5 | III: Fmaj7#5 | iv: Gm7 | v: A7 | VI: A#maj7 | VII: C#dim7 || Menor melódica paralela de D: [D E F G A B C#] | Campo harmônico: i: Dm(maj7) | ii°: Em7 | III: Fmaj7#5 | iv: G7 | v: A7 | VI: Bm7b5 | VII: C#m7b5 || Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7</td>
+                </tr>
+
+                <tr>
+                    <td>D7</td>
+                    <td>I</td>
+                    <td>dominant</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>D#°</td>
+                    <td>-</td>
+                    <td>diminished</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Modo frígio de D: [D D# F G A A# C] | Campo harmônico: i: Dm7 | ii°: D#maj7 | III: F7 | iv: Gm7 | v: Am7b5 | VI: A#maj7 | VII: C7 || Modo lócrio de D: [D D# F G G# A# C] | Campo harmônico: i: Dm7b5 | ii°: D#maj7 | III: Fm7 | iv: Gm7 | v: G#maj7 | VI: A#7 | VII: Cm7</td>
+                </tr>
+
+                <tr>
+                    <td>A</td>
+                    <td>V</td>
+                    <td>major</td>
+                    <td>Dominante</td>
+                    <td>D</td>
+                    <td>Cria tensão e pede resolução para a tônica</td>
+                </tr>
+
+                <tr>
+                    <td>G#m7(11)</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7 || Modo lócrio de D: [D D# F G G# A# C] | Campo harmônico: i: Dm7b5 | ii°: D#maj7 | III: Fm7 | iv: Gm7 | v: G#maj7 | VI: A#7 | VII: Cm7</td>
+                </tr>
+
+                <tr>
+                    <td>C#7(9-)</td>
+                    <td>-</td>
+                    <td>dominant</td>
+                    <td>Substituto de Dominante</td>
+                    <td>SubV</td>
+                    <td>Dominante substituto (bII7), resolve na tônica por movimento cromático</td>
+                </tr>
+
+                <tr>
+                    <td>F#m7</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Maior paralela de D: [D E F# G A B C#] | Campo harmônico: I: Dmaj7 | ii: Em7 | iii: F#m7 | IV: Gmaj7 | V: A7 | vi: Bm7 | vii°: C#m7b5 || Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7 || Modo mixolídio de D: [D E F# G A B C] | Campo harmônico: i: D7 | ii°: Em7 | III: F#m7 | iv: Gmaj7 | v: Am7 | VI: Bm7b5 | VII: Cmaj7</td>
+                </tr>
+
+                <tr>
+                    <td>D</td>
+                    <td>I</td>
+                    <td>major</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>C#m7</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Maior paralela de D: [D E F# G A B C#] | Campo harmônico: I: Dmaj7 | ii: Em7 | iii: F#m7 | IV: Gmaj7 | V: A7 | vi: Bm7 | vii°: C#m7b5 || Menor harmônica paralela de D: [D E F G A A# C#] | Campo harmônico: i: Dm(maj7) | ii°: Em7b5 | III: Fmaj7#5 | iv: Gm7 | v: A7 | VI: A#maj7 | VII: C#dim7 || Menor melódica paralela de D: [D E F G A B C#] | Campo harmônico: i: Dm(maj7) | ii°: Em7 | III: Fmaj7#5 | iv: G7 | v: A7 | VI: Bm7b5 | VII: C#m7b5 || Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7</td>
+                </tr>
+
+                <tr>
+                    <td>D7</td>
+                    <td>I</td>
+                    <td>dominant</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>D#°</td>
+                    <td>-</td>
+                    <td>diminished</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Modo frígio de D: [D D# F G A A# C] | Campo harmônico: i: Dm7 | ii°: D#maj7 | III: F7 | iv: Gm7 | v: Am7b5 | VI: A#maj7 | VII: C7 || Modo lócrio de D: [D D# F G G# A# C] | Campo harmônico: i: Dm7b5 | ii°: D#maj7 | III: Fm7 | iv: Gm7 | v: G#maj7 | VI: A#7 | VII: Cm7</td>
+                </tr>
+
+                <tr>
+                    <td>E</td>
+                    <td>II</td>
+                    <td>major</td>
+                    <td>Subdominante</td>
+                    <td>SD</td>
+                    <td>Prepara a dominante, criando movimento e expectativa</td>
+                </tr>
+
+                <tr>
+                    <td>A</td>
+                    <td>V</td>
+                    <td>major</td>
+                    <td>Dominante</td>
+                    <td>D</td>
+                    <td>Cria tensão e pede resolução para a tônica</td>
+                </tr>
+
+                <tr>
+                    <td>D</td>
+                    <td>I</td>
+                    <td>major</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>D7(9)</td>
+                    <td>I</td>
+                    <td>dominant</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>C#7(9+)</td>
+                    <td>-</td>
+                    <td>dominant</td>
+                    <td>Substituto de Dominante</td>
+                    <td>SubV</td>
+                    <td>Dominante substituto (bII7), resolve na tônica por movimento cromático</td>
+                </tr>
+
+                <tr>
+                    <td>C#7(9-/13-)</td>
+                    <td>-</td>
+                    <td>dominant</td>
+                    <td>Substituto de Dominante</td>
+                    <td>SubV</td>
+                    <td>Dominante substituto (bII7), resolve na tônica por movimento cromático</td>
+                </tr>
+
+                <tr>
+                    <td>F#m7</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Maior paralela de D: [D E F# G A B C#] | Campo harmônico: I: Dmaj7 | ii: Em7 | iii: F#m7 | IV: Gmaj7 | V: A7 | vi: Bm7 | vii°: C#m7b5 || Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7 || Modo mixolídio de D: [D E F# G A B C] | Campo harmônico: i: D7 | ii°: Em7 | III: F#m7 | iv: Gmaj7 | v: Am7 | VI: Bm7b5 | VII: Cmaj7</td>
+                </tr>
+
+                <tr>
+                    <td>E</td>
+                    <td>II</td>
+                    <td>major</td>
+                    <td>Subdominante</td>
+                    <td>SD</td>
+                    <td>Prepara a dominante, criando movimento e expectativa</td>
+                </tr>
+
+                <tr>
+                    <td>D</td>
+                    <td>I</td>
+                    <td>major</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>E</td>
+                    <td>II</td>
+                    <td>major</td>
+                    <td>Subdominante</td>
+                    <td>SD</td>
+                    <td>Prepara a dominante, criando movimento e expectativa</td>
+                </tr>
+
+                <tr>
+                    <td>A</td>
+                    <td>V</td>
+                    <td>major</td>
+                    <td>Dominante</td>
+                    <td>D</td>
+                    <td>Cria tensão e pede resolução para a tônica</td>
+                </tr>
+
+                <tr>
+                    <td>G#m7(11)</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7 || Modo lócrio de D: [D D# F G G# A# C] | Campo harmônico: i: Dm7b5 | ii°: D#maj7 | III: Fm7 | iv: Gm7 | v: G#maj7 | VI: A#7 | VII: Cm7</td>
+                </tr>
+
+                <tr>
+                    <td>C#7(9-)</td>
+                    <td>-</td>
+                    <td>dominant</td>
+                    <td>Substituto de Dominante</td>
+                    <td>SubV</td>
+                    <td>Dominante substituto (bII7), resolve na tônica por movimento cromático</td>
+                </tr>
+
+                <tr>
+                    <td>D7</td>
+                    <td>I</td>
+                    <td>dominant</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>E</td>
+                    <td>II</td>
+                    <td>major</td>
+                    <td>Subdominante</td>
+                    <td>SD</td>
+                    <td>Prepara a dominante, criando movimento e expectativa</td>
+                </tr>
+
+                <tr>
+                    <td>A</td>
+                    <td>V</td>
+                    <td>major</td>
+                    <td>Dominante</td>
+                    <td>D</td>
+                    <td>Cria tensão e pede resolução para a tônica</td>
+                </tr>
+
+                <tr>
+                    <td>G#m7(11)</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7 || Modo lócrio de D: [D D# F G G# A# C] | Campo harmônico: i: Dm7b5 | ii°: D#maj7 | III: Fm7 | iv: Gm7 | v: G#maj7 | VI: A#7 | VII: Cm7</td>
+                </tr>
+
+                <tr>
+                    <td>C#7(9-)</td>
+                    <td>-</td>
+                    <td>dominant</td>
+                    <td>Substituto de Dominante</td>
+                    <td>SubV</td>
+                    <td>Dominante substituto (bII7), resolve na tônica por movimento cromático</td>
+                </tr>
+
+                <tr>
+                    <td>D</td>
+                    <td>I</td>
+                    <td>major</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>C#m7</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Maior paralela de D: [D E F# G A B C#] | Campo harmônico: I: Dmaj7 | ii: Em7 | iii: F#m7 | IV: Gmaj7 | V: A7 | vi: Bm7 | vii°: C#m7b5 || Menor harmônica paralela de D: [D E F G A A# C#] | Campo harmônico: i: Dm(maj7) | ii°: Em7b5 | III: Fmaj7#5 | iv: Gm7 | v: A7 | VI: A#maj7 | VII: C#dim7 || Menor melódica paralela de D: [D E F G A B C#] | Campo harmônico: i: Dm(maj7) | ii°: Em7 | III: Fmaj7#5 | iv: G7 | v: A7 | VI: Bm7b5 | VII: C#m7b5 || Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7</td>
+                </tr>
+
+                <tr>
+                    <td>D7</td>
+                    <td>I</td>
+                    <td>dominant</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>E</td>
+                    <td>II</td>
+                    <td>major</td>
+                    <td>Subdominante</td>
+                    <td>SD</td>
+                    <td>Prepara a dominante, criando movimento e expectativa</td>
+                </tr>
+
+                <tr>
+                    <td>A</td>
+                    <td>V</td>
+                    <td>major</td>
+                    <td>Dominante</td>
+                    <td>D</td>
+                    <td>Cria tensão e pede resolução para a tônica</td>
+                </tr>
+
+                <tr>
+                    <td>C</td>
+                    <td>VII°</td>
+                    <td>major</td>
+                    <td>Função não identificada</td>
+                    <td>Outro</td>
+                    <td>Acorde com função harmônica não classificada</td>
+                </tr>
+
+                <tr>
+                    <td>C</td>
+                    <td>VII°</td>
+                    <td>major</td>
+                    <td>Função não identificada</td>
+                    <td>Outro</td>
+                    <td>Acorde com função harmônica não classificada</td>
+                </tr>
+
+                <tr>
+                    <td>A</td>
+                    <td>V</td>
+                    <td>major</td>
+                    <td>Dominante</td>
+                    <td>D</td>
+                    <td>Cria tensão e pede resolução para a tônica</td>
+                </tr>
+
+                <tr>
+                    <td>G#m7(11)</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7 || Modo lócrio de D: [D D# F G G# A# C] | Campo harmônico: i: Dm7b5 | ii°: D#maj7 | III: Fm7 | iv: Gm7 | v: G#maj7 | VI: A#7 | VII: Cm7</td>
+                </tr>
+
+                <tr>
+                    <td>C#7(9-)</td>
+                    <td>-</td>
+                    <td>dominant</td>
+                    <td>Substituto de Dominante</td>
+                    <td>SubV</td>
+                    <td>Dominante substituto (bII7), resolve na tônica por movimento cromático</td>
+                </tr>
+
+                <tr>
+                    <td>D</td>
+                    <td>I</td>
+                    <td>major</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>C#m7</td>
+                    <td>-</td>
+                    <td>minor</td>
+                    <td>Empréstimo Modal</td>
+                    <td>Emp</td>
+                    <td>Maior paralela de D: [D E F# G A B C#] | Campo harmônico: I: Dmaj7 | ii: Em7 | iii: F#m7 | IV: Gmaj7 | V: A7 | vi: Bm7 | vii°: C#m7b5 || Menor harmônica paralela de D: [D E F G A A# C#] | Campo harmônico: i: Dm(maj7) | ii°: Em7b5 | III: Fmaj7#5 | iv: Gm7 | v: A7 | VI: A#maj7 | VII: C#dim7 || Menor melódica paralela de D: [D E F G A B C#] | Campo harmônico: i: Dm(maj7) | ii°: Em7 | III: Fmaj7#5 | iv: G7 | v: A7 | VI: Bm7b5 | VII: C#m7b5 || Modo lídio de D: [D E F# G# A B C#] | Campo harmônico: i: Dmaj7 | ii°: E7 | III: F#m7 | iv: G#m7 | v: Amaj7 | VI: Bm7b5 | VII: C#m7</td>
+                </tr>
+
+                <tr>
+                    <td>D7</td>
+                    <td>I</td>
+                    <td>dominant</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>E</td>
+                    <td>II</td>
+                    <td>major</td>
+                    <td>Subdominante</td>
+                    <td>SD</td>
+                    <td>Prepara a dominante, criando movimento e expectativa</td>
+                </tr>
+
+                <tr>
+                    <td>C</td>
+                    <td>VII°</td>
+                    <td>major</td>
+                    <td>Função não identificada</td>
+                    <td>Outro</td>
+                    <td>Acorde com função harmônica não classificada</td>
+                </tr>
+
+                <tr>
+                    <td>C</td>
+                    <td>VII°</td>
+                    <td>major</td>
+                    <td>Função não identificada</td>
+                    <td>Outro</td>
+                    <td>Acorde com função harmônica não classificada</td>
+                </tr>
+
+                <tr>
+                    <td>A</td>
+                    <td>V</td>
+                    <td>major</td>
+                    <td>Dominante</td>
+                    <td>D</td>
+                    <td>Cria tensão e pede resolução para a tônica</td>
+                </tr>
+
+                <tr>
+                    <td>D/A</td>
+                    <td>I</td>
+                    <td>major</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                <tr>
+                    <td>A</td>
+                    <td>V</td>
+                    <td>major</td>
+                    <td>Dominante</td>
+                    <td>D</td>
+                    <td>Cria tensão e pede resolução para a tônica</td>
+                </tr>
+
+                <tr>
+                    <td>D/A</td>
+                    <td>I</td>
+                    <td>major</td>
+                    <td>Tônica</td>
+                    <td>T</td>
+                    <td>Centro tonal, ponto de repouso e resolução</td>
+                </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="h4">Cadências encontradas</h2>
+
+                <div class="cadence-section">
+                    <h3 class="h5">Autêntica</h3>
+                    <ul class="list-unstyled">
+                        <li>A → D/A</li><li>A → D</li>
+                    </ul>
+                </div>
+
+                <div class="cadence-section">
+                    <h3 class="h5">Plagal</h3>
+                    <ul class="list-unstyled">
+
+                    </ul>
+                </div>
+
+                <div class="cadence-section">
+                    <h3 class="h5">Interrompida</h3>
+                    <ul class="list-unstyled">
+
+                    </ul>
+                </div>
+
+                <div class="cadence-section">
+                    <h3 class="h5">Meia-cadência</h3>
+                    <ul class="list-unstyled">
+                        <li>D#° → A</li><li>D/A → A</li><li>A → C</li><li>C → C</li><li>D# → A</li><li>D → A</li><li>E → A</li><li>C → A</li><li>E → C</li><li>C#7(9-) → C</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+
+        <footer class="pt-3 mt-4 text-muted border-top">
+            Análise gerada em: 18/04/2025 15:55:47
+        </footer>
+    </div>
+</body>
+</html>

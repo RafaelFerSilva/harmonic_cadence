@@ -9,6 +9,7 @@ packages = [{include = "harmonic_cadence"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 requests = "^2.31.0"
+weasyprint = "^65.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"

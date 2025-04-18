@@ -15,7 +15,7 @@ class AnalysisFormatter:
     @staticmethod
     def format_cifra_lines(cifra_lines: List[str]) -> str:
         """Formata as linhas da cifra para exibição."""
-        result = ["Linhas da cifra:"]
+        result = ["Cifra:"]
         for line in cifra_lines:
             result.append(f"  {line}")
         return "\n".join(result)
@@ -26,7 +26,7 @@ class AnalysisFormatter:
         unique_chords = sorted(set(chord.symbol for chord in chords))
         qualities_counter = Counter()
 
-        result = ["Acordes únicos encontrados:"]
+        result = ["Acordes encontrados:"]
         for chord_symbol in unique_chords:
             chord = Chord(chord_symbol)
             qualities_counter[chord.quality] += 1

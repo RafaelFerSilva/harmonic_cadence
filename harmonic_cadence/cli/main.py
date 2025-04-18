@@ -1,11 +1,14 @@
+import json
 import sys
+import unicodedata
 from typing import Optional
 
+from harmonic_cadence.infra.cifra_api import fetch_song_data
+from harmonic_cadence.presentation.reports.factory import ReportFactory
 from harmonic_cadence.services.analysis_service import AnalysisService
 
 
 def print_header():
-    """Imprime o cabeçalho do programa."""
     print("=" * 80)
     print("Análise Harmônica de Músicas".center(80))
     print("=" * 80)
@@ -13,28 +16,13 @@ def print_header():
 
 
 def format_input(text: str) -> str:
-    """
-    Formata o texto de entrada substituindo espaços por hífens e
-    removendo caracteres especiais.
-    """
-    # Remove espaços extras e converte para minúsculas
     text = text.strip().lower()
-
-    # Substitui espaços por hífens
     text = text.replace(" ", "-")
-
-    # Remove acentos e caracteres especiais (mantém letras, números e hífen)
-    import unicodedata
-
     text = unicodedata.normalize("NFKD", text).encode("ASCII", "ignore").decode("ASCII")
-
     return text
 
 
 def get_input(prompt: str, default: str = "") -> str:
-    """
-    Obtém entrada do usuário com valor padrão e formata adequadamente.
-    """
     value = input(f"{prompt}: ").strip()
     if not value:
         return default
@@ -42,9 +30,6 @@ def get_input(prompt: str, default: str = "") -> str:
 
 
 def validate_input(value: Optional[str], field_name: str) -> str:
-    """
-    Valida e obtém entrada do usuário até que seja válida.
-    """
     while not value:
         print(f"Por favor, informe {field_name.lower()}.")
         value = get_input(field_name)
@@ -52,23 +37,44 @@ def validate_input(value: Optional[str], field_name: str) -> str:
 
 
 def main():
-    """Função principal do programa."""
     try:
         print_header()
-
-        # Inicializa o serviço
         service = AnalysisService()
 
-        # Obtém e valida dados da música
+        # Processa argumentos de linha de comando
+        output_format = "console"  # padrão
+        for arg in sys.argv[1:]:
+            if arg in ("--json", "-j"):
+                output_format = "json"
+            elif arg in ("--markdown", "-m"):
+                output_format = "markdown"
+            elif arg in ("--html", "-h"):
+                output_format = "html"
+
         artist = validate_input(get_input("Artista"), "o artista")
         song = validate_input(get_input("Música"), "a música")
 
-        # Realiza a análise
         print("\nAnalisando... Por favor, aguarde.\n")
-        result = service.analyze_song_from_api(artist, song)
 
-        # Exibe o resultado
-        print(result)
+        # Obtém os dados estruturados
+        data = fetch_song_data(artist, song)
+        result_structured = service.analyze_song_data_structured(data)
+
+        # Gera o relatório no formato desejado
+        if output_format == "json":
+            print(json.dumps(result_structured, ensure_ascii=False, indent=2))
+        elif output_format == "markdown":
+            generator = ReportFactory.create("markdown")
+            filename = generator.generate(result_structured)
+            print(f"Relatório Markdowngerado em: {filename}")
+        elif output_format == "html":
+            generator = ReportFactory.create("html")
+            filename = generator.generate(result_structured)
+            print(f"Relatório HTML gerado em: {filename}")
+        else:
+            # Saída padrão para console
+            result = service.analyze_song_data(data)
+            print(result)
 
     except KeyboardInterrupt:
         print("\nOperação cancelada pelo usuário.")
