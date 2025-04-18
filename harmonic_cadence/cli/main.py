@@ -1,4 +1,5 @@
 import sys
+from typing import Optional
 
 from harmonic_cadence.services.analysis_service import AnalysisService
 
@@ -11,10 +12,43 @@ def print_header():
     print()
 
 
+def format_input(text: str) -> str:
+    """
+    Formata o texto de entrada substituindo espaços por hífens e
+    removendo caracteres especiais.
+    """
+    # Remove espaços extras e converte para minúsculas
+    text = text.strip().lower()
+
+    # Substitui espaços por hífens
+    text = text.replace(" ", "-")
+
+    # Remove acentos e caracteres especiais (mantém letras, números e hífen)
+    import unicodedata
+
+    text = unicodedata.normalize("NFKD", text).encode("ASCII", "ignore").decode("ASCII")
+
+    return text
+
+
 def get_input(prompt: str, default: str = "") -> str:
-    """Obtém entrada do usuário com valor padrão."""
+    """
+    Obtém entrada do usuário com valor padrão e formata adequadamente.
+    """
     value = input(f"{prompt}: ").strip()
-    return value if value else default
+    if not value:
+        return default
+    return format_input(value)
+
+
+def validate_input(value: Optional[str], field_name: str) -> str:
+    """
+    Valida e obtém entrada do usuário até que seja válida.
+    """
+    while not value:
+        print(f"Por favor, informe {field_name.lower()}.")
+        value = get_input(field_name)
+    return value
 
 
 def main():
@@ -25,16 +59,9 @@ def main():
         # Inicializa o serviço
         service = AnalysisService()
 
-        # Obtém dados da música
-        artist = get_input("Artista")
-        while not artist:
-            print("Por favor, informe o artista.")
-            artist = get_input("Artista")
-
-        song = get_input("Música")
-        while not song:
-            print("Por favor, informe a música.")
-            song = get_input("Música")
+        # Obtém e valida dados da música
+        artist = validate_input(get_input("Artista"), "o artista")
+        song = validate_input(get_input("Música"), "a música")
 
         # Realiza a análise
         print("\nAnalisando... Por favor, aguarde.\n")
