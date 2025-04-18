@@ -1,16 +1,27 @@
-FROM python:3.8-slim-buster
+FROM python:3.8-slim
 
+# Instalar dependências do sistema necessárias para lxml
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configurar diretório de trabalho
 WORKDIR /app
 
-RUN pip install \
-  pylint \
-  pylint_flask \
-  pytest \
-  pytest-cov
+# Copiar requirements.txt
+COPY requirements.txt .
 
-COPY app/requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+# Instalar dependências Python
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app/ .
+# Copiar o código da aplicação
+COPY . .
 
-CMD ["python3", "api.py"]
+# Expor a porta
+EXPOSE 3000
+
+# Comando para executar a aplicação
+CMD ["python", "app.py"]
