@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "harmonic_cadence"
+version = "0.1.0"
+description = "Análise harmônica de músicas brasileiras"
+authors = ["Seu Nome <seu.email@exemplo.com>"]
+readme = "README.md"
+packages = [{include = "harmonic_cadence"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "^2.31.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+black = "^23.7.0"
+isort = "^5.12.0"
+flake8 = "^6.1.0"
+mypy = "^1.4.1"
+pytest-cov = "^6.1.1"
+pre-commit = "^4.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.poetry.scripts]
+harmonic = "harmonic_cadence.cli.main:main"
