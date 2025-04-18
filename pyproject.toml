@@ -2,7 +2,7 @@
 name = "harmonic_cadence"
 version = "0.1.0"
 description = "Análise harmônica de músicas brasileiras"
-authors = ["rafael Fernandes da silva rafatecads@gmail.com"]
+authors = ["Rafael Fernandes da silva <rafatecads@gmail.com>"]
 readme = "README.md"
 packages = [{include = "harmonic_cadence"}]
 

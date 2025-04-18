@@ -43,6 +43,8 @@ class AnalysisService:
         try:
             # Busca dados da API
             data = fetch_song_data(artist, song)
+            if not data or "error" in data:
+                raise RuntimeError(f"Música não encontrada: {artist} - {song}")
             # Normaliza encoding e formatação dos dados
             data = self._normalize_text_data(data)
             return self.analyze_song_data(data)
@@ -115,6 +117,17 @@ class AnalysisService:
         Retorna a análise em formato estruturado (dicionário), ideal para APIs ou frontends.
         """
         # Normaliza encoding e formatação dos dados
+        # Validações iniciais
+        if not data:
+            raise RuntimeError("Dados da música não encontrados.")
+
+        if "error" in data:
+            raise RuntimeError(f"Erro nos dados da música: {data['error']}")
+
+        if not data.get("cifra") or len(data["cifra"]) == 0:
+            raise RuntimeError(
+                f"Música não encontrada ou sem cifra: {data.get('artist')} - {data.get('name')}"
+            )
         data = self._normalize_text_data(data)
 
         name = data.get("name", "Desconhecido")
