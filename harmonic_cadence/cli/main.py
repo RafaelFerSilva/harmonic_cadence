@@ -2,7 +2,13 @@ import argparse
 import sys
 from typing import List, Optional
 
-from harmonic_cadence.infra.cifra_api import download_and_cache_song, fetch_song_data
+from harmonic_cadence.infra.cifra_api import (
+    cache_all_artist_songs,
+    download_and_cache_song,
+    fetch_artist_songs,
+    fetch_song_data,
+    load_artist_songs,
+)
 from harmonic_cadence.presentation.reports.factory import ReportFactory
 from harmonic_cadence.services.analysis_service import AnalysisService
 
@@ -52,9 +58,25 @@ class HarmonicCLI:
             help="Arquivo com lista de músicas (uma por linha, formato: artista:musica)",
         )
         cache_parser.add_argument(
+            "--artist",
+            "-a",
+            help="Nome do artista para baixar todas as músicas",
+        )
+        cache_parser.add_argument(
             "--force",
             action="store_true",
             help="Força download mesmo se já existir no cache",
+        )
+
+        # Comando: list
+        list_parser = subparsers.add_parser(
+            "list", help="Lista as músicas de um artista"
+        )
+        list_parser.add_argument("artist", help="Nome do artista")
+        list_parser.add_argument(
+            "--cached",
+            action="store_true",
+            help="Lista apenas músicas em cache",
         )
 
         return parser
@@ -75,6 +97,8 @@ class HarmonicCLI:
                 self._handle_analyze(parsed_args)
             elif parsed_args.command == "cache":
                 self._handle_cache(parsed_args)
+            elif parsed_args.command == "list":
+                self._handle_list(parsed_args)
         except Exception as e:
             print(f"Erro: {str(e)}")
             sys.exit(1)
@@ -82,26 +106,36 @@ class HarmonicCLI:
     def _handle_analyze(self, args: argparse.Namespace) -> None:
         try:
             data = fetch_song_data(args.artist, args.song)
-            # Se fetch_song_data lançar erro, cai no except e não gera arquivo
-
             result = self.analysis_service.analyze_song_data_structured(data)
             if not result or "error" in result:
                 print(
                     f"Música não encontrada ou análise inválida: {args.artist} - {args.song}"
                 )
-                return  # Não gera relatório
+                return
             generator = ReportFactory.create(args.format)
             filename = generator.generate(result)
             print(f"\nRelatório gerado com sucesso: {filename}")
         except Exception as e:
             print(f"Erro ao analisar música: {str(e)}")
-            # Não gera arquivo, apenas exibe erro
 
     def _handle_cache(self, args: argparse.Namespace) -> None:
         """Processa o comando de cache."""
+        # Se --artist foi especificado, baixa todas as músicas do artista
+        if args.artist:
+            try:
+                total, success = cache_all_artist_songs(args.artist, force=args.force)
+                print(f"\nResumo do artista {args.artist}:")
+                print(f"- Total de músicas: {total}")
+                print(f"- Músicas baixadas com sucesso: {success}")
+                print(f"- Falhas: {total - success}")
+                return
+            except Exception as e:
+                print(f"Erro ao baixar músicas do artista {args.artist}: {e}")
+                sys.exit(1)
+
+        # Processa músicas individuais
         songs_to_cache = []
 
-        # Lê do arquivo se especificado
         if args.file:
             try:
                 with open(args.file, "r", encoding="utf-8") as f:
@@ -110,7 +144,6 @@ class HarmonicCLI:
                 print(f"Erro ao ler arquivo {args.file}: {e}")
                 sys.exit(1)
 
-        # Adiciona músicas passadas via linha de comando
         if args.songs:
             songs_to_cache.extend(args.songs)
 
@@ -142,6 +175,26 @@ class HarmonicCLI:
         print("\nResumo:")
         print(f"- Músicas baixadas com sucesso: {success}")
         print(f"- Falhas: {failed}")
+
+    def _handle_list(self, args: argparse.Namespace) -> None:
+        """Lista as músicas de um artista."""
+        try:
+            if args.cached:
+                # Lista músicas do cache
+                songs = load_artist_songs(args.artist)
+            else:
+                # Busca lista atualizada da API
+                data = fetch_artist_songs(args.artist)
+                songs = [song["name"] for song in data["songs"]]
+
+            print(f"\nMúsicas de {args.artist}:")
+            for i, song in enumerate(songs, 1):
+                print(f"{i:3d}. {song}")
+            print(f"\nTotal: {len(songs)} músicas")
+
+        except Exception as e:
+            print(f"Erro ao listar músicas: {e}")
+            sys.exit(1)
 
 
 def main():
