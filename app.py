@@ -194,9 +194,11 @@ def get_artist_songs(artist):
 
         soup = BeautifulSoup(response.text, 'lxml')
 
-        # Encontrar a lista de músicas usando o novo seletor
         songs_list = []
-        songs_container = soup.find('ul', {'class': 'list-links art_musics alf all artistMusics--allSongs', 'id': 'js-a-songs'})
+        songs_container = soup.find('ul', {
+            'class': 'list-links art_musics alf all artistMusics--allSongs',
+            'id': 'js-a-songs'
+        })
 
         if songs_container:
             for song_item in songs_container.find_all('li'):
@@ -205,16 +207,28 @@ def get_artist_songs(artist):
                     song_name = clean_text(song_link.text)
                     song_url = song_link.get('href', '')
 
-                    # Extrair o slug da música da URL
-                    song_slug = song_url.split('/')[-1] if song_url else ''
+                    # Verifica se é uma URL de letra
+                    is_lyrics_only = '/letra/' in song_url.lower()
+
+                    # Extrai o slug da URL
+                    if is_lyrics_only:
+                        # Caso seja URL com /letra/ e ID numérico
+                        if re.search(r'/\d+/letra/', song_url):
+                            song_slug = song_url.split('/')[-3]  # Pega o ID (ex: 925206)
+                        else:
+                            # URL do tipo /artista/nome-da-musica/letra/
+                            song_slug = song_url.split('/')[-2]  # Pega o penúltimo elemento
+                    else:
+                        # URL normal /artista/nome-da-musica/
+                        song_slug = song_url.rstrip('/').split('/')[-1]
 
                     songs_list.append({
                         'name': song_name,
                         'slug': song_slug,
-                        'url': f"https://www.cifraclub.com.br{song_url}"
+                        'url': f"https://www.cifraclub.com.br{song_url}",
+                        'only_lyrics': is_lyrics_only
                     })
 
-        # Informações do artista
         artist_name = soup.find('h1', {'class': 'artist-name'})
         artist_name = clean_text(artist_name.text) if artist_name else artist
 
