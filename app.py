@@ -194,23 +194,25 @@ def get_artist_songs(artist):
 
         soup = BeautifulSoup(response.text, 'lxml')
 
-        # Encontrar a lista de músicas
+        # Encontrar a lista de músicas usando o novo seletor
         songs_list = []
-        songs_container = soup.find('div', {'class': 'artist-songs'})
+        songs_container = soup.find('ul', {'class': 'list-links art_musics alf all artistMusics--allSongs', 'id': 'js-a-songs'})
 
         if songs_container:
-            for song_link in songs_container.find_all('a', {'class': 'song-name'}):
-                song_name = clean_text(song_link.text)
-                song_url = song_link.get('href', '')
+            for song_item in songs_container.find_all('li'):
+                song_link = song_item.find('a')
+                if song_link:
+                    song_name = clean_text(song_link.text)
+                    song_url = song_link.get('href', '')
 
-                # Extrair o slug da música da URL
-                song_slug = song_url.split('/')[-1] if song_url else ''
+                    # Extrair o slug da música da URL
+                    song_slug = song_url.split('/')[-1] if song_url else ''
 
-                songs_list.append({
-                    'name': song_name,
-                    'slug': song_slug,
-                    'url': f"https://www.cifraclub.com.br{song_url}"
-                })
+                    songs_list.append({
+                        'name': song_name,
+                        'slug': song_slug,
+                        'url': f"https://www.cifraclub.com.br{song_url}"
+                    })
 
         # Informações do artista
         artist_name = soup.find('h1', {'class': 'artist-name'})
