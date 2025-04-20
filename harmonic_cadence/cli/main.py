@@ -38,7 +38,7 @@ class HarmonicCLI:
         analyze_parser.add_argument(
             "--format",
             "-f",
-            choices=["html", "pdf", "markdown"],
+            choices=["html", "markdown"],
             default="html",
             help="Formato do relatório (default: html)",
         )

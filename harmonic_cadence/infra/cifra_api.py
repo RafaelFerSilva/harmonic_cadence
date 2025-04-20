@@ -25,14 +25,8 @@ def cifra_slug(text: str) -> str:
     # Remove caracteres especiais, mantendo hífens
     text = re.sub(r"[^\w\s-]", "", text)
 
-    # Lista de exceções (palavras que devem ser mantidas)
-    keep_words = {"de", "do", "da", "dos", "das"}
-
     # Divide o texto em palavras
     words = text.lower().split()
-
-    # Filtra mantendo palavras maiores que 2 letras ou que estejam na lista de exceções
-    words = [w for w in words if len(w) > 2 or w in keep_words]
 
     # Junta as palavras com hífen
     return "-".join(words)
@@ -66,12 +60,10 @@ def fetch_song_data(artist: str, song: str, use_local_fallback: bool = True) -> 
             raise RuntimeError("Música não encontrada na API (404).")
         response.raise_for_status()
         data = response.json()
-        if not data or "error" in data:
+
+        if not data or "error" in data or data is None:
             raise RuntimeError("Música não encontrada na API.")
-        # Salva cópia local
-        os.makedirs(DATA_DIR, exist_ok=True)
-        with open(local_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
+
         return data
 
     except requests.exceptions.ConnectionError:
@@ -112,7 +104,7 @@ def download_and_cache_song(artist: str, song: str, force: bool = False) -> bool
         data = fetch_song_data(artist, song, use_local_fallback=False)
 
         # Valida se os dados são válidos
-        if not data or not data.get("cifra"):
+        if not data or data is None or not data["cifra"] or data["cifra"] == []:
             raise RuntimeError("Dados da música inválidos ou vazios")
 
         # Salva no cache
@@ -200,8 +192,9 @@ def cache_all_artist_songs(artist: str, force: bool = False) -> tuple[int, int]:
         print(f"\nProcessando ({i}/{total_songs}): {song_name}")
 
         try:
-            if download_and_cache_song(artist, song_name, force):
-                successful_downloads += 1
+            if not song["only_lyrics"]:
+                if download_and_cache_song(artist, song_name, force):
+                    successful_downloads += 1
         except Exception as e:
             print(f"Erro ao baixar {song_name}: {e}")
             continue
