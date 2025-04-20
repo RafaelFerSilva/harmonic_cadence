@@ -40,3 +40,7 @@ ENV/
 .coverage
 htmlcov/
 .pytest_cache/
+report_json/
+report_html/
+report_markdown/
+data/

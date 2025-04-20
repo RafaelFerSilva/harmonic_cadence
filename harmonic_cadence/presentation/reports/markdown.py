@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from typing import Any, Dict
 
@@ -12,10 +13,16 @@ class MarkdownReportGenerator(ReportGenerator):
 
     def generate(self, analysis: Dict[str, Any], filename: str = None) -> str:
         """Gera um relatório em formato Markdown."""
+
+        directory = "report_markdown"
+        os.makedirs(directory, exist_ok=True)
+
         if not filename:
             filename = self._generate_safe_filename(
                 analysis["artist"], analysis["name"], "md"
             )
+
+        full_path = os.path.join(directory, filename)
 
         # Cálculo de estatísticas
         total_chords = sum(analysis["chord_qualities"].values())
@@ -30,7 +37,7 @@ class MarkdownReportGenerator(ReportGenerator):
             f"https://www.youtube.com/results?search_query={yt_query.replace(' ', '+')}"
         )
 
-        with open(filename, "w", encoding="utf-8") as f:
+        with open(full_path, "w", encoding="utf-8") as f:
             # Cabeçalho
             f.write(self._generate_header(analysis, yt_link))
 
@@ -53,7 +60,7 @@ class MarkdownReportGenerator(ReportGenerator):
             # Rodapé
             f.write(self._generate_footer())
 
-        return filename
+        return full_path
 
     def _generate_header(self, analysis: Dict[str, Any], yt_link: str) -> str:
         return (

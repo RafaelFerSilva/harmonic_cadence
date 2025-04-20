@@ -54,7 +54,7 @@ def fetch_song_data(artist: str, song: str, use_local_fallback: bool = True) -> 
     local_path = get_cache_path(artist, song)
 
     try:
-        url = f"http://localhost:3000/artists/{artist_slug}/songs/{song_slug}"
+        url = f"http://localhost:3000/api/artists/{artist_slug}/songs/{song_slug}"
         response = requests.get(url)
         if response.status_code == 404:
             raise RuntimeError("Música não encontrada na API (404).")
@@ -132,7 +132,7 @@ def fetch_artist_songs(artist: str) -> dict:
     """
     artist_slug = cifra_slug(artist)
     try:
-        url = f"http://localhost:3000/artists/{artist_slug}/songs"
+        url = f"http://localhost:3000/api/artists/{artist_slug}/songs"
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
@@ -184,7 +184,7 @@ def cache_all_artist_songs(artist: str, force: bool = False) -> tuple[int, int]:
     total_songs = len(artist_data["songs"])
     successful_downloads = 0
 
-    print(f"\nBaixando {total_songs} músicas de {artist_data['artist']}...")
+    print(f"\nBaixando {total_songs} músicas de {artist}...")
 
     # Download cada música individualmente
     for i, song in enumerate(artist_data["songs"], 1):

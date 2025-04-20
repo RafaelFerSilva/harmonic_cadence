@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import datetime
 from typing import Any, Dict
@@ -7,10 +8,15 @@ from .base import ReportGenerator
 
 class HTMLReportGenerator(ReportGenerator):
     def generate(self, analysis: Dict[str, Any], filename: str = None) -> str:
+        directory = "report_html"
+        os.makedirs(directory, exist_ok=True)
+
         if not filename:
             filename = self._generate_safe_filename(
                 analysis["artist"], analysis["name"], "html"
             )
+
+        full_path = os.path.join(directory, filename)
 
         # Cálculo de estatísticas
         total_chords = sum(analysis["chord_qualities"].values())
@@ -25,14 +31,14 @@ class HTMLReportGenerator(ReportGenerator):
             f"https://www.youtube.com/results?search_query={yt_query.replace(' ', '+')}"
         )
 
-        with open(filename, "w", encoding="utf-8") as f:
+        with open(full_path, "w", encoding="utf-8") as f:
             f.write(
                 self._generate_html_document(
                     analysis, yt_link, total_chords, major, minor, major_pct, minor_pct
                 )
             )
 
-        return filename
+        return full_path
 
     def _process_cifra_line(self, line: str) -> str:
         chord_pattern = (

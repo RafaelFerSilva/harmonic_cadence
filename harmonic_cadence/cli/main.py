@@ -38,9 +38,9 @@ class HarmonicCLI:
         analyze_parser.add_argument(
             "--format",
             "-f",
-            choices=["html", "markdown"],
-            default="html",
-            help="Formato do relatório (default: html)",
+            choices=["html", "json", "markdown"],
+            default="json",
+            help="Formato do relatório (default: json)",
         )
 
         # Comando: cache

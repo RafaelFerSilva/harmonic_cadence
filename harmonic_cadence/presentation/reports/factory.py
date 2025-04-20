@@ -2,6 +2,7 @@ from typing import Dict, Type
 
 from .base import ReportGenerator
 from .html import HTMLReportGenerator
+from .json import JSONReportGenerator
 from .markdown import MarkdownReportGenerator
 
 
@@ -11,6 +12,7 @@ class ReportFactory:
     _generators: Dict[str, Type[ReportGenerator]] = {
         "markdown": MarkdownReportGenerator,
         "html": HTMLReportGenerator,
+        "json": JSONReportGenerator,
     }
 
     @classmethod

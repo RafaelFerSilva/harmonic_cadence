@@ -18,7 +18,7 @@ Análise de Músicas
 Você pode analisar músicas usando diferentes formatos de saída (HTML, PDF, Markdown).
 
 
-### Análise básica (formato HTML padrão)
+### Análise básica (formato JSON padrão)
     poetry run harmonic analyze "Djavan" "Sina"
 
 ### Especificando formato HTML explicitamente
@@ -74,6 +74,18 @@ E então usar o comando:
     poetry run harmonic cache --file musicas.txt
 
 
+# Listar músicas de um artista
+poetry run harmonic list "zeca pagodinho"
+
+# Listar apenas músicas em cache
+poetry run harmonic list "zeca pagodinho" --cached
+
+# Baixar todas as músicas de um artista
+poetry run harmonic cache --artist "zeca pagodinho"
+
+# Forçar download de todas as músicas (mesmo que já existam em cache)
+poetry run harmonic cache --artist "zeca pagodinho" --force
+
 ## Ajuda
 
 ```
@@ -124,6 +136,7 @@ poetry run harmonic analyze "Chico Buarque" "Construção"
 - O formato do arquivo de músicas deve ser "artista:musica" (um por linha)
 
 ## Formatos de Saída
+- JSON: Formato padrão para integração com sistemas
 - HTML: Relatório interativo para visualização em navegador
 - Markdown: Formato texto simples para documentação ou GitHub
 
@@ -137,20 +150,3 @@ poetry run harmonic analyze "Djavan" "Sina"
 # Música não encontrada
 poetry run harmonic analyze "Artista Inexistente" "Música Inexistente"
 ```
-
-
-# Listar músicas de um artista
-poetry run harmonic list "zeca pagodinho"
-
-# Listar apenas músicas em cache
-poetry run harmonic list "zeca pagodinho" --cached
-
-# Baixar todas as músicas de um artista
-poetry run harmonic cache --artist "zeca pagodinho"
-
-# Forçar download de todas as músicas (mesmo que já existam em cache)
-poetry run harmonic cache --artist "zeca pagodinho" --force
-
-# Os comandos antigos continuam funcionando da mesma forma
-poetry run harmonic analyze "zeca pagodinho" "verdade"
-poetry run harmonic cache --songs "zeca pagodinho:verdade"
