@@ -121,7 +121,7 @@ class HTMLReportGenerator(ReportGenerator):
 <body>
     <div class="container py-4">
         <header class="pb-3 mb-4 border-bottom">
-            <h1 class="display-5 fw-bold">Análise Harmônica de Música</h1>
+            <h1 class="display-5 fw-bold">Análise Harmônica</h1>
         </header>
 
         <!-- Informações Gerais -->

@@ -70,18 +70,18 @@ class Chord:
 
     def _determine_quality(self) -> ChordQuality:
         s = self.symbol.lower()
-        if "dim" in s or "°" in s:
-            return ChordQuality.DIMINISHED
         if "m7b5" in s:
             return ChordQuality.HALF_DIMINISHED
+        if "dim" in s or "°" in s:
+            return ChordQuality.DIMINISHED
         if "aug" in s:
             return ChordQuality.AUGMENTED
+        if "maj" in s or "M" in self.symbol:
+            return ChordQuality.MAJOR
         if "m" in s and "maj" not in s:
             return ChordQuality.MINOR
         if "7" in s and "m" not in s and "maj" not in s:
             return ChordQuality.DOMINANT
-        if "maj" in s or "M" in self.symbol:
-            return ChordQuality.MAJOR
         return ChordQuality.MAJOR  # default
 
     def _extract_bass(self) -> Optional[str]:

@@ -9,7 +9,6 @@ from harmonic_cadence.infra.cifra_api import (
     cache_all_artist_songs,
     download_and_cache_song,
     fetch_artist_songs,
-    fetch_song_data,
     load_artist_songs,
 )
 from harmonic_cadence.presentation.reports.factory import ReportFactory
@@ -131,8 +130,9 @@ class HarmonicCLI:
                 return
 
             try:
-                data = fetch_song_data(args.artist, args.song)
-                result = self.analysis_service.analyze_song_data_structured(data)
+                result = self.analysis_service.analyze_song_from_api(
+                    args.artist, args.song
+                )
                 if not result or "error" in result:
                     print(
                         f"Música não encontrada ou análise inválida: {args.artist} - {args.song}"
@@ -163,9 +163,8 @@ class HarmonicCLI:
             def process_song(song: str) -> Optional[Dict]:
                 """Função de processamento para paralelização."""
                 try:
-                    song_data = fetch_song_data(args.artist, song)
-                    result = self.analysis_service.analyze_song_data_structured(
-                        song_data
+                    result = self.analysis_service.analyze_song_from_api(
+                        args.artist, song
                     )
 
                     if not result or "error" in result:

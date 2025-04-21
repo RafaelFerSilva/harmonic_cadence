@@ -1,3 +1,4 @@
+import re
 from typing import Any, Counter, Dict, List
 
 from harmonic_cadence.domain.cadence import analyze_cadences
@@ -36,16 +37,272 @@ class AnalysisService:
 
         return normalized
 
+    def remove_html_tags(self, text: str) -> str:
+        clean = re.sub(r'<[^>]+>', '', text)
+        return clean
+
     def _extract_chords(self, cifra_lines: List[str]) -> List[Chord]:
-        """
-        Extrai todos os acordes das linhas da cifra.
-        """
         all_chords = []
         for line in cifra_lines:
-            matches = ChordPattern.find_all(line)
+            clean_line = self.remove_html_tags(line)
+            matches = ChordPattern.find_all(clean_line)
             if matches:
                 all_chords.extend([Chord(m) for m in matches])
         return all_chords
+
+    def _validate_input_data(self, data: Dict[str, Any]) -> Dict[str, Any] | None:
+        if not data:
+            return {"success": False, "error": "Dados da música não encontrados."}
+        if "error" in data:
+            return {
+                "success": False,
+                "error": f"Erro nos dados da música: {data['error']}",
+            }
+        if not data.get("cifra"):
+            return {
+                "success": False,
+                "error": f"Música sem cifra: {data.get('artist', 'Artista desconhecido')} - {data.get('name', 'Nome desconhecido')}",
+            }
+        if isinstance(data.get("cifra"), list) and len(data["cifra"]) == 0:
+            return {
+                "success": False,
+                "error": f"Cifra vazia: {data.get('artist', 'Artista desconhecido')} - {data.get('name', 'Nome desconhecido')}",
+            }
+        return None
+
+    def _determine_key_and_mode(self, all_chords, data):
+        try:
+            key, mode = HarmonicAnalysis.guess_key(all_chords)
+            if not key:
+                partial_results = {
+                    "name": data.get("name", "Desconhecido"),
+                    "artist": data.get("artist", "Desconhecido"),
+                    "unique_chords": sorted(set(chord.symbol for chord in all_chords)),
+                    "chord_qualities": dict(
+                        Counter(chord.quality for chord in all_chords)
+                    ),
+                }
+                return (
+                    None,
+                    None,
+                    partial_results,
+                    "Não foi possível determinar a tonalidade.",
+                )
+            return key, mode, None, None
+        except Exception as e:
+            return None, None, None, f"Erro na determinação da tonalidade: {str(e)}"
+
+    def _analyze_degrees(self, analysis, all_chords, data, key, mode):
+        try:
+            degree_seq = (
+                [analysis.get_degree(chord) or "-" for chord in all_chords]
+                if analysis
+                else []
+            )
+            if analysis and not any(deg != "-" for deg in degree_seq):
+                partial_results = {
+                    "name": data.get("name", "Desconhecido"),
+                    "artist": data.get("artist", "Desconhecido"),
+                    "key": key,
+                    "mode": mode,
+                    "unique_chords": sorted(set(chord.symbol for chord in all_chords)),
+                }
+                return (
+                    None,
+                    "Não foi possível analisar os graus harmônicos dos acordes.",
+                    partial_results,
+                )
+            return degree_seq, None, None
+        except Exception as e:
+            return None, f"Erro na análise de graus: {str(e)}", None
+
+    def _detailed_harmonic_analysis(self, analysis, all_chords):
+        harmonic_analysis = []
+        try:
+            for chord in all_chords:
+                try:
+                    chord_analysis = {
+                        "chord": chord.symbol,
+                        "degree": analysis.get_degree(chord) if analysis else None,
+                        "quality": chord.quality,
+                    }
+                    if analysis:
+                        function_result = analysis.analyze_function(chord)
+                        chord_analysis.update(
+                            {
+                                "function": (
+                                    function_result[1]
+                                    if len(function_result) > 1
+                                    else None
+                                ),
+                                "function_code": (
+                                    function_result[0]
+                                    if len(function_result) > 0
+                                    else None
+                                ),
+                                "function_description": (
+                                    function_result[2]
+                                    if len(function_result) > 2
+                                    else None
+                                ),
+                            }
+                        )
+                    harmonic_analysis.append(chord_analysis)
+                except Exception as e:
+                    print(f"Aviso: Erro ao analisar acorde {chord.symbol}: {str(e)}")
+                    harmonic_analysis.append(
+                        {
+                            "chord": chord.symbol,
+                            "error": f"Não foi possível analisar: {str(e)}",
+                        }
+                    )
+        except Exception as e:
+            raise RuntimeError(f"Erro na análise harmônica detalhada: {str(e)}")
+        return harmonic_analysis
+
+    def _build_result(
+        self,
+        data,
+        cifra_lines,
+        all_chords,
+        key,
+        mode,
+        harmonic_analysis,
+        analysis_progression,
+        function_stats,
+        cadences,
+    ):
+        return {
+            "success": True,
+            "name": data.get("name", "Desconhecido"),
+            "artist": data.get("artist", "Desconhecido"),
+            "cifra_lines": cifra_lines,
+            "cifra_html": data.get("cifra_html", ""),
+            "unique_chords": sorted(set(chord.symbol for chord in all_chords)),
+            "chord_qualities": dict(Counter(chord.quality for chord in all_chords)),
+            "key": key,
+            "mode": mode,
+            "harmonic_analysis": harmonic_analysis,
+            "analysis_progression": analysis_progression,
+            "function_stats": function_stats,
+            "cadences": {k: list(v) for k, v in cadences.items()} if cadences else {},
+        }
+
+    def analyze_song_data_structured(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        try:
+            # Valida dados básicos
+            validation_error = self._validate_input_data(data)
+            if validation_error:
+                return validation_error
+
+            # Normaliza dados
+            try:
+                data = self._normalize_text_data(data)
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": f"Erro na normalização dos dados: {str(e)}",
+                }
+
+            # Extrai e filtra linhas da cifra
+            cifra_lines = data.get("cifra", [])
+            try:
+                cifra_lines = filter_cifra_lines(cifra_lines)
+                if not cifra_lines:
+                    return {
+                        "success": False,
+                        "error": "Cifra não contém linhas válidas após filtragem.",
+                    }
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": f"Erro na filtragem da cifra: {str(e)}",
+                }
+
+            # Extrai acordes
+            try:
+                all_chords = self._extract_chords(cifra_lines)
+                if not all_chords:
+                    return {
+                        "success": False,
+                        "error": "Nenhum acorde válido encontrado na cifra.",
+                    }
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": f"Erro na extração de acordes: {str(e)}",
+                }
+
+            # Determina tonalidade
+            key, mode, partial_results, error = self._determine_key_and_mode(
+                all_chords, data
+            )
+            if error:
+                return {
+                    "success": False,
+                    "error": error,
+                    "partial_results": partial_results,
+                }
+
+            # Cria analisador harmônico
+            analysis = HarmonicAnalysis(key, mode) if key else None
+
+            # Analisa graus harmônicos
+            degree_seq, error, partial_results = self._analyze_degrees(
+                analysis, all_chords, data, key, mode
+            )
+            if error:
+                return {
+                    "success": False,
+                    "error": error,
+                    "partial_results": partial_results,
+                }
+
+            # Analisa cadências
+            try:
+                cadences = (
+                    analyze_cadences(
+                        degree_seq, mode, [chord.symbol for chord in all_chords]
+                    )
+                    if analysis and degree_seq
+                    else {}
+                )
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": f"Erro na análise de cadências: {str(e)}",
+                }
+
+            # Análise harmônica detalhada
+            harmonic_analysis = self._detailed_harmonic_analysis(analysis, all_chords)
+
+            # Análise de progressões
+            analysis_progression = (
+                analysis.analyze_progressions(harmonic_analysis) if analysis else []
+            )
+
+            # Estatísticas de funções
+            function_stats = (
+                analysis.analyze_function_stats(harmonic_analysis)
+                if harmonic_analysis
+                else []
+            )
+
+            # Monta resultado final
+            return self._build_result(
+                data,
+                cifra_lines,
+                all_chords,
+                key,
+                mode,
+                harmonic_analysis,
+                analysis_progression,
+                function_stats,
+                cadences,
+            )
+
+        except Exception as e:
+            raise RuntimeError(f"Erro crítico na análise da música: {str(e)}")
 
     def analyze_song_from_api(self, artist: str, song: str) -> str:
         """
@@ -58,130 +315,6 @@ class AnalysisService:
                 raise RuntimeError(f"Música não encontrada: {artist} - {song}")
             # Normaliza encoding e formatação dos dados
             data = self._normalize_text_data(data)
-            return self.analyze_song_data(data)
+            return self.analyze_song_data_structured(data)
         except Exception as e:
             return f"Erro ao analisar música: {str(e)}"
-
-    def analyze_song_data(self, data: Dict[str, Any]) -> str:
-        """
-        Realiza análise completa dos dados de uma música.
-        """
-        try:
-            # Normaliza encoding e formatação dos dados
-            data = self._normalize_text_data(data)
-
-            # Extrai informações básicas
-            name = data.get("name", "Desconhecido")
-            artist = data.get("artist", "Desconhecido")
-            cifra_lines = data.get("cifra", [])
-            cifra_html = data.get("cifra_html", "")
-
-            # Filtra linhas indesejadas (tablaturas, marcações, etc.)
-            cifra_lines = filter_cifra_lines(cifra_lines)
-
-            print(f"\nAnalisando: {name} - {artist}\n")
-
-            # Extrai acordes
-            all_chords = self._extract_chords(cifra_lines)
-            if not all_chords:
-                return "Nenhum acorde encontrado na cifra."
-
-            # Determina tonalidade
-            key, mode = HarmonicAnalysis.guess_key(all_chords)
-            if not key:
-                return "Não foi possível determinar a tonalidade."
-
-            # Cria analisador harmônico
-            analysis = HarmonicAnalysis(key, mode)
-
-            # Analisa cadências
-            degree_seq = [analysis.get_degree(chord) or "-" for chord in all_chords]
-            cadences = analyze_cadences(
-                degree_seq, mode, [chord.symbol for chord in all_chords]
-            )
-
-            # Formata resultado completo
-            return self.formatter.format_complete_analysis(
-                cifra_lines=cifra_lines,
-                cifra_html=cifra_html,
-                chords=all_chords,
-                key=key,
-                mode=mode,
-                analysis=analysis,
-                cadences=cadences,
-            )
-
-        except Exception as e:
-            return f"Erro durante a análise: {str(e)}"
-
-    def analyze_song_data_structured(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Retorna a análise em formato estruturado (dicionário), ideal para APIs ou frontends.
-        """
-        # Normaliza encoding e formatação dos dados
-        # Validações iniciais
-        if not data:
-            raise RuntimeError("Dados da música não encontrados.")
-
-        if "error" in data:
-            raise RuntimeError(f"Erro nos dados da música: {data['error']}")
-
-        if not data.get("cifra") or len(data["cifra"]) == 0:
-            raise RuntimeError(
-                f"Música não encontrada ou sem cifra: {data.get('artist')} - {data.get('name')}"
-            )
-        data = self._normalize_text_data(data)
-
-        name = data.get("name", "Desconhecido")
-        artist = data.get("artist", "Desconhecido")
-        cifra_lines = data.get("cifra", [])
-        cifra_html = data.get("cifra_html", "")
-        cifra_lines = filter_cifra_lines(cifra_lines)
-
-        all_chords = self._extract_chords(cifra_lines)
-        key, mode = HarmonicAnalysis.guess_key(all_chords)
-        analysis = HarmonicAnalysis(key, mode) if key else None
-        degree_seq = (
-            [analysis.get_degree(chord) or "-" for chord in all_chords]
-            if analysis
-            else []
-        )
-        cadences = (
-            analyze_cadences(degree_seq, mode, [chord.symbol for chord in all_chords])
-            if analysis
-            else {}
-        )
-
-        harmonic_analysis = [
-            {
-                "chord": chord.symbol,
-                "degree": analysis.get_degree(chord) if analysis else None,
-                "quality": chord.quality,
-                "function": analysis.analyze_function(chord)[1] if analysis else None,
-                "function_code": (
-                    analysis.analyze_function(chord)[0] if analysis else None
-                ),
-                "function_description": (
-                    analysis.analyze_function(chord)[2] if analysis else None
-                ),
-            }
-            for chord in all_chords
-        ]
-
-        analysis_progression = analysis.analyze_progressions(harmonic_analysis)
-        function_stats = HarmonicAnalysis.analyze_function_stats(harmonic_analysis)
-
-        return {
-            "name": name,
-            "artist": artist,
-            "cifra_lines": cifra_lines,
-            "cifra_html": cifra_html,
-            "unique_chords": sorted(set(chord.symbol for chord in all_chords)),
-            "chord_qualities": dict(Counter(chord.quality for chord in all_chords)),
-            "key": key,
-            "mode": mode,
-            "harmonic_analysis": harmonic_analysis if analysis else [],
-            "analysis_progression": analysis_progression if analysis else [],
-            "function_stats": function_stats if analysis else [],
-            "cadences": {k: list(v) for k, v in cadences.items()} if cadences else {},
-        }

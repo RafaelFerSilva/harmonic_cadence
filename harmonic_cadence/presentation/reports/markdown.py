@@ -64,7 +64,7 @@ class MarkdownReportGenerator(ReportGenerator):
 
     def _generate_header(self, analysis: Dict[str, Any], yt_link: str) -> str:
         return (
-            f"# Análise Harmônica de Música\n\n"
+            f"# Análise Harmônica\n\n"
             f"**Artista:** {analysis['artist']}\n\n"
             f"**Música:** {analysis['name']}\n\n"
             f"**Tonalidade sugerida:** {analysis['key']} ({analysis['mode']})\n\n"
