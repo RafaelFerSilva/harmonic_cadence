@@ -19,13 +19,15 @@ class CifraClubRepository:
             line for line in processed_lines if line is not None and line.strip()
         ]
         cifra_lines = clean_cifra_lines(cifra_lines)
+        cifra_html = raw_data.get('cifra_html', '')
 
         return Cifra(
             artist=raw_data['artist'],
             name=raw_data['title'],
             youtube_url=raw_data['youtube_link'],
             cifraclub_url=raw_data['url'],
-            cifra=cifra_lines if cifra_lines else None
+            cifra=cifra_lines if cifra_lines else None,
+            cifra_html=cifra_html
         )
 
     def get_artist_songs(self, artist: str) -> list[dict]:

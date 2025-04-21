@@ -18,6 +18,7 @@ class CifraClubScraper:
             'artist': fix_encoding(artist_name.text.strip() if artist_name else artist),
             'title': fix_encoding(title.text.strip() if title else song),
             'cifra_div_text': cifra_div.get_text(separator='\n', strip=True) if cifra_div else '',
+            'cifra_html': str(cifra_div),
             'youtube_link': youtube_link,
             'url': url
         }
