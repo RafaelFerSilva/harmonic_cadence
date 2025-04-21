@@ -81,7 +81,10 @@ class JSONReportGenerator(ReportGenerator):
                 for item in analysis["function_stats"]
             ],
             "cadences": self._process_cadences(analysis["cadences"]),
-            "raw_data": {"cifra": analysis["cifra_lines"]},
+            "raw_data": {
+                "cifra": analysis["cifra_lines"],
+                "cifra_html": analysis.get("cifra_html", ""),
+            },
         }
 
         with open(full_path, "w", encoding="utf-8") as f:

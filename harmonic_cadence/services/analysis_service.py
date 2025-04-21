@@ -74,6 +74,7 @@ class AnalysisService:
             name = data.get("name", "Desconhecido")
             artist = data.get("artist", "Desconhecido")
             cifra_lines = data.get("cifra", [])
+            cifra_html = data.get("cifra_html", "")
 
             # Filtra linhas indesejadas (tablaturas, marcações, etc.)
             cifra_lines = filter_cifra_lines(cifra_lines)
@@ -102,6 +103,7 @@ class AnalysisService:
             # Formata resultado completo
             return self.formatter.format_complete_analysis(
                 cifra_lines=cifra_lines,
+                cifra_html=cifra_html,
                 chords=all_chords,
                 key=key,
                 mode=mode,
@@ -133,6 +135,7 @@ class AnalysisService:
         name = data.get("name", "Desconhecido")
         artist = data.get("artist", "Desconhecido")
         cifra_lines = data.get("cifra", [])
+        cifra_html = data.get("cifra_html", "")
         cifra_lines = filter_cifra_lines(cifra_lines)
 
         all_chords = self._extract_chords(cifra_lines)
@@ -172,6 +175,7 @@ class AnalysisService:
             "name": name,
             "artist": artist,
             "cifra_lines": cifra_lines,
+            "cifra_html": cifra_html,
             "unique_chords": sorted(set(chord.symbol for chord in all_chords)),
             "chord_qualities": dict(Counter(chord.quality for chord in all_chords)),
             "key": key,

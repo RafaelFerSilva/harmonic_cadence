@@ -124,6 +124,7 @@ class AnalysisFormatter:
     @staticmethod
     def format_complete_analysis(
         cifra_lines: List[str],
+        cifra_html: str,
         chords: List[Chord],
         key: str,
         mode: str,
@@ -141,6 +142,8 @@ class AnalysisFormatter:
             AnalysisFormatter.format_harmonic_analysis(chords, analysis),
             "",
             AnalysisFormatter.format_cadences(cadences),
+            "",
+            cifra_html,
         ]
 
         return "\n".join(sections)
