@@ -1,6 +1,9 @@
 import argparse
 import sys
-from typing import List, Optional
+from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, List, Optional
+
+from tqdm import tqdm
 
 from harmonic_cadence.infra.cifra_api import (
     cache_all_artist_songs,
@@ -31,10 +34,23 @@ class HarmonicCLI:
 
         # Comando: analyze
         analyze_parser = subparsers.add_parser(
-            "analyze", help="Analisa uma música específica"
+            "analyze", help="Analisa uma música específica ou todas do artista"
         )
         analyze_parser.add_argument("artist", help="Nome do artista")
-        analyze_parser.add_argument("song", help="Nome da música")
+
+        # Argumento song agora é opcional quando --all é usado
+        analyze_parser.add_argument(
+            "song",
+            nargs="?",  # Torna o argumento opcional
+            default=None,
+            help="Nome da música (omitir quando usar --all)",
+        )
+
+        analyze_parser.add_argument(
+            "--all",
+            action="store_true",
+            help="Analisa todas as músicas do artista (em vez de uma específica)",
+        )
         analyze_parser.add_argument(
             "--format",
             "-f",
@@ -104,19 +120,114 @@ class HarmonicCLI:
             sys.exit(1)
 
     def _handle_analyze(self, args: argparse.Namespace) -> None:
-        try:
-            data = fetch_song_data(args.artist, args.song)
-            result = self.analysis_service.analyze_song_data_structured(data)
-            if not result or "error" in result:
-                print(
-                    f"Música não encontrada ou análise inválida: {args.artist} - {args.song}"
-                )
+        if args.all:
+            if args.song:
+                print("Aviso: O nome da música será ignorado quando usar --all")
+            self._handle_analyze_all(args)
+        else:
+            if not args.song:
+                print("Erro: É necessário especificar uma música ou usar --all")
+                self.parser.print_help()
                 return
-            generator = ReportFactory.create(args.format)
-            filename = generator.generate(result)
-            print(f"\nRelatório gerado com sucesso: {filename}")
+
+            try:
+                data = fetch_song_data(args.artist, args.song)
+                result = self.analysis_service.analyze_song_data_structured(data)
+                if not result or "error" in result:
+                    print(
+                        f"Música não encontrada ou análise inválida: {args.artist} - {args.song}"
+                    )
+                    return
+                generator = ReportFactory.create(args.format)
+                filename = generator.generate(result)
+                print(f"\nRelatório gerado com sucesso: {filename}")
+            except Exception as e:
+                print(f"Erro ao analisar música: {str(e)}")
+
+    def _handle_analyze_all(self, args: argparse.Namespace) -> None:
+        """Analisa todas as músicas de um artista com paralelização."""
+        try:
+            # Obter lista de músicas
+            data = fetch_artist_songs(args.artist)
+            songs = [song["name"] for song in data["songs"]]
+
+            print(f"\nIniciando análise de {len(songs)} músicas de {args.artist}...")
+            print(f"Formato do relatório: {args.format}")
+
+            # Configurações de paralelismo
+            max_workers = min(4, len(songs))
+            report_generator = ReportFactory.create(args.format)
+            consolidated_results = []
+            stats = {"success": 0, "failed": 0, "errors": []}
+
+            def process_song(song: str) -> Optional[Dict]:
+                """Função de processamento para paralelização."""
+                try:
+                    song_data = fetch_song_data(args.artist, song)
+                    result = self.analysis_service.analyze_song_data_structured(
+                        song_data
+                    )
+
+                    if not result or "error" in result:
+                        stats["failed"] += 1
+                        stats["errors"].append(f"{song}: Análise inválida")
+                        return None
+
+                    stats["success"] += 1
+                    return result
+
+                except Exception as e:
+                    stats["failed"] += 1
+                    stats["errors"].append(f"{song}: {str(e)}")
+                    return None
+
+            # Processamento paralelo
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = [executor.submit(process_song, song) for song in songs]
+
+                with tqdm(total=len(songs), desc="Progresso") as pbar:
+                    for future in futures:
+                        result = future.result()
+                        if result:
+                            if hasattr(args, "consolidated") and args.consolidated:
+                                consolidated_results.append(result)
+                            else:
+                                filename = report_generator.generate(result)
+                                print(f"  [✓] {result['name']} -> {filename}")
+                        pbar.update(1)
+
+            # Geração de relatório consolidado
+            if (
+                hasattr(args, "consolidated")
+                and args.consolidated
+                and consolidated_results
+            ):
+                consolidated_data = {
+                    "artist": args.artist,
+                    "total_songs": len(songs),
+                    "successful_analysis": stats["success"],
+                    "failed_analysis": stats["failed"],
+                    "songs": consolidated_results,
+                    "errors": stats["errors"],
+                }
+                filename = report_generator.generate(consolidated_data)
+                print(f"\nRelatório consolidado gerado: {filename}")
+
+            # Resumo final
+            print(f"\nResumo da análise de {args.artist}:")
+            print(f"- Músicas analisadas com sucesso: {stats['success']}")
+            print(f"- Falhas: {stats['failed']}")
+
+            if stats["failed"] > 0:
+                print("\nErros encontrados:")
+                for error in stats["errors"][:5]:  # Mostra apenas os 5 primeiros erros
+                    print(f"  • {error}")
+                if len(stats["errors"]) > 5:
+                    print(f"  (... mais {len(stats['errors']) - 5} erros)")
+
         except Exception as e:
-            print(f"Erro ao analisar música: {str(e)}")
+            print(f"\nErro fatal ao analisar músicas do artista: {str(e)}")
+            sys.exit(1)
 
     def _handle_cache(self, args: argparse.Namespace) -> None:
         """Processa o comando de cache."""

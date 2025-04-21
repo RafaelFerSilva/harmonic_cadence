@@ -36,6 +36,17 @@ class AnalysisService:
 
         return normalized
 
+    def _extract_chords(self, cifra_lines: List[str]) -> List[Chord]:
+        """
+        Extrai todos os acordes das linhas da cifra.
+        """
+        all_chords = []
+        for line in cifra_lines:
+            matches = ChordPattern.find_all(line)
+            if matches:
+                all_chords.extend([Chord(m) for m in matches])
+        return all_chords
+
     def analyze_song_from_api(self, artist: str, song: str) -> str:
         """
         Realiza análise completa de uma música a partir da API.
@@ -101,17 +112,6 @@ class AnalysisService:
         except Exception as e:
             return f"Erro durante a análise: {str(e)}"
 
-    def _extract_chords(self, cifra_lines: List[str]) -> List[Chord]:
-        """
-        Extrai todos os acordes das linhas da cifra.
-        """
-        all_chords = []
-        for line in cifra_lines:
-            matches = ChordPattern.find_all(line)
-            if matches:
-                all_chords.extend([Chord(m) for m in matches])
-        return all_chords
-
     def analyze_song_data_structured(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Retorna a análise em formato estruturado (dicionário), ideal para APIs ou frontends.
@@ -149,6 +149,25 @@ class AnalysisService:
             else {}
         )
 
+        harmonic_analysis = [
+            {
+                "chord": chord.symbol,
+                "degree": analysis.get_degree(chord) if analysis else None,
+                "quality": chord.quality,
+                "function": analysis.analyze_function(chord)[1] if analysis else None,
+                "function_code": (
+                    analysis.analyze_function(chord)[0] if analysis else None
+                ),
+                "function_description": (
+                    analysis.analyze_function(chord)[2] if analysis else None
+                ),
+            }
+            for chord in all_chords
+        ]
+
+        analysis_progression = analysis.analyze_progressions(harmonic_analysis)
+        function_stats = HarmonicAnalysis.analyze_function_stats(harmonic_analysis)
+
         return {
             "name": name,
             "artist": artist,
@@ -157,24 +176,8 @@ class AnalysisService:
             "chord_qualities": dict(Counter(chord.quality for chord in all_chords)),
             "key": key,
             "mode": mode,
-            "harmonic_analysis": [
-                {
-                    "chord": chord.symbol,
-                    "degree": analysis.get_degree(chord) if analysis else None,
-                    "quality": chord.quality,
-                    "function": analysis.analyze_function(chord)[1]
-                    if analysis
-                    else None,
-                    "function_code": analysis.analyze_function(chord)[0]
-                    if analysis
-                    else None,
-                    "function_description": analysis.analyze_function(chord)[2]
-                    if analysis
-                    else None,
-                }
-                for chord in all_chords
-            ]
-            if analysis
-            else [],
+            "harmonic_analysis": harmonic_analysis if analysis else [],
+            "analysis_progression": analysis_progression if analysis else [],
+            "function_stats": function_stats if analysis else [],
             "cadences": {k: list(v) for k, v in cadences.items()} if cadences else {},
         }

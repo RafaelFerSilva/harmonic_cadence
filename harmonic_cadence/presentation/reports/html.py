@@ -71,185 +71,189 @@ class HTMLReportGenerator(ReportGenerator):
         cifra_content = self._generate_cifra_section(analysis["cifra_lines"])
 
         return f"""
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análise Harmônica - {analysis['artist']} - {analysis['name']}</title>
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-    <link
-        href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap"
-        rel="stylesheet"
-    >
-    <style>
-        :root {{
-            --chord-color: #2D6CDF;
-            --section-color: #666;
-        }}
-
-        body {{
-            background: #f8f9fa;
-            line-height: 1.5;
-        }}
-
-        @page {{
-            size: A4;
-            margin: 2.5cm 2cm 2.5cm 2cm;
-        }}
-
-        @page {{
-            @top-center {{
-                content: element(header);
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Análise Harmônica - {analysis['artist']} - {analysis['name']}</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        >
+        <link
+            href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap"
+            rel="stylesheet"
+        >
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            :root {{
+                --chord-color: #2D6CDF;
+                --section-color: #666;
             }}
-            @bottom-center {{
-                content: "Página " counter(page) " de " counter(pages);
-                font-size: 0.95em;
-                color: #888;
-                border-top: 1px solid #ddd;
-                padding-top: 0.2cm;
-                margin-top: 0.5cm;
+
+            body {{
+                background: #f8f9fa;
+                line-height: 1.5;
             }}
-        }}
 
-        #pdf-header {{
-            position: running(header);
-            text-align: center;
-            font-size: 1.1em;
-            color: #2D6CDF;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 0.2cm;
-            margin-bottom: 0.5cm;
-        }}
+            @page {{
+                size: A4;
+                margin: 2.5cm 2cm 2.5cm 2cm;
+            }}
 
-        .cifra-container {{
-            display: flex;
-            gap: 2rem;
-            margin-top: 2rem;
-        }}
+            @page {{
+                @top-center {{
+                    content: element(header);
+                }}
+                @bottom-center {{
+                    content: "Página " counter(page) " de " counter(pages);
+                    font-size: 0.95em;
+                    color: #888;
+                    border-top: 1px solid #ddd;
+                    padding-top: 0.2cm;
+                    margin-top: 0.5cm;
+                }}
+            }}
 
-        .cifra-column--left {{
-            flex: 2;
-            min-width: 0;
-        }}
+            #pdf-header {{
+                position: running(header);
+                text-align: center;
+                font-size: 1.1em;
+                color: #2D6CDF;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 0.2cm;
+                margin-bottom: 0.5cm;
+            }}
 
-        .cifra-column--right {{
-            flex: 1;
-            min-width: 300px;
-        }}
-
-        .cifra-content {{
-            font-family: 'Roboto Mono', monospace;
-            background: #fff;
-            border-radius: 8px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            font-size: 0.95rem;
-            line-height: 1.6;
-            overflow-x: auto;
-        }}
-
-        .chord-line {{
-            color: var(--chord-color);
-            font-weight: 500;
-            padding: 0.2rem 0;
-            white-space: pre;
-        }}
-
-        .lyric-line {{
-            padding: 0.2rem 0;
-            white-space: pre;
-        }}
-
-        .lyric-line .chord {{
-            color: var(--chord-color);
-            font-weight: 500;
-        }}
-
-        .empty-line {{
-            height: 1rem;
-        }}
-
-        .section-name {{
-            color: var(--section-color);
-            font-weight: 500;
-            margin-top: 1rem;
-        }}
-
-        @media (max-width: 768px) {{
             .cifra-container {{
-                flex-direction: column;
+                display: flex;
+                gap: 2rem;
+                margin-top: 2rem;
             }}
+
+            .cifra-column--left {{
+                flex: 2;
+                min-width: 0;
+            }}
+
             .cifra-column--right {{
-                min-width: 100%;
+                flex: 1;
+                min-width: 300px;
             }}
-        }}
-    </style>
-</head>
-<body>
-    <div class="container py-4">
-        <header class="pb-3 mb-4 border-bottom">
-            <h1 class="display-5 fw-bold">Análise Harmônica de Música</h1>
-        </header>
 
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <h2 class="h4">Informações Gerais</h2>
-                <p><strong>Artista:</strong> {analysis['artist']}</p>
-                <p><strong>Música:</strong> {analysis['name']}</p>
-                <p><strong>Tonalidade sugerida:</strong> {analysis['key']} ({analysis['mode']})</p>
-                <a href="{yt_link}" target="_blank" class="btn btn-primary">
-                    🔊 Ouvir no YouTube
-                </a>
-            </div>
-        </div>
+            .cifra-content {{
+                font-family: 'Roboto Mono', monospace;
+                background: #fff;
+                border-radius: 8px;
+                padding: 1.5rem;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                font-size: 0.95rem;
+                line-height: 1.6;
+                overflow-x: auto;
+            }}
 
-        <div class="cifra-container">
-            <div class="cifra-column--left">
-                <div class="cifra-content">
-                    {cifra_content}
+            .chord-line {{
+                color: var(--chord-color);
+                font-weight: 500;
+                padding: 0.2rem 0;
+                white-space: pre;
+            }}
+
+            .lyric-line {{
+                padding: 0.2rem 0;
+                white-space: pre;
+            }}
+
+            .lyric-line .chord {{
+                color: var(--chord-color);
+                font-weight: 500;
+            }}
+
+            .empty-line {{
+                height: 1rem;
+            }}
+
+            .section-name {{
+                color: var(--section-color);
+                font-weight: 500;
+                margin-top: 1rem;
+            }}
+
+            @media (max-width: 768px) {{
+                .cifra-container {{
+                    flex-direction: column;
+                }}
+                .cifra-column--right {{
+                    min-width: 100%;
+                }}
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container py-4">
+            <header class="pb-3 mb-4 border-bottom">
+                <h1 class="display-5 fw-bold">Análise Harmônica de Música</h1>
+            </header>
+
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <h2 class="h4">Informações Gerais</h2>
+                    <p><strong>Artista:</strong> {analysis['artist']}</p>
+                    <p><strong>Música:</strong> {analysis['name']}</p>
+                    <p><strong>Tonalidade sugerida:</strong> {analysis['key']} ({analysis['mode']})
+                    </p>
+                    <a href="{yt_link}" target="_blank" class="btn btn-primary">
+                        🔊 Ouvir no YouTube
+                    </a>
                 </div>
             </div>
 
-            <div class="cifra-column--right">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h2 class="h5 card-title">Estatísticas Gerais</h2>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">
-                              Total de acordes: {total_chords}</li>
-                            <li class="list-group-item">
-                              Acordes maiores: {major} ({major_pct:.1f}%)</li>
-                            <li class="list-group-item">
-                              Acordes menores: {minor} ({minor_pct:.1f}%)</li>
-                            <li class="list-group-item">
-                              Acordes únicos: {len(analysis['unique_chords'])}</li>
-                        </ul>
+            <div class="cifra-container">
+                <div class="cifra-column--left">
+                    <div class="cifra-content">
+                        {cifra_content}
                     </div>
                 </div>
 
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="h5 card-title">Acordes únicos</h2>
-                        <p class="card-text">{', '.join(analysis['unique_chords'])}</p>
+                <div class="cifra-column--right">
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h2 class="h5 card-title">Estatísticas Gerais</h2>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                  Total de acordes: {total_chords}</li>
+                                <li class="list-group-item">
+                                  Acordes maiores: {major} ({major_pct:.1f}%)</li>
+                                <li class="list-group-item">
+                                  Acordes menores: {minor} ({minor_pct:.1f}%)</li>
+                                <li class="list-group-item">
+                                  Acordes únicos: {len(analysis['unique_chords'])}</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 class="h5 card-title">Acordes únicos</h2>
+                            <p class="card-text">{', '.join(analysis['unique_chords'])}</p>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {self._generate_analysis_section(analysis)}
+            {self._generate_function_stats_html(analysis)}
+            {self._generate_cadences_html(analysis)}
+            {self._generate_progression_analysis(analysis)}
+
+            <footer class="pt-3 mt-4 text-muted border-top">
+                Análise gerada em: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
+            </footer>
         </div>
-
-        {self._generate_analysis_section(analysis)}
-        {self._generate_cadences_html(analysis)}
-
-        <footer class="pt-3 mt-4 text-muted border-top">
-            Análise gerada em: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}
-        </footer>
-    </div>
-</body>
-</html>
-"""
+    </body>
+    </html>
+    """
 
     def _generate_analysis_section(self, analysis: Dict[str, Any]) -> str:
         rows = []
@@ -344,3 +348,135 @@ class HTMLReportGenerator(ReportGenerator):
             </div>
         </div>
         """
+
+    def _generate_progression_analysis(self, analysis: Dict[str, Any]) -> str:
+        if not analysis.get("analysis_progression"):
+            return ""
+
+        sections = []
+        for item in analysis["analysis_progression"]:
+            categories = item.get("categories", {})
+            for category, progressions in categories.items():
+                if not progressions:
+                    continue
+
+                # Formata cada progressão como item de lista
+                progression_list = []
+                for prog in progressions:
+                    type_ = prog.get("type", "")
+                    chords = " → ".join(prog.get("chords", []))
+                    # start = prog.get("start_index", "")
+                    # end = prog.get("end_index", "")
+                    progression_list.append(
+                        f"""
+                      <li>
+                          <strong>Tipo:</strong> {type_}<br>
+                          <strong>Progressão:</strong> {chords}<br>
+                      </li>
+                  """
+                    )
+
+                # Cria uma seção por categoria
+                sections.append(
+                    f"""
+                  <div class="card mb-3">
+                      <div class="card-header">{category}</div>
+                      <div class="card-body">
+                          <ul class="list-unstyled">
+                              {''.join(progression_list)}
+                          </ul>
+                      </div>
+                  </div>
+              """
+                )
+
+        return f"""
+          <div class="row mb-4">
+              <div class="col-12">
+                  <h2 class="h4">Análise de Progressões Harmônicas</h2>
+                  {''.join(sections)}
+              </div>
+          </div>
+      """
+
+    def _generate_function_stats_html(self, analysis: Dict[str, Any]) -> str:
+        if not analysis.get("function_stats"):
+            return ""
+
+        stats = analysis["function_stats"][0]  # Acessa o primeiro item da lista
+
+        # Seção de contagem de funções
+        function_counts_html = []
+        for func, data in stats["function_counts"].items():
+            if isinstance(data, dict):  # Se for a versão com exemplos
+                count = data["count"]
+                examples = ", ".join(data.get("example_chords", []))
+                function_counts_html.append(
+                    f"<tr><td>{func}</td><td>{count}</td><td>{examples}</td></tr>"
+                )
+            else:  # Se for a versão simples (Counter)
+                function_counts_html.append(
+                    f"<tr><td>{func}</td><td>{data}</td><td>-</td></tr>"
+                )
+
+        # Seção de transições comuns
+        transitions_html = []
+        for trans, data in stats["common_transitions"].items():
+            if isinstance(data, dict):  # Versão com exemplos
+                count = data["count"]
+                examples = ", ".join(data.get("example_progressions", []))
+                transitions_html.append(
+                    f"<tr><td>{trans}</td><td>{count}</td><td>{examples}</td></tr>"
+                )
+            else:  # Versão simples
+                transitions_html.append(
+                    f"<tr><td>{trans}</td><td>{data}</td><td>-</td></tr>"
+                )
+
+        return f"""
+      <div class="row mb-4">
+          <div class="col-12">
+              <h2 class="h4">Estatísticas Funcionais</h2>
+
+              <div class="card mb-4">
+                  <div class="card-header">Distribuição de Funções Harmônicas</div>
+                  <div class="card-body">
+                      <div class="table-responsive">
+                          <table class="table table-striped">
+                              <thead>
+                                  <tr>
+                                      <th>Função</th>
+                                      <th>Ocorrências</th>
+                                      <th>Exemplos de Acordes</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  {''.join(function_counts_html)}
+                              </tbody>
+                          </table>
+                      </div>
+                  </div>
+              </div>
+
+              <div class="card">
+                  <div class="card-header">Transições Mais Comuns</div>
+                  <div class="card-body">
+                      <div class="table-responsive">
+                          <table class="table table-striped">
+                              <thead>
+                                  <tr>
+                                      <th>Transição</th>
+                                      <th>Ocorrências</th>
+                                      <th>Exemplos de Progressões</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  {''.join(transitions_html)}
+                              </tbody>
+                          </table>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      """

@@ -1,11 +1,12 @@
-from collections import Counter
-from typing import List, Literal, Optional, Tuple
+from collections import Counter, defaultdict
+from typing import Dict, List, Literal, Optional, Tuple
 
 from harmonic_cadence.domain.chord import Chord
 from harmonic_cadence.domain.constants import (
     CHROMATIC_NOTES,
     DEGREES_MAJOR,
     DEGREES_MINOR,
+    FUNCTION_PROGRESSIONS,
     HARMONIC_FUNCTIONS,
     MAJOR_SCALE,
     MINOR_SCALE,
@@ -13,6 +14,8 @@ from harmonic_cadence.domain.constants import (
     MODE_NAMES_PT,
     MODES,
     NOTE_REPLACEMENTS,
+    PROGRESSION_CATEGORIES,
+    PROGRESSIONS,
 )
 
 FunctionCode = Literal[
@@ -234,3 +237,181 @@ class HarmonicAnalysis:
             most_common_root = roots_counter.most_common(1)[0][0]
             return most_common_root, "minor"
         return first_chord.root, "major"
+
+    @staticmethod
+    def extract_sequences(harmonic_analysis):
+        degrees = []
+        functions = []
+        for entry in harmonic_analysis:
+            degree = entry.get("degree", None)
+            function_code = entry.get("function_code", None)
+
+            # Ignorar graus nulos (ex: acordes empréstimos modais)
+            if degree:
+                degrees.append(degree)
+            else:
+                degrees.append("X")  # Marcar como "desconhecido"
+
+            functions.append(function_code)
+
+        return degrees, functions
+
+    from collections import Counter
+
+    @staticmethod
+    def analyze_function_stats(harmonic_analysis: List[dict]) -> List[Dict]:
+        """Analisa estatísticas das funções harmônicas incluindo exemplos de acordes"""
+
+        # 1. Contagem de funções com exemplos de acordes
+        function_examples = defaultdict(list)
+        for entry in harmonic_analysis:
+            func = entry["function_code"]
+            function_examples[func].append(entry["chord"])
+
+        function_counts = {
+            func: {
+                "count": len(chords),
+                "example_chords": list(set(chords))[:3],  # Mostra até 3 exemplos únicos
+            }
+            for func, chords in function_examples.items()
+        }
+
+        # 2. Transições com exemplos
+        transition_examples = defaultdict(list)
+        for i in range(len(harmonic_analysis) - 1):
+            current = harmonic_analysis[i]
+            next_chord = harmonic_analysis[i + 1]
+            transition = (current["function_code"], next_chord["function_code"])
+            transition_examples[transition].append(
+                f"{current['chord']}→{next_chord['chord']}"
+            )
+
+        common_transitions = {
+            f"{k[0]}→{k[1]}": {
+                "count": len(examples),
+                "example_progressions": list(set(examples))[
+                    :3
+                ],  # Até 3 exemplos únicos
+            }
+            for k, examples in transition_examples.items()
+        }
+
+        return [
+            {
+                "function_counts": function_counts,
+                "common_transitions": common_transitions,
+            }
+        ]
+
+    @staticmethod
+    def detect_progressions(
+        target_sequences, degrees_sequence, chords_sequence, function_sequence
+    ):
+        detected = []
+        # Ordena as sequências por tamanho decrescente
+        sorted_targets = sorted(target_sequences, key=lambda x: -len(x))
+        for target in sorted_targets:
+            target_len = len(target)
+            for i in range(len(degrees_sequence) - target_len + 1):
+                window = tuple(degrees_sequence[i : i + target_len])  # noqa: E203
+                if window == target:
+                    # Usa a sequência de acordes originais para o campo "chords"
+                    detected.append(
+                        {
+                            "type": "-".join(target),
+                            "start_index": i,
+                            "end_index": i + target_len - 1,
+                            "chords": chords_sequence[i : i + target_len],  # noqa: E203
+                            "functions": function_sequence[
+                                i : i + target_len  # noqa: E203
+                            ],  # Corrigido
+                        }
+                    )
+        return detected
+
+    @staticmethod
+    def detect_secondary_dominants(harmonic_analysis):
+        secondary_doms = []
+        for i in range(len(harmonic_analysis) - 1):
+            current = harmonic_analysis[i]
+            next_chord = harmonic_analysis[i + 1]
+            if current["function_code"] == "D2" and next_chord["degree"] in ["II", "V"]:
+                secondary_doms.append(
+                    {
+                        "type": "Dominante secundário",
+                        "chord": current["chord"],
+                        "target": next_chord["degree"],
+                    }
+                )
+        return secondary_doms
+
+    @staticmethod
+    def analyze_harmonic_flow(harmonic_analysis):
+        analysis = {
+            "tonic_resolutions": 0,
+            "modal_borrowings": [],
+            "secondary_dominants": [],
+        }
+
+        for i in range(len(harmonic_analysis) - 1):
+            current = harmonic_analysis[i]
+            next_chord = harmonic_analysis[i + 1]
+
+            # Resoluções para tônica
+            if next_chord["function_code"] == "T" and current["function_code"] in [
+                "D",
+                "SubV",
+            ]:
+                analysis["tonic_resolutions"] += 1
+
+            # Empréstimos modais
+            if current["function_code"] == "Emp":
+                analysis["modal_borrowings"].append(
+                    {
+                        "chord": current["chord"],
+                        "description": current["function_description"],
+                    }
+                )
+
+            # Dominantes secundárias
+            if current["function_code"] == "Dsec":
+                analysis["secondary_dominants"].append(
+                    {"chord": current["chord"], "target": next_chord["degree"]}
+                )
+
+        return analysis
+
+    def analyze_progressions(self, harmonic_analysis):
+        degrees_sequence = [entry["degree"] for entry in harmonic_analysis]
+        chords_sequence = [entry["chord"] for entry in harmonic_analysis]
+        function_sequence = [entry["function_code"] for entry in harmonic_analysis]
+
+        # Detectar progressões por graus tonais
+        degree_progressions = self.detect_progressions(
+            PROGRESSIONS, degrees_sequence, chords_sequence, function_sequence
+        )
+
+        # Detectar progressões por funções
+        function_progressions = self.detect_progressions(
+            FUNCTION_PROGRESSIONS, function_sequence, chords_sequence, function_sequence
+        )
+
+        # Detectar dominantes secundários
+        secondary_doms = self.detect_secondary_dominants(harmonic_analysis)
+
+        # Categorizar as progressões
+        categorized = {}
+        for prog in degree_progressions + function_progressions:
+            category = PROGRESSION_CATEGORIES.get(prog["type"], "Outra")
+            if category not in categorized:
+                categorized[category] = []
+            categorized[category].append(prog)
+
+        return [
+            {
+                "categories": categorized,
+                "secondary_dominants": secondary_doms,
+                "degree_progressions": degree_progressions,
+                "function_progressions": function_progressions,
+            }
+        ]

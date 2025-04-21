@@ -27,6 +27,15 @@ Você pode analisar músicas usando diferentes formatos de saída (HTML, PDF, Ma
 ### Análise com saída em Markdown
     poetry run harmonic analyze "Chico Buarque" "Construção" --format markdown
 
+### Para analisar todas as músicas:
+    poetry run harmonic analyze "Djavan" --all --format json
+
+### Para analisar uma música específica:
+    poetry run harmonic analyze "Djavan" "Flor de Lis" --format html
+
+### Se esquecer de especificar:
+    poetry run harmonic analyze "Djavan"
+
 
 Exemplos com Diferentes Artistas
 

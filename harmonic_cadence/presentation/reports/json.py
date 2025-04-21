@@ -64,6 +64,22 @@ class JSONReportGenerator(ReportGenerator):
                 }
                 for item in analysis["harmonic_analysis"]
             ],
+            "analysis_progression": [
+                {
+                    "categories": item["categories"],
+                    "secondary_dominants": item["secondary_dominants"],
+                    "degree_progressions": item["degree_progressions"],
+                    "function_progressions": item["function_progressions"],
+                }
+                for item in analysis["analysis_progression"]
+            ],
+            "function_stats": [
+                {
+                    "function_counts": item["function_counts"],
+                    "common_transitions": item["common_transitions"],
+                }
+                for item in analysis["function_stats"]
+            ],
             "cadences": self._process_cadences(analysis["cadences"]),
             "raw_data": {"cifra": analysis["cifra_lines"]},
         }
