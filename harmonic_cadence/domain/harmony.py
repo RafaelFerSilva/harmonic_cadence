@@ -22,6 +22,8 @@ FunctionCode = Literal[
     "T", "SD", "D", "D2", "SubV", "Sub2", "Dsec", "Emp", "Dim", "Crom", "Outro"
 ]
 
+VALID_NOTES = set(CHROMATIC_NOTES)
+
 
 class HarmonicAnalysis:
     """
@@ -31,13 +33,12 @@ class HarmonicAnalysis:
     def __init__(self, key: str, mode: str = "major"):
         if not key or key[0] not in CHROMATIC_NOTES:
             raise ValueError(f"Tonalidade inválida: {key}")
-        if mode not in ["major", "minor"]:
-            raise ValueError(f"Modo inválido: {mode}")
 
         self.key = key
         self.mode = mode
         self.scale, self.degrees = self._build_scale()
         self.HARMONIC_FUNCTIONS = HARMONIC_FUNCTIONS
+        self.VALID_NOTES = VALID_NOTES
 
     def _build_scale(self) -> Tuple[List[str], List[str]]:
         """Constrói a escala e seus graus baseado na tonalidade e modo."""
@@ -55,9 +56,12 @@ class HarmonicAnalysis:
         return scale, degrees
 
     def get_degree(self, chord: Chord) -> Optional[str]:
-        """Determina o grau do acorde na tonalidade."""
-        if chord.root in self.scale:
-            degree = self.degrees[self.scale.index(chord.root)]
+        try:
+            normalized_root = self.normalize_note(chord.root)
+        except ValueError:
+            return None
+        if normalized_root in self.scale:
+            degree = self.degrees[self.scale.index(normalized_root)]
             if chord.is_minor and degree.isupper():
                 return degree.lower()
             if not chord.is_minor and degree.islower():
@@ -75,11 +79,43 @@ class HarmonicAnalysis:
         Analisa a função harmônica do acorde no contexto.
         Retorna: (código_função, nome_função, descrição)
         """
+
+        # Validação do acorde
+        if not self.validate_chord(chord):
+            return (
+                "Outro",
+                "Acorde inválido",
+                f"Acorde '{chord.symbol}' possui nota raiz inválida ou formato incorreto.",
+            )
         degree = self.get_degree(chord)
 
-        # 1. Função clássica diatônica
+        # 1. Função clássica diatônica (T, SD, D, Sub2, Dim, etc)
         for func_code, func_info in self.HARMONIC_FUNCTIONS.items():
             if degree in func_info["degrees"]:
+                # Validações específicas para algumas funções
+                if func_code == "Sub2":
+                    # Exemplo: Substituto do IIm7 pode precisar de contexto (ex: próximo acorde)
+                    if next_chord and self.get_degree(next_chord) in ["V", "V7"]:
+                        return (func_code, func_info["name"], func_info["description"])
+                    else:
+                        continue  # Não é substituto se não preparar dominante
+
+                if func_code == "Dim":
+                    # Diminuto de passagem geralmente aparece entre acordes vizinhos
+                    if prev_chord and next_chord:
+                        interval_prev = self._get_interval(prev_chord.root, chord.root)
+                        interval_next = self._get_interval(chord.root, next_chord.root)
+                        # Exemplo: diminuto de passagem é meio tom entre acordes vizinhos
+                        if interval_prev == 1 and interval_next == 1:
+                            return (
+                                func_code,
+                                func_info["name"],
+                                func_info["description"],
+                            )
+                        else:
+                            continue  # Não é diminuto de passagem se não estiver entre vizinhos
+
+                # Para outras funções, retorna direto
                 return (func_code, func_info["name"], func_info["description"])
 
         # 2. Segunda Cadencial (II-V-I)
@@ -131,6 +167,7 @@ class HarmonicAnalysis:
                 self.HARMONIC_FUNCTIONS["Crom"]["description"],
             )
 
+        # 7. Caso não identificado
         return (
             "Outro",
             "Função não identificada",
@@ -183,15 +220,27 @@ class HarmonicAnalysis:
         return " | ".join(field)
 
     @staticmethod
-    def _normalize_note(note: str) -> str:
-        """Normaliza uma nota para sua forma padrão."""
-        return NOTE_REPLACEMENTS.get(note, note)
+    def normalize_note(note: str) -> str:
+        if not note:
+            raise ValueError("Nota vazia ou None não é válida")
+        note = note.strip().capitalize()
+        note = NOTE_REPLACEMENTS.get(note, note)
+        if note not in CHROMATIC_NOTES:
+            raise ValueError(f"Nota inválida após normalização: {note}")
+        return note
+
+    def validate_chord(self, chord: Chord) -> bool:
+        try:
+            normalized_root = self.normalize_note(chord.root)
+        except Exception:
+            return False
+        return normalized_root in self.VALID_NOTES
 
     @staticmethod
     def _get_interval(note1: str, note2: str) -> int:
         """Calcula o intervalo entre duas notas em semitons."""
-        n1 = CHROMATIC_NOTES.index(HarmonicAnalysis._normalize_note(note1))
-        n2 = CHROMATIC_NOTES.index(HarmonicAnalysis._normalize_note(note2))
+        n1 = CHROMATIC_NOTES.index(HarmonicAnalysis.normalize_note(note1))
+        n2 = CHROMATIC_NOTES.index(HarmonicAnalysis.normalize_note(note2))
         return (n2 - n1) % 12
 
     def _transpose_scale(self, scale: List[str], target_key: str) -> List[str]:
@@ -202,7 +251,7 @@ class HarmonicAnalysis:
 
     def _transpose_note(self, note: str, interval: int) -> str:
         """Transpõe uma nota por um determinado intervalo."""
-        n = CHROMATIC_NOTES.index(self._normalize_note(note))
+        n = CHROMATIC_NOTES.index(self.normalize_note(note))
         return CHROMATIC_NOTES[(n + interval) % 12]
 
     @staticmethod

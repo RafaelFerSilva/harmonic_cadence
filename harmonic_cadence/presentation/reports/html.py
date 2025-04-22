@@ -1,8 +1,15 @@
 import os
+import re
 from datetime import datetime
 from typing import Any, Dict
 
 from .base import ReportGenerator
+
+
+def clean_whitespace(html: str) -> str:
+    # Remove múltiplas quebras de linha e espaços em branco consecutivos
+    html = re.sub(r'\n\s*\n+', '\n', html)  # múltiplas linhas vazias para uma linha
+    return html.strip()
 
 
 class HTMLReportGenerator(ReportGenerator):
@@ -43,6 +50,7 @@ class HTMLReportGenerator(ReportGenerator):
         self, analysis, yt_link, total_chords, major, minor, major_pct, minor_pct
     ):
         cifra_content = analysis.get("cifra_html", "")
+        cifra_content = clean_whitespace(cifra_content)
 
         return f"""
 <!DOCTYPE html>
@@ -137,48 +145,25 @@ class HTMLReportGenerator(ReportGenerator):
             </div>
         </div>
 
-        <!-- Cifra em largura total -->
         <div class="cifra-content mb-5">
             {cifra_content}
         </div>
 
-        <!-- Estatísticas e Acordes Únicos lado a lado -->
         <div class="row g-4 mb-5">
+
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
-                        <h2 class="h5 card-title">Estatísticas Gerais</h2>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">Total de acordes: {total_chords}</li>
-                            <li class="list-group-item">Acordes maiores: {major} ({major_pct:.1f}%)
-                            </li>
-                            <li class="list-group-item">Acordes menores: {minor} ({minor_pct:.1f}%)
-                            </li>
-                            <li class="list-group-item">Acordes únicos: {len(analysis['unique_chords'])}</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h2 class="h5 card-title">Acordes únicos</h2>
+                        <h2 class="h5 card-title">Acordes</h2>
                         <p class="card-text">{', '.join(analysis['unique_chords'])}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Análise Harmônica -->
         {self._generate_analysis_section(analysis)}
-
-        <!-- Estatísticas Funcionais -->
         {self._generate_function_stats_html(analysis)}
-
-        <!-- Cadências -->
         {self._generate_cadences_html(analysis)}
-
-        <!-- Progressões -->
         {self._generate_progression_analysis(analysis)}
 
         <footer class="pt-3 mt-4 text-muted border-top">

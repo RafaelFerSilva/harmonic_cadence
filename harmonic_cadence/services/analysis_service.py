@@ -119,15 +119,34 @@ class AnalysisService:
     def _detailed_harmonic_analysis(self, analysis, all_chords):
         harmonic_analysis = []
         try:
-            for chord in all_chords:
+            for i, chord in enumerate(all_chords):
                 try:
+                    prev_chord = all_chords[i - 1] if i > 0 else None
+                    next_chord = all_chords[i + 1] if i < len(all_chords) - 1 else None
+
+                    if not analysis.validate_chord(chord):
+                        harmonic_analysis.append(
+                            {
+                                "chord": chord.symbol,
+                                "degree": None,
+                                "quality": chord.quality,
+                                "function_code": "Outro",
+                                "function": "Acorde inválido",
+                                "function_description": "Nota raiz inválida ou formato incorreto",
+                            }
+                        )
+                        continue
+
                     chord_analysis = {
                         "chord": chord.symbol,
                         "degree": analysis.get_degree(chord) if analysis else None,
                         "quality": chord.quality,
                     }
+
                     if analysis:
-                        function_result = analysis.analyze_function(chord)
+                        function_result = analysis.analyze_function(
+                            chord, prev_chord, next_chord
+                        )
                         chord_analysis.update(
                             {
                                 "function": (
@@ -147,7 +166,9 @@ class AnalysisService:
                                 ),
                             }
                         )
+
                     harmonic_analysis.append(chord_analysis)
+
                 except Exception as e:
                     print(f"Aviso: Erro ao analisar acorde {chord.symbol}: {str(e)}")
                     harmonic_analysis.append(
@@ -158,6 +179,7 @@ class AnalysisService:
                     )
         except Exception as e:
             raise RuntimeError(f"Erro na análise harmônica detalhada: {str(e)}")
+
         return harmonic_analysis
 
     def _build_result(

@@ -86,6 +86,18 @@ MODE_NAMES_PT = {
     "lócrio": "Modo lócrio",
 }
 
+MODE_NAMES = [
+    "maior",
+    "menor_natural",
+    "menor_harmonica",
+    "menor_melodica",
+    "dórico",
+    "frígio",
+    "lídio",
+    "mixolídio",
+    "lócrio",
+]
+
 # Campo harmônico dos modos
 MODE_HARMONY = {
     "maior": ["maj7", "m7", "m7", "maj7", "7", "m7", "m7b5"],
