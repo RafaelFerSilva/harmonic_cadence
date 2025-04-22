@@ -2,8 +2,41 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from app.utils.encoding import fix_encoding
+from typing import Dict, Any
 
 class CifraClubScraper:
+    def clean_cifra_html(self, html: str) -> str:
+      if not html:
+        return html
+
+      soup = BeautifulSoup(html, "html.parser")
+
+      for elem in soup.select(".tablatura"):
+          elem.decompose()
+
+      pattern = re.compile(r"\[.*?\]")
+      for elem in soup.find_all(string=pattern):
+          new_text = pattern.sub("", elem)
+          elem.replace_with(new_text)
+
+      cifra_tom_elem = soup.find(id="cifra_tom")
+      if cifra_tom_elem:
+          cifra_tom_elem.decompose()
+
+      bandsintownAds = soup.find(id="js-bandsintownAds--songAbove")
+      if bandsintownAds:
+          bandsintownAds.decompose()
+      
+      cifra_afi = soup.find(id="cifra_afi")
+      if cifra_afi:
+          cifra_afi.decompose()
+      
+      cifra_capo = soup.find(id="cifra_capo")
+      if cifra_capo:
+          cifra_capo.decompose()
+
+      return str(soup)
+
     def scrape_cifra(self, artist: str, song: str) -> dict:
         url = f"https://www.cifraclub.com.br/{artist}/{song}/#tabs=false"
         response = requests.get(url, headers=self._get_headers())
@@ -12,13 +45,14 @@ class CifraClubScraper:
         title = soup.find('h1', {'class': 'g-header'})
         artist_name = soup.find('a', {'class': 'artist'})
         cifra_div = soup.find('div', {'class': 'cifra_cnt'})
+        html = self.clean_cifra_html(str(cifra_div))
         youtube_link = self._get_youtube_link(soup)
 
         return {
             'artist': fix_encoding(artist_name.text.strip() if artist_name else artist),
             'title': fix_encoding(title.text.strip() if title else song),
             'cifra_div_text': cifra_div.get_text(separator='\n', strip=True) if cifra_div else '',
-            'cifra_html': str(cifra_div),
+            'cifra_html': str(html),
             'youtube_link': youtube_link,
             'url': url
         }
