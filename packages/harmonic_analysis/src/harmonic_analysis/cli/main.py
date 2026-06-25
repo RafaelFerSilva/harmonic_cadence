@@ -5,14 +5,14 @@ from typing import Dict, List, Optional
 
 from tqdm import tqdm
 
-from harmonic_cadence.infra.cifra_api import (
+from harmonic_analysis.infra.cifra_api import (
     cache_all_artist_songs,
     download_and_cache_song,
     fetch_artist_songs,
     load_artist_songs,
 )
-from harmonic_cadence.presentation.reports.factory import ReportFactory
-from harmonic_cadence.services.analysis_service import AnalysisService
+from harmonic_analysis.presentation.reports.factory import ReportFactory
+from harmonic_analysis.services.analysis_service import AnalysisService
 
 
 class HarmonicCLI:

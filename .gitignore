@@ -44,3 +44,10 @@ report_json/
 report_html/
 report_markdown/
 data/
+
+
+.agent/
+.agents/
+.claude/
+.gemini/
+openspec/

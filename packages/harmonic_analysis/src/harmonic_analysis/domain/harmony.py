@@ -1,8 +1,8 @@
 from collections import Counter, defaultdict
 from typing import Dict, List, Literal, Optional, Tuple
 
-from harmonic_cadence.domain.chord import Chord
-from harmonic_cadence.domain.constants import (
+from harmonic_analysis.domain.chord import Chord
+from harmonic_analysis.domain.constants import (
     CHROMATIC_NOTES,
     DEGREES_MAJOR,
     DEGREES_MINOR,

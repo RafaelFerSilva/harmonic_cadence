@@ -1,14 +1,14 @@
 import re
 from typing import Any, Counter, Dict, List
 
-from harmonic_cadence.domain.cadence import analyze_cadences
-from harmonic_cadence.domain.chord import Chord, ChordPattern
-from harmonic_cadence.domain.harmony import HarmonicAnalysis
-from harmonic_cadence.infra.cifra_api import fetch_song_data
-from harmonic_cadence.infra.utils import filter_cifra_lines
-from harmonic_cadence.presentation.formatter import AnalysisFormatter
-from harmonic_cadence.utils.encoding import fix_encoding
-from harmonic_cadence.utils.formatting import format_name
+from harmonic_analysis.domain.cadence import analyze_cadences
+from harmonic_analysis.domain.chord import Chord, ChordPattern
+from harmonic_analysis.domain.harmony import HarmonicAnalysis
+from harmonic_analysis.infra.cifra_api import fetch_song_data
+from harmonic_analysis.infra.utils import filter_cifra_lines
+from harmonic_analysis.presentation.formatter import AnalysisFormatter
+from harmonic_analysis.utils.encoding import fix_encoding
+from harmonic_analysis.utils.formatting import format_name
 
 
 class AnalysisService:

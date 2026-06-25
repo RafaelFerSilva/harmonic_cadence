@@ -1,6 +1,6 @@
 from typing import List
 
-from harmonic_cadence.domain.constants import (
+from harmonic_analysis.domain.constants import (
     CHROMATIC_NOTES,
     DEGREES_MAJOR,
     DEGREES_MINOR,

@@ -3,8 +3,8 @@
 from collections import Counter
 from typing import Dict, List, Set
 
-from harmonic_cadence.domain.chord import Chord
-from harmonic_cadence.domain.harmony import HarmonicAnalysis
+from harmonic_analysis.domain.chord import Chord
+from harmonic_analysis.domain.harmony import HarmonicAnalysis
 
 
 class AnalysisFormatter:
