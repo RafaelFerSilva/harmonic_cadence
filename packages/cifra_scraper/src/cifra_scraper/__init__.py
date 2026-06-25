@@ -1,5 +1,5 @@
 from flask import Flask
-from app.interface.http.routes import bp
+from cifra_scraper.interface.http.routes import bp
 
 def create_app():
     app = Flask(__name__)

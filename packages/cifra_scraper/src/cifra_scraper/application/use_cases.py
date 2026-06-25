@@ -1,5 +1,5 @@
-from app.domain.entities import Cifra
-from app.infrastructure.repositories.cifraclub import CifraClubRepository
+from cifra_scraper.domain.entities import Cifra
+from cifra_scraper.infrastructure.repositories.cifraclub import CifraClubRepository
 
 class GetSongUseCase:
     def __init__(self, repository: CifraClubRepository):

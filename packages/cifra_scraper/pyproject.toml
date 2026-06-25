@@ -1,0 +1,20 @@
+[project]
+name = "cifra-scraper"
+version = "0.1.0"
+description = "API REST que faz scraping de cifras do Cifra Club"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0.0",
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.1.0",
+    "gunicorn>=21.2.0",
+    "cifra-core",
+]
+
+[tool.uv.sources]
+cifra-core = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.10.9,<0.11"]
+build-backend = "uv_build"

@@ -1,0 +1,20 @@
+[project]
+name = "harmonic-analysis"
+version = "0.1.0"
+description = "Análise harmônica de músicas brasileiras"
+requires-python = ">=3.12"
+dependencies = [
+    "cifra-core",
+    "tqdm>=4.67",
+    "requests>=2.31",
+]
+
+[project.scripts]
+harmonic = "harmonic_analysis.cli.main:main"
+
+[tool.uv.sources]
+cifra-core = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.10.9,<0.11"]
+build-backend = "uv_build"

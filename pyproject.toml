@@ -1,39 +1,17 @@
-[tool.poetry]
-name = "harmonic_cadence"
-version = "0.1.0"
-description = "Análise harmônica de músicas brasileiras"
-authors = ["Rafael Fernandes da silva <rafatecads@gmail.com>"]
-readme = "README.md"
-packages = [{include = "harmonic_cadence"}]
+[tool.uv.workspace]
+members = ["packages/*"]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-requests = "^2.31.0"
-weasyprint = "^65.1"
-tqdm = "^4.67.1"
-concurrent-log-handler = "^0.9.25"
-ruff = "^0.11.6"
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "ruff>=0.11",
+    "mypy>=1.10",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.0"
-black = "^23.7.0"
-isort = "^5.12.0"
-mypy = "^1.4.1"
-pytest-cov = "^6.1.1"
-pre-commit = "^4.2.0"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.black]
+[tool.ruff]
 line-length = 88
-target-version = ['py310']
-skip-string-normalization = true
+target-version = "py312"
 
-[tool.isort]
-profile = "black"
-line_length = 88
-
-[tool.poetry.scripts]
-harmonic = "harmonic_cadence.cli.main:main"
+[tool.pytest.ini_options]
+testpaths = ["packages"]

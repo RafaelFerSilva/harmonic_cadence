@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
-from app.application.use_cases import GetSongUseCase, ListArtistSongsUseCase
-from app.infrastructure.repositories.cifraclub import CifraClubRepository
-from app.infrastructure.scrapers.cifraclub_scraper import CifraClubScraper
+from cifra_scraper.application.use_cases import GetSongUseCase, ListArtistSongsUseCase
+from cifra_scraper.infrastructure.repositories.cifraclub import CifraClubRepository
+from cifra_scraper.infrastructure.scrapers.cifraclub_scraper import CifraClubScraper
 
 bp = Blueprint('api', __name__)
 

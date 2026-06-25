@@ -1,1 +1,8 @@
-app/__pycache__/*
+__pycache__/
+*.pyc
+.venv/
+uv.lock.bak
+data/
+*.egg-info/
+dist/
+build/

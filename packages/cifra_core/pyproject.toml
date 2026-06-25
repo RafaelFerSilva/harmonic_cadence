@@ -1,0 +1,10 @@
+[project]
+name = "cifra-core"
+version = "0.1.0"
+description = "Núcleo compartilhado: encoding, filtragem de cifra, regex de acorde, modelos e a porta SongProvider"
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.10.9,<0.11"]
+build-backend = "uv_build"

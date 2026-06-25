@@ -16,4 +16,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 
-CMD ["gunicorn", "--reload", "-b", "0.0.0.0:3000", "app:create_app()"]
+CMD ["gunicorn", "--reload", "-b", "0.0.0.0:3000", "cifra_scraper:create_app()"]

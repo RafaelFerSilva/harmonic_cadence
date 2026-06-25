@@ -1,7 +1,7 @@
 import json
-from app.domain.entities import Cifra
-from app.infrastructure.scrapers.cifraclub_scraper import CifraClubScraper
-from app.domain.cifra_utils import clean_cifra_lines, process_cifra_line, clean_text
+from cifra_scraper.domain.entities import Cifra
+from cifra_scraper.infrastructure.scrapers.cifraclub_scraper import CifraClubScraper
+from cifra_scraper.domain.cifra_utils import clean_cifra_lines, process_cifra_line, clean_text
 
 class CifraClubRepository:
     def __init__(self, scraper: CifraClubScraper):
