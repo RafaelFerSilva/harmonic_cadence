@@ -103,6 +103,8 @@ class HarmonicCLI:
             default=None,
             help="URL base da API quando --provider http (default: env/localhost:3000)",
         )
+        # Explicação do relatório: template offline (padrão) ou LLM opt-in.
+        self._add_llm_flags(analyze_parser)
 
         # Comando: cache
         cache_parser = subparsers.add_parser(
@@ -146,24 +148,7 @@ class HarmonicCLI:
         )
         explain_parser.add_argument("artist", help="Nome do artista")
         explain_parser.add_argument("song", help="Nome da música")
-        explain_parser.add_argument(
-            "--engine",
-            choices=["template", "llm"],
-            default="template",
-            help="Motor da explicação: template (offline, padrão) ou llm (opt-in)",
-        )
-        explain_parser.add_argument(
-            "--llm-provider",
-            dest="llm_provider",
-            default="openrouter",
-            help="Provedor de LLM (default: openrouter, gratuito)",
-        )
-        explain_parser.add_argument(
-            "--llm-model",
-            dest="llm_model",
-            default=None,
-            help="Modelo do provedor (default: o gratuito do provedor)",
-        )
+        self._add_llm_flags(explain_parser)
         self._add_provider_flags(explain_parser)
 
         # Comando: reharmonize — sugestões de reharmonização idiomáticas
@@ -192,6 +177,28 @@ class HarmonicCLI:
         self._add_provider_flags(fp_parser)
 
         return parser
+
+    @staticmethod
+    def _add_llm_flags(p: argparse.ArgumentParser) -> None:
+        """Flags do motor de explicação (template offline padrão; LLM opt-in)."""
+        p.add_argument(
+            "--engine",
+            choices=["template", "llm"],
+            default="template",
+            help="Motor da explicação: template (offline, padrão) ou llm (opt-in)",
+        )
+        p.add_argument(
+            "--llm-provider",
+            dest="llm_provider",
+            default="openrouter",
+            help="Provedor de LLM (default: openrouter, gratuito)",
+        )
+        p.add_argument(
+            "--llm-model",
+            dest="llm_model",
+            default=None,
+            help="Modelo do provedor (default: o gratuito do provedor)",
+        )
 
     @staticmethod
     def _add_provider_flags(p: argparse.ArgumentParser) -> None:
@@ -256,6 +263,7 @@ class HarmonicCLI:
                         f"Música não encontrada ou análise inválida: {args.artist} - {args.song}"
                     )
                     return
+                self._apply_explanation_engine(result, args)
                 generator = ReportFactory.create(args.format)
                 filename = generator.generate(result)
                 print(f"\nRelatório gerado com sucesso: {filename}")
@@ -289,6 +297,7 @@ class HarmonicCLI:
                         stats["errors"].append(f"{song}: Análise inválida")
                         return None
 
+                    self._apply_explanation_engine(result, args, quiet=True)
                     stats["success"] += 1
                     return result
 
@@ -424,6 +433,100 @@ class HarmonicCLI:
             sys.exit(1)
 
 
+    @staticmethod
+    def _load_dotenv(path: str = ".env") -> None:
+        """Carrega variáveis de um `.env` no ambiente (só as ainda não definidas).
+
+        Mínimo e sem dependência: variáveis já presentes no ambiente têm
+        prioridade. Permite que a chave do LLM (ex.: OPENROUTER_API_KEY) deixada
+        no `.env` seja usada pelo CLI sem `export` manual.
+        """
+        import os
+
+        if not os.path.exists(path):
+            return
+        try:
+            with open(path, encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, value = line.split("=", 1)
+                    os.environ.setdefault(
+                        key.strip(), value.strip().strip('"').strip("'")
+                    )
+        except OSError:
+            pass
+
+    @staticmethod
+    def _llm_unavailable_hint(llm_cfg) -> str:
+        """Mensagem específica do porquê o LLM caiu no template (dep/chave/provedor)."""
+        from harmonic_analysis.explain import (
+            MissingCredentials,
+            MissingDependency,
+            build_llm_provider,
+        )
+
+        try:
+            build_llm_provider(llm_cfg).preflight()
+            return "motor LLM indisponível — usando template offline."
+        except MissingDependency:
+            return (
+                "motor LLM indisponível: dependência ausente. Rode com o extra, "
+                "ex.: `uv run --extra explain-llm harmonic ...`. Usando template offline."
+            )
+        except MissingCredentials:
+            return (
+                "motor LLM indisponível: defina a chave do provedor "
+                "(ex.: OPENROUTER_API_KEY, inclusive via .env) ou use "
+                "`--llm-provider ollama`. Usando template offline."
+            )
+        except KeyError:
+            return (
+                f"motor LLM indisponível: provedor '{llm_cfg.provider}' desconhecido. "
+                "Usando template offline."
+            )
+
+    def _apply_explanation_engine(
+        self, result: Dict, args: argparse.Namespace, quiet: bool = False
+    ) -> None:
+        """Quando `--engine llm`, regenera a seção `explanation` via LLM.
+
+        O serviço já preencheu `explanation` com o template (offline). Aqui, sob
+        opt-in explícito, substituímos pela versão do LLM — com fallback gracioso:
+        sem extra/chave/provedor cai no template; falha de rede mantém o template.
+        """
+        if getattr(args, "engine", "template") != "llm":
+            return
+        if not result or "error" in result:
+            return
+
+        self._load_dotenv()  # pega OPENROUTER_API_KEY etc. do .env, se existir
+
+        from harmonic_analysis.explain import (
+            ExplainConfig,
+            LLMConfig,
+            build_explainer,
+        )
+
+        cfg = ExplainConfig(
+            engine="llm",
+            llm=LLMConfig(
+                provider=getattr(args, "llm_provider", "openrouter"),
+                model=getattr(args, "llm_model", None),
+            ),
+        )
+        explainer = build_explainer(cfg)
+        if type(explainer).__name__ == "TemplateExplainer":
+            if not quiet:
+                print(f"Aviso: {self._llm_unavailable_hint(cfg.llm)}")
+            return  # result['explanation'] já é o template
+        try:
+            result["explanation"] = explainer.explain(result)
+        except Exception as e:  # falha de rede/modelo → mantém o template
+            if not quiet:
+                print(f"Aviso: falha ao gerar explicação via LLM ({e}); usando template.")
+
     def _handle_explain(self, args: argparse.Namespace) -> None:
         """Explicação pedagógica — template offline (padrão) ou LLM opt-in."""
         from harmonic_analysis.explain import (
@@ -431,6 +534,9 @@ class HarmonicCLI:
             LLMConfig,
             build_explainer,
         )
+
+        if args.engine == "llm":
+            self._load_dotenv()  # pega a chave do .env, se existir
 
         service = self._build_service(args)
         result = service.analyze_song_from_api(args.artist, args.song)
@@ -444,10 +550,7 @@ class HarmonicCLI:
         )
         explainer = build_explainer(cfg)
         if args.engine == "llm" and type(explainer).__name__ == "TemplateExplainer":
-            print(
-                "Aviso: o motor LLM não está disponível "
-                "(extra [explain-llm], chave ou provedor) — usando o template offline."
-            )
+            print(f"Aviso: {self._llm_unavailable_hint(cfg.llm)}")
         print(f"\n{explainer.explain(result)}\n")
 
     def _handle_reharmonize(self, args: argparse.Namespace) -> None:
