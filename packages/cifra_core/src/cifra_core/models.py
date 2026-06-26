@@ -14,6 +14,7 @@ class Cifra:
     cifra_html: str = ""
     youtube_url: str = ""
     cifraclub_url: str = ""
+    key: str = ""  # tom da fonte (Cifra Club); distinto do tom detectado na análise
 
     @property
     def is_empty(self) -> bool:
@@ -31,6 +32,7 @@ class Cifra:
             cifra_html=d.get("cifra_html", "") or "",
             youtube_url=d.get("youtube_url", "") or "",
             cifraclub_url=d.get("cifraclub_url", "") or "",
+            key=d.get("key", "") or "",
         )
 
     def to_dict(self) -> dict:
@@ -41,6 +43,7 @@ class Cifra:
             "cifra_html": self.cifra_html,
             "youtube_url": self.youtube_url,
             "cifraclub_url": self.cifraclub_url,
+            "key": self.key,
         }
 
 

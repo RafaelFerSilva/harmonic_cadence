@@ -59,8 +59,21 @@ class CifraClubScraper:
             'cifra_div_text': cifra_div.get_text(separator='\n', strip=True) if cifra_div else '',
             'cifra_html': str(html),
             'youtube_link': youtube_link,
-            'url': url
+            'url': url,
+            'key': self._extract_tom(soup),
         }
+
+    def _extract_tom(self, soup: BeautifulSoup) -> str:
+        """Tom da música exibido pelo Cifra Club (#cifra_tom), ex.: 'G', 'Am'.
+
+        Extraído do soup original ANTES de o `clean_cifra_html` descartar o
+        elemento. Heurística: o primeiro token de nota no texto do tom.
+        """
+        elem = soup.find(id="cifra_tom")
+        if not elem:
+            return ""
+        match = re.search(r"[A-G][#b]?m?", elem.get_text(" ", strip=True))
+        return match.group(0) if match else ""
 
     def scrape_artist_songs(self, artist: str) -> list[dict]:
         url = f"https://www.cifraclub.com.br/{slugify(artist)}/"

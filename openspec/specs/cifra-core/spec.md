@@ -3,9 +3,7 @@
 ## Purpose
 
 The shared `cifra-core` package provides the canonical, single-source-of-truth building blocks consumed by both the scraper and the analyzer: encoding correction, cifra line preprocessing, chord detection, typed song/listing models, and slug normalization. It MUST NOT depend on the scraper or analyzer packages.
-
 ## Requirements
-
 ### Requirement: Single source of truth for encoding correction
 
 The shared `cifra-core` package SHALL provide one `fix_encoding` implementation, and both the scraper and the analyzer MUST consume it rather than defining their own copies.
@@ -88,16 +86,20 @@ The `cifra-core` package SHALL provide the one chord-detection regex used across
 
 ### Requirement: Typed Cifra and SongRef models
 
-The `cifra-core` package SHALL provide the `Cifra` song model and the `SongRef` listing model used across packages, so the song contract and artist listings have a single typed definition rather than loose dictionaries.
+The `cifra-core` package SHALL provide the `Cifra` song model and the `SongRef` listing model used across packages, so the song contract and artist listings have a single typed definition rather than loose dictionaries. The `Cifra` model SHALL carry the song's key (`key`) when the source provides it, distinct from any key detected later by analysis.
 
 #### Scenario: Song contract is typed
 - **WHEN** the scraper returns a song and the analyzer reads it
-- **THEN** both sides use the `cifra-core` `Cifra` model with fields `artist`, `name`, `cifra`, `cifra_html`, `youtube_url`, `cifraclub_url`
+- **THEN** both sides use the `cifra-core` `Cifra` model with fields `artist`, `name`, `cifra`, `cifra_html`, `youtube_url`, `cifraclub_url`, and `key`
 - **AND** neither side relies on untyped dictionary access for these fields
 
 #### Scenario: Cifra round-trips through serialization
 - **WHEN** a `Cifra` is serialized with `to_dict` and reconstructed with `from_api`
-- **THEN** the reconstructed model equals the original
+- **THEN** the reconstructed model equals the original, including its `key`
+
+#### Scenario: Key is empty when the source omits it
+- **WHEN** a song is built without a source key
+- **THEN** the `Cifra` `key` is the empty string
 
 #### Scenario: is_empty reflects absence of chart lines
 - **WHEN** a `Cifra` has no chart lines (lyrics-only or instrumental)
@@ -132,3 +134,4 @@ The `cifra-core` package SHALL provide one `slugify` function for converting art
 - **WHEN** the codebase is inspected
 - **THEN** slug generation exists only in `cifra_core.slugify`
 - **AND** neither package retains its own `cifra_slug` or inline slug-building copy
+

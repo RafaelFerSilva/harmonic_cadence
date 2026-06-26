@@ -23,6 +23,7 @@ class CifraClubRepository:
             cifra_html=raw_data.get("cifra_html", ""),
             youtube_url=raw_data["youtube_link"],
             cifraclub_url=raw_data["url"],
+            key=raw_data.get("key", ""),
         )
 
     def get_artist_songs(self, artist: str) -> list[dict]:
