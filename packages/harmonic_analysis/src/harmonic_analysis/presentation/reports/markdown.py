@@ -57,10 +57,139 @@ class MarkdownReportGenerator(ReportGenerator):
             # Cadências
             f.write(self._generate_cadences(analysis))
 
+            # Camada 3: explicação pedagógica (prosa)
+            f.write(self._generate_explanation(analysis))
+
+            # Camada 2: profundidade musical
+            f.write(self._generate_roman_numerals(analysis))
+            f.write(self._generate_tonal_regions(analysis))
+            f.write(self._generate_modal_analysis(analysis))
+            f.write(self._generate_voice_leading(analysis))
+            f.write(self._generate_chord_scales(analysis))
+
+            # Camada 3: inteligência
+            f.write(self._generate_functional_parse(analysis))
+            f.write(self._generate_reharmonizations(analysis))
+
             # Rodapé
             f.write(self._generate_footer())
 
         return full_path
+
+    def _generate_explanation(self, analysis: Dict[str, Any]) -> str:
+        text = analysis.get("explanation")
+        if not self._present(text):
+            return ""
+        return f"## Explicação\n\n{text}\n\n"
+
+    def _generate_roman_numerals(self, analysis: Dict[str, Any]) -> str:
+        romans = analysis.get("roman_numerals")
+        if not self._present(romans):
+            return ""
+        return "## Cifragem romana\n\n" + " · ".join(romans) + "\n\n"
+
+    def _generate_tonal_regions(self, analysis: Dict[str, Any]) -> str:
+        regions = analysis.get("tonal_regions")
+        if not self._present(regions):
+            return ""
+        lines = ["## Regiões tonais\n"]
+        for r in regions:
+            lines.append(
+                f"- acordes {r['start']}–{r['end']}: **{r['key']}** "
+                f"(score {r['score']:.2f})"
+            )
+        return "\n".join(lines) + "\n\n"
+
+    def _generate_modal_analysis(self, analysis: Dict[str, Any]) -> str:
+        modal = analysis.get("modal_analysis")
+        if not self._present(modal):
+            return ""
+        cadences = modal.get("cadences") or []
+        cad = (
+            ", ".join(f"{a}→{b}" for a, b in cadences) if cadences else "nenhuma"
+        )
+        return (
+            "## Análise modal\n\n"
+            f"- Centro modal: **{modal['tonic']} {modal['mode']}**\n"
+            f"- Cadências modais: {cad}\n\n"
+        )
+
+    def _generate_voice_leading(self, analysis: Dict[str, Any]) -> str:
+        vl = analysis.get("voice_leading")
+        if not self._present(vl):
+            return ""
+        lines = ["## Condução de vozes\n"]
+        if vl.get("bass_line"):
+            lines.append("- **Linha de baixo:** " + " → ".join(vl["bass_line"]))
+        if vl.get("descending"):
+            lines.append(f"- **Trechos descendentes:** {len(vl['descending'])}")
+        if vl.get("pedals"):
+            lines.append(f"- **Pedais:** {len(vl['pedals'])}")
+        if vl.get("line_cliches"):
+            lines.append(f"- **Line clichês:** {len(vl['line_cliches'])}")
+        if len(lines) == 1:
+            return ""
+        return "\n".join(lines) + "\n\n"
+
+    def _generate_chord_scales(self, analysis: Dict[str, Any]) -> str:
+        scales = analysis.get("chord_scales")
+        if not self._present(scales):
+            return ""
+        lines = [
+            "## Escala-acorde e tensões\n",
+            "| Acorde | Escala | Tensões | Avoid |",
+            "|--------|--------|---------|-------|",
+        ]
+        for cs in scales:
+            tensions = ", ".join(cs.get("tensions", [])) or "-"
+            avoid = ", ".join(cs.get("avoid", [])) or "-"
+            lines.append(f"| {cs['chord']} | {cs['scale']} | {tensions} | {avoid} |")
+        return "\n".join(lines) + "\n\n"
+
+    def _generate_functional_parse(self, analysis: Dict[str, Any]) -> str:
+        parse = analysis.get("functional_parse")
+        if not self._present(parse) or not parse.get("chords"):
+            return ""
+        lines = [
+            "## Parsing funcional (probabilístico)\n",
+            "| Acorde | Função | Confiança | Alternativas |",
+            "|--------|--------|-----------|--------------|",
+        ]
+        for c in parse["chords"]:
+            alts = (
+                ", ".join(
+                    f"{a['function']} ({a['probability']:.0%})"
+                    for a in c.get("alternatives", [])
+                )
+                or "-"
+            )
+            lines.append(
+                f"| {c['chord']} | {c['function']} ({c['label']}) | "
+                f"{c['confidence']:.0%} | {alts} |"
+            )
+        return "\n".join(lines) + "\n\n"
+
+    def _generate_reharmonizations(self, analysis: Dict[str, Any]) -> str:
+        from .base import REHARM_DISPLAY_LIMIT
+
+        reharms = analysis.get("reharmonizations")
+        if not self._present(reharms):
+            return ""
+        shown = reharms[:REHARM_DISPLAY_LIMIT]
+        lines = ["## Sugestões de reharmonização\n"]
+        for s in shown:
+            original = " ".join(s["original"])
+            result = " ".join(s["result"])
+            lines.append(
+                f"- **[{s['technique']}]** {original} → {result}  \n"
+                f"  {s['rationale']}"
+            )
+        if len(reharms) > REHARM_DISPLAY_LIMIT:
+            lines.append(
+                f"\n*(+{len(reharms) - REHARM_DISPLAY_LIMIT} sugestões adicionais "
+                "omitidas)*"
+            )
+        return "\n".join(lines) + "\n\n"
 
     def _generate_header(self, analysis: Dict[str, Any], yt_link: str) -> str:
         return (

@@ -161,9 +161,17 @@ class HTMLReportGenerator(ReportGenerator):
             </div>
         </div>
 
+        {self._generate_explanation_html(analysis)}
         {self._generate_analysis_section(analysis)}
+        {self._generate_roman_numerals_html(analysis)}
+        {self._generate_functional_parse_html(analysis)}
         {self._generate_function_stats_html(analysis)}
         {self._generate_cadences_html(analysis)}
+        {self._generate_tonal_regions_html(analysis)}
+        {self._generate_modal_analysis_html(analysis)}
+        {self._generate_voice_leading_html(analysis)}
+        {self._generate_chord_scales_html(analysis)}
+        {self._generate_reharmonizations_html(analysis)}
         {self._generate_progression_analysis(analysis)}
 
         <footer class="pt-3 mt-4 text-muted border-top">
@@ -173,6 +181,155 @@ class HTMLReportGenerator(ReportGenerator):
 </body>
 </html>
 """
+
+    def _section(self, title: str, body: str) -> str:
+        """Envólucro padrão de seção (mesmo estilo das demais)."""
+        return f"""
+            <div class="row mb-5">
+                <div class="col-12">
+                    <h2 class="h4">{title}</h2>
+                    {body}
+                </div>
+            </div>
+        """
+
+    def _generate_explanation_html(self, analysis: Dict[str, Any]) -> str:
+        text = analysis.get("explanation")
+        if not self._present(text):
+            return ""
+        return self._section(
+            "Explicação",
+            f'<div class="card"><div class="card-body">{text}</div></div>',
+        )
+
+    def _generate_roman_numerals_html(self, analysis: Dict[str, Any]) -> str:
+        romans = analysis.get("roman_numerals")
+        if not self._present(romans):
+            return ""
+        chips = " · ".join(romans)
+        return self._section("Cifragem romana", f"<p>{chips}</p>")
+
+    def _generate_tonal_regions_html(self, analysis: Dict[str, Any]) -> str:
+        regions = analysis.get("tonal_regions")
+        if not self._present(regions):
+            return ""
+        items = "".join(
+            f"<li>acordes {r['start']}–{r['end']}: <strong>{r['key']}</strong> "
+            f"(score {r['score']:.2f})</li>"
+            for r in regions
+        )
+        return self._section("Regiões tonais", f'<ul class="list-unstyled">{items}</ul>')
+
+    def _generate_modal_analysis_html(self, analysis: Dict[str, Any]) -> str:
+        modal = analysis.get("modal_analysis")
+        if not self._present(modal):
+            return ""
+        cadences = modal.get("cadences") or []
+        cad = ", ".join(f"{a}→{b}" for a, b in cadences) if cadences else "nenhuma"
+        body = (
+            f"<p><strong>Centro modal:</strong> {modal['tonic']} {modal['mode']}</p>"
+            f"<p><strong>Cadências modais:</strong> {cad}</p>"
+        )
+        return self._section("Análise modal", body)
+
+    def _generate_voice_leading_html(self, analysis: Dict[str, Any]) -> str:
+        vl = analysis.get("voice_leading")
+        if not self._present(vl):
+            return ""
+        items = []
+        if vl.get("bass_line"):
+            items.append(
+                "<li><strong>Linha de baixo:</strong> "
+                + " → ".join(vl["bass_line"])
+                + "</li>"
+            )
+        if vl.get("descending"):
+            items.append(f"<li><strong>Trechos descendentes:</strong> {len(vl['descending'])}</li>")
+        if vl.get("pedals"):
+            items.append(f"<li><strong>Pedais:</strong> {len(vl['pedals'])}</li>")
+        if vl.get("line_cliches"):
+            items.append(f"<li><strong>Line clichês:</strong> {len(vl['line_cliches'])}</li>")
+        if not items:
+            return ""
+        return self._section(
+            "Condução de vozes", f'<ul class="list-unstyled">{"".join(items)}</ul>'
+        )
+
+    def _generate_chord_scales_html(self, analysis: Dict[str, Any]) -> str:
+        scales = analysis.get("chord_scales")
+        if not self._present(scales):
+            return ""
+        rows = "".join(
+            f"<tr><td>{cs['chord']}</td><td>{cs['scale']}</td>"
+            f"<td>{', '.join(cs.get('tensions', [])) or '-'}</td>"
+            f"<td>{', '.join(cs.get('avoid', [])) or '-'}</td></tr>"
+            for cs in scales
+        )
+        table = f"""
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead><tr><th>Acorde</th><th>Escala</th><th>Tensões</th><th>Avoid</th></tr></thead>
+                    <tbody>{rows}</tbody>
+                </table>
+            </div>
+        """
+        return self._section("Escala-acorde e tensões", table)
+
+    def _generate_functional_parse_html(self, analysis: Dict[str, Any]) -> str:
+        parse = analysis.get("functional_parse")
+        if not self._present(parse) or not parse.get("chords"):
+            return ""
+        rows = []
+        for c in parse["chords"]:
+            alts = (
+                ", ".join(
+                    f"{a['function']} ({a['probability']:.0%})"
+                    for a in c.get("alternatives", [])
+                )
+                or "-"
+            )
+            rows.append(
+                f"<tr><td>{c['chord']}</td><td>{c['function']} ({c['label']})</td>"
+                f"<td>{c['confidence']:.0%}</td><td>{alts}</td></tr>"
+            )
+        table = f"""
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead><tr><th>Acorde</th><th>Função</th><th>Confiança</th><th>Alternativas</th></tr></thead>
+                    <tbody>{''.join(rows)}</tbody>
+                </table>
+            </div>
+        """
+        return self._section("Parsing funcional (probabilístico)", table)
+
+    def _generate_reharmonizations_html(self, analysis: Dict[str, Any]) -> str:
+        from .base import REHARM_DISPLAY_LIMIT
+
+        reharms = analysis.get("reharmonizations")
+        if not self._present(reharms):
+            return ""
+        shown = reharms[:REHARM_DISPLAY_LIMIT]
+        cards = []
+        for s in shown:
+            original = " ".join(s["original"])
+            result = " ".join(s["result"])
+            cards.append(
+                f"""
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <strong>[{s['technique']}]</strong> {original} → {result}<br>
+                        <span class="text-muted">{s['rationale']}</span>
+                    </div>
+                </div>
+                """
+            )
+        extra = ""
+        if len(reharms) > REHARM_DISPLAY_LIMIT:
+            extra = (
+                f'<p class="text-muted">(+{len(reharms) - REHARM_DISPLAY_LIMIT} '
+                "sugestões adicionais omitidas)</p>"
+            )
+        return self._section("Sugestões de reharmonização", "".join(cards) + extra)
 
     def _generate_analysis_section(self, analysis: Dict[str, Any]) -> str:
         rows = []

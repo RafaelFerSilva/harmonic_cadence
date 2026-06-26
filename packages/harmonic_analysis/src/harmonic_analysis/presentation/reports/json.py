@@ -87,10 +87,35 @@ class JSONReportGenerator(ReportGenerator):
             },
         }
 
+        # Camada 2 (profundidade) e Camada 3 (inteligência): incluídas quando
+        # presentes; seções ausentes/vazias são omitidas (não emitidas como null).
+        depth = {}
+        for key in (
+            "tonal_regions",
+            "modal_analysis",
+            "roman_numerals",
+            "voice_leading",
+            "chord_scales",
+        ):
+            self._maybe_add(depth, key, analysis.get(key))
+        if depth:
+            report["depth"] = depth
+
+        intelligence = {}
+        for key in ("functional_parse", "reharmonizations", "explanation"):
+            self._maybe_add(intelligence, key, analysis.get(key))
+        if intelligence:
+            report["intelligence"] = intelligence
+
         with open(full_path, "w", encoding="utf-8") as f:
             json.dump(report, f, ensure_ascii=False, indent=2)
 
         return full_path
+
+    def _maybe_add(self, target: Dict[str, Any], key: str, value: Any) -> None:
+        """Inclui a seção apenas se presente (omissão graciosa)."""
+        if self._present(value):
+            target[key] = value
 
     def _process_cadences(self, cadences: Dict[str, Any]) -> Dict[str, Any]:
         if not cadences:
