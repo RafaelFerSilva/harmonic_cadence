@@ -131,10 +131,15 @@ class JSONReportGenerator(ReportGenerator):
                 for prog in cadence.split(","):
                     prog = prog.strip()
                     if "→" in prog:
-                        before, after = prog.split("→")
-                        cadence_type["progressions"].append(
-                            {"from": before.strip(), "to": after.strip()}
-                        )
+                        parts = [p.strip() for p in prog.split("→")]
+                        if len(parts) == 2:
+                            cadence_type["progressions"].append(
+                                {"from": parts[0], "to": parts[1]}
+                            )
+                        else:
+                            cadence_type["progressions"].append(
+                                {"progression": " → ".join(parts)}
+                            )
                     else:
                         cadence_type["progressions"].append({"chord": prog})
 

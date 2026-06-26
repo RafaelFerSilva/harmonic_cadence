@@ -1,39 +1,60 @@
+"""Taxonomia de cadências (Chediak Vol. I, XXXII, pp. 109-111).
+
+Cinco cadências — perfeita, imperfeita, plagal, meia-cadência, deceptiva — mais a
+autêntica (perfeita precedida de subdominante). Classificação por posição de grau
+(`degree_base`), válida em maior e menor; perfeita vs imperfeita pela inversão do
+baixo (o que a cifra estabelece).
+"""
+
 from typing import Dict, List, Set
 
-from .constants import CADENCE_PATTERNS
+from harmonic_analysis.domain.chord import Chord
+from harmonic_analysis.domain.harmonic_function import degree_base
+
+
+def _inverted(symbol: str) -> bool:
+    """True se o acorde está invertido (baixo cifrado ≠ fundamental)."""
+    try:
+        c = Chord(symbol)
+        return c.properties.bass is not None and c.properties.bass != c.root
+    except Exception:
+        return False
 
 
 def analyze_cadences(
     degree_seq: List[str], mode: str, all_chords: List[str]
 ) -> Dict[str, Set[str]]:
-    """
-    Analisa e retorna as cadências encontradas na sequência de graus.
-    Retorna um dicionário com o nome da cadência e os pares de acordes que a compõem.
-    """
-    patterns = (
-        CADENCE_PATTERNS["major"] if mode == "major" else CADENCE_PATTERNS["minor"]
-    )
-
-    unique_cadences = {
+    """Cadências encontradas na sequência (Chediak). `mode` é mantido por
+    compatibilidade; a classificação é por posição de grau."""
+    cad: Dict[str, Set[str]] = {
+        "Perfeita": set(),
         "Autêntica": set(),
+        "Imperfeita": set(),
         "Plagal": set(),
-        "Interrompida": set(),
         "Meia-cadência": set(),
+        "Deceptiva": set(),
     }
+    n = min(len(degree_seq), len(all_chords))
+    for i in range(n - 1):
+        a = degree_base(degree_seq[i])
+        b = degree_base(degree_seq[i + 1])
+        pair = f"{all_chords[i]} → {all_chords[i + 1]}"
 
-    for i in range(len(degree_seq) - 1):
-        pair = (degree_seq[i], degree_seq[i + 1])
-        chord_pair = f"{all_chords[i]} → {all_chords[i+1]}"
-        # Autêntica
-        if pair == patterns["authentic"]:
-            unique_cadences["Autêntica"].add(chord_pair)
-        # Plagal
-        elif pair == patterns["plagal"]:
-            unique_cadences["Plagal"].add(chord_pair)
-        # Interrompida
-        elif pair == patterns["deceptive"]:
-            unique_cadences["Interrompida"].add(chord_pair)
-        # Meia-cadência (qualquer grau para dominante)
-        elif patterns["half"][1] in pair[1]:
-            unique_cadences["Meia-cadência"].add(chord_pair)
-    return unique_cadences
+        if b == "V" and a != "V":  # meia-cadência: descanso no dominante
+            cad["Meia-cadência"].add(pair)
+        elif a == "V" and b == "I":  # família autêntica (V→I)
+            if _inverted(all_chords[i]) or _inverted(all_chords[i + 1]):
+                cad["Imperfeita"].add(pair)
+            else:
+                cad["Perfeita"].add(pair)
+                if i >= 1 and degree_base(degree_seq[i - 1]) in ("IV", "II"):
+                    cad["Autêntica"].add(
+                        f"{all_chords[i - 1]} → {all_chords[i]} → {all_chords[i + 1]}"
+                    )
+        elif a == "VII" and b == "I":  # VII→I enfraquece → imperfeita
+            cad["Imperfeita"].add(pair)
+        elif a in ("IV", "II") and b == "I":  # plagal (IV→I ou IIm→I)
+            cad["Plagal"].add(pair)
+        elif a == "V" and b != "I":  # deceptiva: V → não-tônica
+            cad["Deceptiva"].add(pair)
+    return cad

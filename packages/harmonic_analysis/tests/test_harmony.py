@@ -11,4 +11,4 @@ def test_chord_to_degree():
 
 def test_authentic_cadence_detected():
     cad = analyze_cadences(["V", "I"], "major", ["G", "C"])
-    assert "G → C" in cad["Autêntica"]
+    assert "G → C" in cad["Perfeita"]  # V→I em estado fundamental (Chediak)

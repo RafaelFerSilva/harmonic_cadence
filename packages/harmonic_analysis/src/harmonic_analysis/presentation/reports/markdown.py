@@ -250,8 +250,8 @@ class MarkdownReportGenerator(ReportGenerator):
                     progressions = [prog.strip() for prog in cadence.split(",")]
                     for prog in progressions:
                         if "→" in prog:
-                            before, after = prog.split("→")
-                            lines.append(f"- {before.strip()} → {after.strip()}")
+                            parts = [p.strip() for p in prog.split("→")]
+                            lines.append(f"- {' → '.join(parts)}")
                         else:
                             lines.append(f"- {prog}")
                 lines.append("")

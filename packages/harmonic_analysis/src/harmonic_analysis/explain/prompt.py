@@ -32,7 +32,10 @@ def summarize_facts(analysis: dict) -> Dict[str, object]:
     borrowed = _unique([e["chord"] for e in ha if e.get("function_code") == "Emp"])
 
     cadences = analysis.get("cadences") or {}
-    authentic = sorted(cadences.get("Autêntica", []) or [])
+    authentic = sorted(
+        list(cadences.get("Autêntica", []) or [])
+        + list(cadences.get("Perfeita", []) or [])
+    )
     plagal = sorted(cadences.get("Plagal", []) or [])
 
     modal = analysis.get("modal_analysis")

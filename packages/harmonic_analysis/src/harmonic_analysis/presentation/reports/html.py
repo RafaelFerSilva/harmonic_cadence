@@ -400,10 +400,8 @@ class HTMLReportGenerator(ReportGenerator):
                 for prog in cadence.split(","):
                     prog = prog.strip()
                     if "→" in prog:
-                        before, after = prog.split("→")
-                        progressions.append(
-                            f"<li>{before.strip()} → {after.strip()}</li>"
-                        )
+                        parts = [p.strip() for p in prog.split("→")]
+                        progressions.append(f"<li>{' → '.join(parts)}</li>")
                     else:
                         progressions.append(f"<li>{prog}</li>")
 
