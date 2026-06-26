@@ -103,6 +103,34 @@ class HarmonicAnalysis:
         #    dominante aplicado mesmo quando sua fundamental coincide com um
         #    grau diatônico.
         if chord.is_dominant_seventh:
+            # 0a. Acordes de 7ª da dominante SEM função dominante (Chediak,
+            #     pp. 111-113) — têm precedência sobre a leitura de dominante
+            #     secundário. `pos` = semitons da tônica até a fundamental.
+            pos = self._get_interval(self.key, chord.root)
+            if pos == 0:  # I7 — função blues (tônica com 7ª)
+                return (
+                    "T",
+                    "Tônica (I7 blues)",
+                    "7ª sobre a tônica: função blues, não dominante (Chediak)",
+                )
+            if pos == 5:  # IV7 — função blues
+                return (
+                    "SD",
+                    "Subdominante (IV7 blues)",
+                    "7ª sobre a subdominante: função blues, não dominante (Chediak)",
+                )
+            if pos == 10:  # bVII7 — subdominante menor (empréstimo modal no maior)
+                return (
+                    "Emp",
+                    "Subdominante menor (bVII7)",
+                    "bVII7: subdominante menor / empréstimo modal (Chediak)",
+                )
+            if pos == 8:  # bVI7 — subdominante menor alterado
+                return (
+                    "Emp",
+                    "Subdominante menor alterado (bVI7)",
+                    "bVI7: subdominante menor alterado (Chediak)",
+                )
             if next_chord:
                 ni = self._get_interval(chord.root, next_chord.root)
                 target_is_tonic = self._get_interval(next_chord.root, self.key) == 0
@@ -114,6 +142,14 @@ class HarmonicAnalysis:
                         "Dsec",
                         f"Dominante Secundário (V7/{target_degree})",
                         self.HARMONIC_FUNCTIONS["Dsec"]["description"],
+                    )
+                # VII7 que resolve direto na tônica: função cadencial. (Quando
+                # resolve uma 5ª abaixo no III, cai no Dsec V7/III acima.)
+                if pos == 11 and target_is_tonic:
+                    return (
+                        "D",
+                        "VII7 cadencial",
+                        "VII7 resolvendo direto na tônica: função cadencial (Chediak)",
                     )
             # SubV (bII7): um semitom acima da tônica.
             if self._get_interval(chord.root, self.key) == 11:
