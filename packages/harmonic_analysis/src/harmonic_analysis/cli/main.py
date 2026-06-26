@@ -5,6 +5,9 @@ from typing import Dict, List, Optional
 
 from tqdm import tqdm
 
+from cifra_core import CachePolicy
+
+from harmonic_analysis.config import ProviderConfig, build_song_provider
 from harmonic_analysis.infra.cifra_api import (
     cache_all_artist_songs,
     download_and_cache_song,
@@ -20,7 +23,23 @@ class HarmonicCLI:
 
     def __init__(self):
         self.parser = self._create_parser()
-        self.analysis_service = AnalysisService()
+
+    def _build_service(self, args: argparse.Namespace) -> AnalysisService:
+        """Raiz de composição: monta o SongProvider a partir das flags."""
+        policy = CachePolicy.NETWORK_FIRST
+        if getattr(args, "offline", False):
+            policy = CachePolicy.CACHE_FIRST
+        if getattr(args, "refresh", False):
+            policy = CachePolicy.REFRESH
+
+        kwargs: dict = {
+            "kind": getattr(args, "provider", "inprocess"),
+            "cache_enabled": not getattr(args, "no_cache", False),
+            "cache_policy": policy,
+        }
+        if getattr(args, "api_url", None):
+            kwargs["api_base_url"] = args.api_url
+        return AnalysisService(build_song_provider(ProviderConfig(**kwargs)))
 
     def _create_parser(self) -> argparse.ArgumentParser:
         """Cria e configura o parser de argumentos."""
@@ -56,6 +75,33 @@ class HarmonicCLI:
             choices=["html", "json", "markdown"],
             default="json",
             help="Formato do relatório (default: json)",
+        )
+        analyze_parser.add_argument(
+            "--provider",
+            choices=["inprocess", "http"],
+            default="inprocess",
+            help="Origem da cifra: inprocess (sem servidor, padrão) ou http",
+        )
+        analyze_parser.add_argument(
+            "--offline",
+            action="store_true",
+            help="Prioriza o cache local (não vai à rede se houver cache)",
+        )
+        analyze_parser.add_argument(
+            "--refresh",
+            action="store_true",
+            help="Força nova busca e reescreve o cache",
+        )
+        analyze_parser.add_argument(
+            "--no-cache",
+            action="store_true",
+            help="Desativa o cache local",
+        )
+        analyze_parser.add_argument(
+            "--api-url",
+            dest="api_url",
+            default=None,
+            help="URL base da API quando --provider http (default: env/localhost:3000)",
         )
 
         # Comando: cache
@@ -130,9 +176,8 @@ class HarmonicCLI:
                 return
 
             try:
-                result = self.analysis_service.analyze_song_from_api(
-                    args.artist, args.song
-                )
+                service = self._build_service(args)
+                result = service.analyze_song_from_api(args.artist, args.song)
                 if not result or "error" in result:
                     print(
                         f"Música não encontrada ou análise inválida: {args.artist} - {args.song}"
@@ -157,15 +202,14 @@ class HarmonicCLI:
             # Configurações de paralelismo
             max_workers = min(4, len(songs))
             report_generator = ReportFactory.create(args.format)
+            service = self._build_service(args)
             consolidated_results = []
             stats = {"success": 0, "failed": 0, "errors": []}
 
             def process_song(song: str) -> Optional[Dict]:
                 """Função de processamento para paralelização."""
                 try:
-                    result = self.analysis_service.analyze_song_from_api(
-                        args.artist, song
-                    )
+                    result = service.analyze_song_from_api(args.artist, song)
 
                     if not result or "error" in result:
                         stats["failed"] += 1

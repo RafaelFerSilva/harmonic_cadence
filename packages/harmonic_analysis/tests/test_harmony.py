@@ -1,16 +1,14 @@
-from domain.chord import Chord
-from domain.harmony import HarmonicAnalysis
+from harmonic_analysis.domain.cadence import analyze_cadences
+from harmonic_analysis.domain.chord import Chord
+from harmonic_analysis.domain.harmony import HarmonicAnalysis
 
 
 def test_chord_to_degree():
-    chord = Chord("C")
     analysis = HarmonicAnalysis("C", "major")
-    assert analysis.get_degree(chord) == "I"
+    assert analysis.get_degree(Chord("C")) == "I"
+    assert analysis.get_degree(Chord("G")) == "V"
 
 
-def test_detect_cadence():
-    from domain.cadence import detect_cadences
-
-    seq = ["ii", "V", "I"]
-    cad = detect_cadences(seq)
-    assert ("Autêntica", 1) in cad
+def test_authentic_cadence_detected():
+    cad = analyze_cadences(["V", "I"], "major", ["G", "C"])
+    assert "G → C" in cad["Autêntica"]

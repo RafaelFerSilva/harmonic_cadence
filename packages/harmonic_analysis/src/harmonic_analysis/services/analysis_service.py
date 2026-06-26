@@ -1,12 +1,11 @@
 import re
 from typing import Any, Counter, Dict, List
 
-from cifra_core import ChordPattern, fix_encoding
+from cifra_core import ChordPattern, SongProvider, SongProviderError, fix_encoding
 
 from harmonic_analysis.domain.cadence import analyze_cadences
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
-from harmonic_analysis.infra.cifra_api import fetch_song_data
 from harmonic_analysis.infra.utils import filter_cifra_lines
 from harmonic_analysis.presentation.formatter import AnalysisFormatter
 from harmonic_analysis.utils.formatting import format_name
@@ -17,7 +16,8 @@ class AnalysisService:
     Serviço principal que coordena a análise harmônica completa.
     """
 
-    def __init__(self):
+    def __init__(self, provider: SongProvider):
+        self.provider = provider
         self.formatter = AnalysisFormatter()
 
     def _normalize_text_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -327,17 +327,12 @@ class AnalysisService:
         except Exception as e:
             raise RuntimeError(f"Erro crítico na análise da música: {str(e)}")
 
-    def analyze_song_from_api(self, artist: str, song: str) -> str:
+    def analyze_song_from_api(self, artist: str, song: str) -> Dict[str, Any]:
         """
-        Realiza análise completa de uma música a partir da API.
+        Realiza análise completa de uma música obtida via SongProvider.
         """
         try:
-            # Busca dados da API
-            data = fetch_song_data(artist, song)
-            if not data or "error" in data:
-                raise RuntimeError(f"Música não encontrada: {artist} - {song}")
-            # Normaliza encoding e formatação dos dados
-            data = self._normalize_text_data(data)
-            return self.analyze_song_data_structured(data)
-        except Exception as e:
-            return f"Erro ao analisar música: {str(e)}"
+            cifra = self.provider.get_song(artist, song)
+        except SongProviderError as e:
+            return {"success": False, "error": str(e)}
+        return self.analyze_song_data_structured(cifra.to_dict())
