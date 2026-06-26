@@ -9,8 +9,8 @@ Interface de linha de comando para análise harmônica de músicas brasileiras.
 git clone https://github.com/seu-usuario/harmonic-cadence.git
 cd harmonic-cadence
 
-# Instale usando Poetry
-poetry install
+# Instale com uv
+uv sync
 ```
 
 # Comandos disponíveis no Harmonic CLI
@@ -21,7 +21,7 @@ Realiza análise harmônica de uma música específica ou de todas as músicas d
 
 Sintaxe básica:
 
-    poetry run harmonic analyze ARTISTA [MÚSICA] [OPÇÕES]
+    uv run harmonic analyze ARTISTA [MÚSICA] [OPÇÕES]
 Opções:
 
 --all: Analisa todas as músicas do artista (não especifique o nome da música quando usar esta opção)
@@ -31,10 +31,10 @@ Opções:
 Exemplos:
 ```
 # Analisar uma música específica
-poetry run harmonic analyze "Djavan" "Flor de Lis" --format html
+uv run harmonic analyze "Djavan" "Flor de Lis" --format html
 
 # Analisar todas as músicas de um artista
-poetry run harmonic analyze "Djavan" --all --format markdown
+uv run harmonic analyze "Djavan" --all --format markdown
 ```
 
 
@@ -43,7 +43,7 @@ Baixa e armazena músicas localmente para uso offline.
 
 Sintaxe básica:
 
-    poetry run harmonic cache [OPÇÕES]
+    uv run harmonic cache [OPÇÕES]
 
 Opções:
 
@@ -59,13 +59,13 @@ Exemplos:
 
 ```
 # Baixar músicas específicas
-poetry run harmonic cache --songs "Djavan:Flor de Lis" "Djavan:Azul"
+uv run harmonic cache --songs "Djavan:Flor de Lis" "Djavan:Azul"
 
 # Baixar todas as músicas de um artista
-poetry run harmonic cache --artist "Djavan"
+uv run harmonic cache --artist "Djavan"
 
 # Baixar músicas de um arquivo
-poetry run harmonic cache --file musicas.txt
+uv run harmonic cache --file musicas.txt
 ```
 
 ## 3. list - Listagem de músicas
@@ -73,7 +73,7 @@ Lista as músicas disponíveis de um artista, podendo mostrar apenas as em cache
 
 Sintaxe básica:
 
-    poetry run harmonic list ARTISTA [--cached] [--all]
+    uv run harmonic list ARTISTA [--cached] [--all]
 Opções:
 
 --cached: Lista apenas músicas disponíveis no cache local
@@ -81,10 +81,10 @@ Opções:
 Exemplos:
 ```
 # Listar todas as músicas do artista (online)
-poetry run harmonic list "Djavan"
+uv run harmonic list "Djavan"
 
 # Listar apenas músicas em cache
-poetry run harmonic list "Djavan" --cached
+uv run harmonic list "Djavan" --cached
 ```
 
 ### Observações importantes:
@@ -97,51 +97,51 @@ O formato padrão para relatórios é JSON, mas você pode escolher entre HTML o
 ## Outros exemplos
 
 ### Análise básica (formato JSON padrão)
-    poetry run harmonic analyze "Djavan" "Sina"
+    uv run harmonic analyze "Djavan" "Sina"
 
 ### Especificando formato HTML explicitamente
-    poetry run harmonic analyze "Djavan" "Sina" --format html
+    uv run harmonic analyze "Djavan" "Sina" --format html
 
 ### Análise com saída em Markdown
-    poetry run harmonic analyze "Chico Buarque" "Construção" --format markdown
+    uv run harmonic analyze "Chico Buarque" "Construção" --format markdown
 
 ### Para analisar todas as músicas:
-    poetry run harmonic analyze "Djavan" --all --format json
+    uv run harmonic analyze "Djavan" --all --format json
 
 ### Para analisar uma música específica:
-    poetry run harmonic analyze "Djavan" "Flor de Lis" --format html
+    uv run harmonic analyze "Djavan" "Flor de Lis" --format html
 
 ### Se esquecer de especificar:
-    poetry run harmonic analyze "Djavan"
+    uv run harmonic analyze "Djavan"
 
 
 Exemplos com Diferentes Artistas
 
 ```
 # João Gilberto
-poetry run harmonic analyze "Joao Gilberto" "Chega de Saudade"
+uv run harmonic analyze "Joao Gilberto" "Chega de Saudade"
 
 # Caetano Veloso
-poetry run harmonic analyze "Caetano Veloso" "Sampa"
+uv run harmonic analyze "Caetano Veloso" "Sampa"
 
 # Tom Jobim
-poetry run harmonic analyze "Tom Jobim" "Garota de Ipanema"
+uv run harmonic analyze "Tom Jobim" "Garota de Ipanema"
 
 # Chico Buarque
-poetry run harmonic analyze "Chico Buarque" "Construção"
+uv run harmonic analyze "Chico Buarque" "Construção"
 ```
 
 ## Cache de Músicas
 O CLI permite baixar e cachear músicas para uso offline.
 
 ### Cachear uma única música
-    poetry run harmonic cache --songs "Djavan:Sina"
+    uv run harmonic cache --songs "Djavan:Sina"
 
 ### Cachear múltiplas músicas
-    poetry run harmonic cache --songs "Djavan:Sina" "Tom Jobim:Garota de Ipanema" "Chico Buarque:Construção"
+    uv run harmonic cache --songs "Djavan:Sina" "Tom Jobim:Garota de Ipanema" "Chico Buarque:Construção"
 
 ### Forçar atualização do cache
-    poetry run harmonic cache --songs "Djavan:Sina" --force
+    uv run harmonic cache --songs "Djavan:Sina" --force
 
 ## Usando Arquivo de Lista
 Você pode criar um arquivo musicas.txt com a lista de músicas para análise:
@@ -158,32 +158,32 @@ Caetano Veloso:Sampa
 
 E então usar o comando:
 
-    poetry run harmonic cache --file musicas.txt
+    uv run harmonic cache --file musicas.txt
 
 
 # Listar músicas de um artista
-    poetry run harmonic list "zeca pagodinho" --all
+    uv run harmonic list "zeca pagodinho" --all
 
 # Listar apenas músicas em cache
-    poetry run harmonic list "zeca pagodinho" --cached
+    uv run harmonic list "zeca pagodinho" --cached
 
 # Baixar todas as músicas de um artista
-    poetry run harmonic cache --artist "zeca pagodinho"
+    uv run harmonic cache --artist "zeca pagodinho"
 
 # Forçar download de todas as músicas (mesmo que já existam em cache)
-    poetry run harmonic cache --artist "zeca pagodinho" --force
+    uv run harmonic cache --artist "zeca pagodinho" --force
 
 ## Ajuda
 
 ```
 # Ver todos os comandos disponíveis
-poetry run harmonic --help
+uv run harmonic --help
 
 # Ajuda específica do comando analyze
-poetry run harmonic analyze --help
+uv run harmonic analyze --help
 
 # Ajuda específica do comando cache
-poetry run harmonic cache --help
+uv run harmonic cache --help
 ```
 
 
@@ -193,10 +193,10 @@ poetry run harmonic cache --help
 
 ```
 # 1. Baixar música para cache
-poetry run harmonic cache --songs "Djavan:Sina"
+uv run harmonic cache --songs "Djavan:Sina"
 
 # 2. Analisar a música
-poetry run harmonic analyze "Djavan" "Sina"
+uv run harmonic analyze "Djavan" "Sina"
 ```
 
 ## Workflow com Múltiplas Músicas
@@ -207,12 +207,12 @@ Tom Jobim:Garota de Ipanema
 Chico Buarque:Construção" > musicas.txt
 
 # 2. Baixar todas as músicas
-poetry run harmonic cache --file musicas.txt
+uv run harmonic cache --file musicas.txt
 
 # 3. Analisar cada música
-poetry run harmonic analyze "Djavan" "Sina"
-poetry run harmonic analyze "Tom Jobim" "Garota de Ipanema"
-poetry run harmonic analyze "Chico Buarque" "Construção"
+uv run harmonic analyze "Djavan" "Sina"
+uv run harmonic analyze "Tom Jobim" "Garota de Ipanema"
+uv run harmonic analyze "Chico Buarque" "Construção"
 ```
 
 
@@ -227,8 +227,30 @@ O CLI inclui tratamento de erros para situações comuns:
 
 ```
 # API offline (usará cache se disponível)
-poetry run harmonic analyze "Djavan" "Sina"
+uv run harmonic analyze "Djavan" "Sina"
 
 # Música não encontrada
-poetry run harmonic analyze "Artista Inexistente" "Música Inexistente"
+uv run harmonic analyze "Artista Inexistente" "Música Inexistente"
+```
+
+## Provider e cache (sem servidor por padrão)
+
+A análise obtém a cifra pela porta `SongProvider`. Por padrão usa o adaptador
+**in-process** — raspa o Cifra Club no próprio processo, **sem subir o serviço
+Flask**. Flags:
+
+| Flag | Efeito |
+| --- | --- |
+| `--provider inprocess` | sem servidor (padrão) |
+| `--provider http` | usa o serviço Flask em `:3000/api` (`--api-url` p/ outra URL) |
+| `--offline` | prioriza o cache local (`CACHE_FIRST`) |
+| `--refresh` | força nova busca e reescreve o cache |
+| `--no-cache` | desativa o cache |
+
+```bash
+# Padrão: in-process, sem subir nada
+uv run harmonic analyze "Djavan" "Sina"
+
+# Via serviço HTTP (requer `make scraper` no ar)
+uv run harmonic analyze "Djavan" "Sina" --provider http
 ```
