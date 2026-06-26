@@ -322,12 +322,19 @@ dependencies = [
     { name = "tqdm" },
 ]
 
+[package.optional-dependencies]
+inprocess = [
+    { name = "cifra-scraper" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "cifra-core", editable = "packages/cifra_core" },
+    { name = "cifra-scraper", marker = "extra == 'inprocess'", editable = "packages/cifra_scraper" },
     { name = "requests", specifier = ">=2.31" },
     { name = "tqdm", specifier = ">=4.67" },
 ]
+provides-extras = ["inprocess"]
 
 [[package]]
 name = "idna"

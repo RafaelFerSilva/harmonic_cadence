@@ -38,7 +38,13 @@ def build_song_provider(cfg: ProviderConfig) -> SongProvider:
 
         inner: SongProvider = HttpSongProvider(cfg.api_base_url)
     else:
-        from cifra_scraper.song_provider import InProcessSongProvider
+        try:
+            from cifra_scraper.song_provider import InProcessSongProvider
+        except ImportError as e:  # extra [inprocess] ausente
+            raise RuntimeError(
+                "O provider in-process requer o extra [inprocess] (cifra-scraper). "
+                "No monorepo rode `uv sync`; ou use --provider http."
+            ) from e
 
         inner = InProcessSongProvider()
 
