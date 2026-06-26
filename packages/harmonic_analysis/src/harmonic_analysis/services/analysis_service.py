@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Any, Counter, Dict, List
 
@@ -22,6 +23,22 @@ from harmonic_analysis.presentation.formatter import AnalysisFormatter
 from harmonic_analysis.utils.formatting import format_name
 
 MINOR_MODES = {"dorian", "phrygian", "aeolian", "locrian"}
+
+logger = logging.getLogger(__name__)
+
+
+def _safe_section(result, name, compute, default):
+    """Executa a seção; em falha, devolve o default e a registra (log +
+    `diagnostics`), para que um valor vazio por exceção seja distinguível de
+    'nada se aplica'."""
+    try:
+        result[name] = compute()
+    except Exception as e:  # noqa: BLE001 — degradação tolerada, mas observável
+        result[name] = default
+        logger.warning("seção '%s' degradou: %s", name, e)
+        result.setdefault("diagnostics", []).append(
+            {"section": name, "error": f"{type(e).__name__}: {e}"}
+        )
 
 
 def _mode_refines_key(mode_info, key, key_mode) -> bool:
@@ -214,7 +231,9 @@ class AnalysisService:
                     harmonic_analysis.append(chord_analysis)
 
                 except Exception as e:
-                    print(f"Aviso: Erro ao analisar acorde {chord.symbol}: {str(e)}")
+                    logger.warning(
+                        "erro ao analisar acorde %s: %s", chord.symbol, e
+                    )
                     harmonic_analysis.append(
                         {
                             "chord": chord.symbol,
@@ -252,6 +271,7 @@ class AnalysisService:
             "analysis_progression": analysis_progression,
             "function_stats": function_stats,
             "cadences": {k: list(v) for k, v in cadences.items()} if cadences else {},
+            "diagnostics": [],  # seções degradadas (vazio = tudo ok)
         }
 
     def analyze_song_data_structured(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -382,8 +402,10 @@ class AnalysisService:
                 cadences,
             )
             # Regiões tonais (detecção de modulação) — reusa as já computadas.
-            try:
-                result["tonal_regions"] = [
+            _safe_section(
+                result,
+                "tonal_regions",
+                lambda: [
                     {
                         "start": r.start,
                         "end": r.end,
@@ -391,9 +413,9 @@ class AnalysisService:
                         "score": r.estimate.score,
                     }
                     for r in regions
-                ]
-            except Exception:
-                result["tonal_regions"] = []
+                ],
+                [],
+            )
 
             # Camada 2: profundidade musical
             self._add_depth_sections(result, all_chords, analysis, mode_info)
@@ -406,70 +428,60 @@ class AnalysisService:
 
     def _add_depth_sections(self, result, all_chords, analysis, mode_info) -> None:
         """Popula as seções da Camada 2: modal, RNA, condução de vozes, escala-acorde."""
-        # Análise modal
-        try:
-            if mode_info:
-                md_seq = []
-                for c in all_chords:
-                    try:
-                        md_seq.append(
-                            modal_degree(
-                                root_pitch_class(c.symbol),
-                                mode_info.tonic,
-                                mode_info.mode,
-                            )
+
+        def _modal():
+            if not mode_info:
+                return None
+            md_seq = []
+            for c in all_chords:
+                try:
+                    md_seq.append(
+                        modal_degree(
+                            root_pitch_class(c.symbol),
+                            mode_info.tonic,
+                            mode_info.mode,
                         )
-                    except Exception:
-                        md_seq.append(None)
-                result["modal_analysis"] = {
-                    "tonic": mode_info.tonic,
-                    "mode": mode_info.mode,
-                    "characteristic_note": CHARACTERISTIC_NOTE.get(mode_info.mode),
-                    "cadential_chords": MODAL_CADENTIAL.get(mode_info.mode, []),
-                    "avoid_chords": MODAL_AVOID.get(mode_info.mode, []),
-                    "cadences": modal_cadences(
-                        [d for d in md_seq if d], mode_info.mode
-                    ),
-                }
-            else:
-                result["modal_analysis"] = None
-        except Exception:
-            result["modal_analysis"] = None
-
-        # Cifragem romana
-        try:
-            result["roman_numerals"] = (
-                [
-                    analysis.roman_numeral(
-                        c, all_chords[i + 1] if i + 1 < len(all_chords) else None
                     )
-                    for i, c in enumerate(all_chords)
-                ]
-                if analysis
-                else []
-            )
-        except Exception:
-            result["roman_numerals"] = []
+                except Exception:
+                    md_seq.append(None)
+            return {
+                "tonic": mode_info.tonic,
+                "mode": mode_info.mode,
+                "characteristic_note": CHARACTERISTIC_NOTE.get(mode_info.mode),
+                "cadential_chords": MODAL_CADENTIAL.get(mode_info.mode, []),
+                "avoid_chords": MODAL_AVOID.get(mode_info.mode, []),
+                "cadences": modal_cadences([d for d in md_seq if d], mode_info.mode),
+            }
 
-        # Condução de vozes
-        try:
-            result["voice_leading"] = voice_leading.analyze(all_chords)
-        except Exception:
-            result["voice_leading"] = {}
-
-        # Escala-acorde e tensões
-        try:
-            result["chord_scales"] = (
-                [
-                    cs
-                    for c in all_chords
-                    if (cs := chord_scale.analyze_chord(c, analysis)) is not None
-                ]
-                if analysis
-                else []
-            )
-        except Exception:
-            result["chord_scales"] = []
+        _safe_section(result, "modal_analysis", _modal, None)
+        _safe_section(
+            result,
+            "roman_numerals",
+            lambda: [
+                analysis.roman_numeral(
+                    c, all_chords[i + 1] if i + 1 < len(all_chords) else None
+                )
+                for i, c in enumerate(all_chords)
+            ]
+            if analysis
+            else [],
+            [],
+        )
+        _safe_section(
+            result, "voice_leading", lambda: voice_leading.analyze(all_chords), {}
+        )
+        _safe_section(
+            result,
+            "chord_scales",
+            lambda: [
+                cs
+                for c in all_chords
+                if (cs := chord_scale.analyze_chord(c, analysis)) is not None
+            ]
+            if analysis
+            else [],
+            [],
+        )
 
     def _add_intelligence_sections(self, result, all_chords, analysis) -> None:
         """Popula as seções da Camada 3: parsing probabilístico, reharmonização, explicação."""
@@ -477,29 +489,26 @@ class AnalysisService:
         from harmonic_analysis.domain.reharmonization import reharmonize
         from harmonic_analysis.explain import ExplainConfig, build_explainer
 
-        # Parsing funcional probabilístico (HMM/Viterbi) — ponte do determinístico.
-        try:
-            result["functional_parse"] = build_functional_parse(
-                result.get("harmonic_analysis", [])
-            )
-        except Exception:
-            result["functional_parse"] = None
-
-        # Sugestões de reharmonização idiomáticas.
-        try:
-            result["reharmonizations"] = (
-                [s.to_dict() for s in reharmonize(all_chords, analysis)]
-                if analysis
-                else []
-            )
-        except Exception:
-            result["reharmonizations"] = []
-
-        # Explicação pedagógica — padrão determinístico/offline (template).
-        try:
-            result["explanation"] = build_explainer(ExplainConfig()).explain(result)
-        except Exception:
-            result["explanation"] = None
+        _safe_section(
+            result,
+            "functional_parse",
+            lambda: build_functional_parse(result.get("harmonic_analysis", [])),
+            None,
+        )
+        _safe_section(
+            result,
+            "reharmonizations",
+            lambda: [s.to_dict() for s in reharmonize(all_chords, analysis)]
+            if analysis
+            else [],
+            [],
+        )
+        _safe_section(
+            result,
+            "explanation",
+            lambda: build_explainer(ExplainConfig()).explain(result),
+            None,
+        )
 
     def analyze_song_from_api(self, artist: str, song: str) -> Dict[str, Any]:
         """

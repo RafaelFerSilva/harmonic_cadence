@@ -86,6 +86,7 @@ class JSONReportGenerator(ReportGenerator):
                 "cifra": analysis["cifra_lines"],
                 "cifra_html": analysis.get("cifra_html", ""),
             },
+            "diagnostics": analysis.get("diagnostics", []),
         }
 
         # Camada 2 (profundidade) e Camada 3 (inteligência): incluídas quando
