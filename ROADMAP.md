@@ -12,9 +12,12 @@ agora é **confiança/precisão** e **apresentação** para o público BR.
   referência) + harness de acurácia → um número de baseline. Destrava todo o
   resto: regressões pegas automaticamente, base pra calibrar de verdade.
   *(Gargalo: anotação dos tons corretos — onde a expertise de harmonia vale.)*
-- **Fase B — Centro tonal.** Detecção de tom que entenda modos (o K-S não acha a
-  tônica de modos: `G F C G` ele lê como Dó maior, não Sol mixolídio). Medido
-  contra o baseline da Fase A. É o teto de precisão. **Depende de A.**
+- **Fase B — Centro tonal.** Alvo afiado pelo baseline (`scripts/key_baseline.py`,
+  vs ouro Chediak, n=6: modo 67% · exata 33% · relativa-consciente 67%): a
+  fraqueza sistemática é a **confusão maior ↔ relativa menor** (perfis K-S
+  parecidos) — desambiguar com acorde final / cadência / primeiro acorde, não só
+  o histograma. Secundário: o K-S não acha a tônica de modos. Medido contra o
+  baseline. **Depende de A.**
 
 ## Trilha paralela (contida, baixo risco, encaixa cedo)
 
