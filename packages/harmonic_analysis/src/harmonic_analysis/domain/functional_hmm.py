@@ -19,6 +19,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Sequence, Tuple
 
 from harmonic_analysis.domain.chord import Chord
+from harmonic_analysis.domain.harmonic_function import functional_strength
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
 
 # Macro-funções (estados ocultos).
@@ -54,6 +55,16 @@ TRANSITION: Dict[str, Dict[str, float]] = {
 
 # Massa de emissão da função escolhida pelo analisador determinístico.
 PRIMARY_MASS = 0.70
+
+# Massa primária ponderada pela força funcional do grau (Chediak, pág. 92):
+# forte concentra mais no rótulo; fraca espalha mais nas alternativas. `None`
+# (sem grau diatônico / parse só-código) usa o padrão — garante zero regressão.
+STRENGTH_MASS: Dict[Optional[str], float] = {
+    "strong": 0.82,
+    "medium": PRIMARY_MASS,
+    "weak": 0.55,
+    None: PRIMARY_MASS,
+}
 
 # Como o resto (1 - PRIMARY_MASS) se distribui sobre as alternativas, por macro.
 # Codifica ambiguidade idiomática: um vi (lido como T) também serve de
@@ -108,12 +119,13 @@ def transition_prob(src: str, dst: str) -> float:
     return TRANSITION[src][dst]
 
 
-def _emission(macro: str) -> Dict[str, float]:
-    """Distribuição de emissão para um acorde cuja macro determinística é `macro`."""
-    rest = 1.0 - PRIMARY_MASS
+def _emission(macro: str, strength: Optional[str] = None) -> Dict[str, float]:
+    """Emissão para um acorde de macro `macro`, ponderada pela força funcional."""
+    primary = STRENGTH_MASS.get(strength, PRIMARY_MASS)
+    rest = 1.0 - primary
     alt = ALT_PRIORS[macro]
     e = {s: rest * alt[s] for s in STATES}
-    e[macro] += PRIMARY_MASS
+    e[macro] += primary
     return e
 
 
@@ -203,11 +215,20 @@ def _normalize(dist: Dict[str, float]) -> Dict[str, float]:
 
 
 def parse_codes(
-    function_codes: Sequence[str], chord_symbols: Sequence[str]
+    function_codes: Sequence[str],
+    chord_symbols: Sequence[str],
+    strengths: Optional[Sequence[Optional[str]]] = None,
 ) -> FunctionalParse:
-    """Parsing probabilístico a partir dos códigos de função determinísticos."""
+    """Parsing probabilístico a partir dos códigos de função determinísticos.
+
+    `strengths` (opcional) pondera a emissão pela força funcional de cada grau;
+    sem ela, o modelo emite como o não-ponderado (sem regressão).
+    """
     macros = [FUNCTION_MACRO.get(code, "X") for code in function_codes]
-    emissions = [_emission(m) for m in macros]
+    emissions = [
+        _emission(m, strengths[i] if strengths and i < len(strengths) else None)
+        for i, m in enumerate(macros)
+    ]
     path = _viterbi(emissions)
     posteriors = _forward_backward(emissions)
 
@@ -236,7 +257,8 @@ def build_functional_parse(harmonic_analysis: Sequence[dict]) -> dict:
     """Ponte para o `AnalysisService`: consome a análise determinística por acorde."""
     codes = [e.get("function_code", "Outro") for e in harmonic_analysis]
     symbols = [e.get("chord", "?") for e in harmonic_analysis]
-    return parse_codes(codes, symbols).to_dict()
+    strengths = [e.get("strength") for e in harmonic_analysis]
+    return parse_codes(codes, symbols, strengths).to_dict()
 
 
 def parse_progression(
@@ -248,8 +270,10 @@ def parse_progression(
         key, mode = HarmonicAnalysis.guess_key(chords)
     analysis = HarmonicAnalysis(key, mode)
     codes: List[str] = []
+    strengths: List[Optional[str]] = []
     for i, c in enumerate(chords):
         prev = chords[i - 1] if i > 0 else None
         nxt = chords[i + 1] if i < len(chords) - 1 else None
         codes.append(analysis.analyze_function(c, prev, nxt)[0])
-    return parse_codes(codes, [c.symbol for c in chords])
+        strengths.append(functional_strength(analysis.get_degree(c)))
+    return parse_codes(codes, [c.symbol for c in chords], strengths)
