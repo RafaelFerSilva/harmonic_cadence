@@ -17,6 +17,8 @@ MODE_PATTERNS = {
     "locrian": [0, 1, 3, 5, 6, 8, 10],
     "harmonic_minor": [0, 2, 3, 5, 7, 8, 11],
     "melodic_minor": [0, 2, 3, 5, 7, 9, 11],
+    # Lídio b7 (lydian dominant) — o modo "nordestino" do Chediak (pág. 121).
+    "lydian_dominant": [0, 2, 4, 6, 7, 9, 10],
 }
 
 

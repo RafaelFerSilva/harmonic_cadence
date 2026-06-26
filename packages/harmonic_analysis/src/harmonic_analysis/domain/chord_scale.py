@@ -22,6 +22,10 @@ DEGREE_SCALE = [
 # Rótulo da tensão pelo intervalo (semitons) acima da fundamental.
 TENSION_LABEL = {1: "b9", 2: "9", 3: "#9", 5: "11", 6: "#11", 8: "b13", 9: "13"}
 
+# Posições (semitons da tônica) de acordes dominantes que pedem lídio b7
+# (Chediak, pág. 113): II7, IV7, bVI7, bVII7, VII7. As demais → mixolídio.
+_LYDIAN_DOM_POS = {2, 5, 8, 10, 11}
+
 
 def recommended_scale(chord: Chord, analysis) -> Optional[Tuple[str, List[Note]]]:
     """Escala-acorde recomendada (modo + notas), pelo grau/função no contexto."""
@@ -31,6 +35,16 @@ def recommended_scale(chord: Chord, analysis) -> Optional[Tuple[str, List[Note]]
         return None
     if chord.quality == "half-diminished":
         return "locrian", build_scale(root, "locrian")
+    if chord.is_dominant_seventh:
+        # Acorde dominante: escala dominante pela posição (Chediak, p. 113),
+        # não a escala da tríade diatônica da fundamental.
+        try:
+            key_pc = Note.parse(analysis.key).pitch_class
+            pos = (root.pitch_class - key_pc) % 12
+            mode = "lydian_dominant" if pos in _LYDIAN_DOM_POS else "mixolydian"
+        except Exception:
+            mode = "mixolydian"
+        return mode, build_scale(root, mode)
     if root.pitch_class not in analysis.scale_pcs:
         return None  # não-diatônico (Camada 2 cobre o diatônico)
     mode = DEGREE_SCALE[analysis.scale_pcs.index(root.pitch_class)]
