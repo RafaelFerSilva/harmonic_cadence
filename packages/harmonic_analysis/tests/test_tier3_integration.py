@@ -26,7 +26,7 @@ def test_tier3_sections_present():
 
     # explanation (template offline por padrão)
     assert isinstance(r["explanation"], str)
-    assert "C major" in r["explanation"]
+    assert "C maior" in r["explanation"]
 
 
 def test_tier3_does_not_regress_tier2_sections():

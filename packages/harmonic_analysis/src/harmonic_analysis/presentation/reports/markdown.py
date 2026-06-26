@@ -2,6 +2,13 @@ import os
 from datetime import datetime
 from typing import Any, Dict
 
+from harmonic_analysis.presentation.labels import (
+    church_mode_pt,
+    mode_pt,
+    quality_pt,
+    scale_pt,
+)
+
 from .base import ReportGenerator
 
 
@@ -110,7 +117,7 @@ class MarkdownReportGenerator(ReportGenerator):
         )
         return (
             "## Análise modal\n\n"
-            f"- Centro modal: **{modal['tonic']} {modal['mode']}**\n"
+            f"- Centro modal: **{modal['tonic']} {church_mode_pt(modal['mode'])}**\n"
             f"- Cadências modais: {cad}\n\n"
         )
 
@@ -143,7 +150,9 @@ class MarkdownReportGenerator(ReportGenerator):
         for cs in scales:
             tensions = ", ".join(cs.get("tensions", [])) or "-"
             avoid = ", ".join(cs.get("avoid", [])) or "-"
-            lines.append(f"| {cs['chord']} | {cs['scale']} | {tensions} | {avoid} |")
+            lines.append(
+                f"| {cs['chord']} | {scale_pt(cs['scale'])} | {tensions} | {avoid} |"
+            )
         return "\n".join(lines) + "\n\n"
 
     def _generate_functional_parse(self, analysis: Dict[str, Any]) -> str:
@@ -196,7 +205,7 @@ class MarkdownReportGenerator(ReportGenerator):
             f"# Análise Harmônica\n\n"
             f"**Artista:** {analysis['artist']}\n\n"
             f"**Música:** {analysis['name']}\n\n"
-            f"**Tonalidade sugerida:** {analysis['key']} ({analysis['mode']})\n\n"
+            f"**Tonalidade sugerida:** {analysis['key']} ({mode_pt(analysis['mode'])})\n\n"
             f"[🔊 Ouvir no YouTube]({yt_link})\n\n"
         )
 
@@ -232,7 +241,7 @@ class MarkdownReportGenerator(ReportGenerator):
 
         for item in analysis["harmonic_analysis"]:
             lines.append(
-                f"| {item['chord']} | {item['degree'] or '-'} | {item['quality']} | "
+                f"| {item['chord']} | {item['degree'] or '-'} | {quality_pt(item['quality'])} | "
                 f"{item.get('strength') or '-'} | "
                 f"{item['function'] or '-'} | {item['function_code'] or '-'} | "
                 f"{item['function_description'] or '-'} |"

@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple
 
+from harmonic_analysis.presentation.labels import church_mode_pt, mode_pt
+
 
 def _unique(items: List[str]) -> List[str]:
     """Remove duplicatas preservando a ordem de primeira aparição."""
@@ -65,12 +67,12 @@ def render_summary(facts: Dict[str, object]) -> List[str]:
     lines: List[str] = []
     key, mode = facts.get("key"), facts.get("mode")
     if key:
-        lines.append(f"A música está em {key} {mode}.")
+        lines.append(f"A música está em {key} {mode_pt(mode)}.")
 
     modal = facts.get("modal")
     if modal:
         lines.append(
-            f"O centro tonal é modal: {modal['tonic']} {modal['mode']}."
+            f"O centro tonal é modal: {modal['tonic']} {church_mode_pt(modal['mode'])}."
         )
 
     if facts.get("authentic"):

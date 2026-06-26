@@ -41,7 +41,7 @@ def test_template_explains_subv_referencing_tonic():
 
 def test_template_states_key_and_authentic_cadence():
     text = TemplateExplainer().explain(SUBV_ANALYSIS)
-    assert "C major" in text
+    assert "C maior" in text
     assert "autêntica" in text.lower()
 
 

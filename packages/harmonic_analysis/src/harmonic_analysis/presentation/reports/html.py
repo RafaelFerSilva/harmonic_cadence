@@ -3,6 +3,13 @@ import re
 from datetime import datetime
 from typing import Any, Dict
 
+from harmonic_analysis.presentation.labels import (
+    church_mode_pt,
+    mode_pt,
+    quality_pt,
+    scale_pt,
+)
+
 from .base import ReportGenerator
 
 
@@ -138,7 +145,7 @@ class HTMLReportGenerator(ReportGenerator):
                 <h2 class="h4">Informações Gerais</h2>
                 <p><strong>Artista:</strong> {analysis['artist']}</p>
                 <p><strong>Música:</strong> {analysis['name']}</p>
-                <p><strong>Tonalidade sugerida:</strong> {analysis['key']} ({analysis['mode']})</p>
+                <p><strong>Tonalidade sugerida:</strong> {analysis['key']} ({mode_pt(analysis['mode'])})</p>
                 <a href="{yt_link}" target="_blank" class="btn btn-primary">
                     🔊 Ouvir no YouTube
                 </a>
@@ -227,7 +234,7 @@ class HTMLReportGenerator(ReportGenerator):
         cadences = modal.get("cadences") or []
         cad = ", ".join(f"{a}→{b}" for a, b in cadences) if cadences else "nenhuma"
         body = (
-            f"<p><strong>Centro modal:</strong> {modal['tonic']} {modal['mode']}</p>"
+            f"<p><strong>Centro modal:</strong> {modal['tonic']} {church_mode_pt(modal['mode'])}</p>"
             f"<p><strong>Cadências modais:</strong> {cad}</p>"
         )
         return self._section("Análise modal", body)
@@ -260,7 +267,7 @@ class HTMLReportGenerator(ReportGenerator):
         if not self._present(scales):
             return ""
         rows = "".join(
-            f"<tr><td>{cs['chord']}</td><td>{cs['scale']}</td>"
+            f"<tr><td>{cs['chord']}</td><td>{scale_pt(cs['scale'])}</td>"
             f"<td>{', '.join(cs.get('tensions', [])) or '-'}</td>"
             f"<td>{', '.join(cs.get('avoid', [])) or '-'}</td></tr>"
             for cs in scales
@@ -336,7 +343,7 @@ class HTMLReportGenerator(ReportGenerator):
         for item in analysis["harmonic_analysis"]:
             chord = item["chord"]
             degree = item["degree"] or "-"
-            quality = item["quality"]
+            quality = quality_pt(item["quality"])
             strength = item.get("strength") or "-"
             function = item["function"] or "-"
             function_code = item["function_code"] or "-"

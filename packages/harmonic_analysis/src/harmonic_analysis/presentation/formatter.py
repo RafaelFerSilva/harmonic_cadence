@@ -5,6 +5,7 @@ from typing import Dict, List, Set
 
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
+from harmonic_analysis.presentation.labels import quality_pt
 
 
 class AnalysisFormatter:
@@ -30,11 +31,11 @@ class AnalysisFormatter:
         for chord_symbol in unique_chords:
             chord = Chord(chord_symbol)
             qualities_counter[chord.quality] += 1
-            result.append(f"  {chord_symbol}: {chord.quality}")
+            result.append(f"  {chord_symbol}: {quality_pt(chord.quality)}")
 
         result.append("\nDistribuição de qualidades:")
         for quality, count in qualities_counter.items():
-            result.append(f"  {quality}: {count}")
+            result.append(f"  {quality_pt(quality)}: {count}")
 
         return "\n".join(result)
 
@@ -97,7 +98,7 @@ class AnalysisFormatter:
                 f"{chord_symbol:<12}\t"
                 f"{info['function']:<28}\t"
                 f"{info['description']:<28}\t"
-                f"{info['quality']:<8}\t"
+                f"{quality_pt(info['quality']):<8}\t"
                 f"{info['borrowing']}"
             )
 
