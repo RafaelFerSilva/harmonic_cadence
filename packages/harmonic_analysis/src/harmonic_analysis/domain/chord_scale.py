@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional, Tuple
 
-from cifra_core.theory import Note, build_scale, realize
+from cifra_core.theory import Fifth, Note, build_scale, parse, realize
 
 from harmonic_analysis.domain.chord import Chord
 
@@ -27,6 +27,29 @@ TENSION_LABEL = {1: "b9", 2: "9", 3: "#9", 5: "11", 6: "#11", 8: "b13", 9: "13"}
 _LYDIAN_DOM_POS = {2, 5, 8, 10, 11}
 
 
+def _altered_dominant_scale(chord: Chord) -> Optional[str]:
+    """Escala de um dominante ALTERADO pela alteração presente (Chediak P5).
+
+    Tem precedência sobre o mapa posicional. Retorna None se não há alteração de
+    quinta nem de nona (cai no mapa posicional mixolídio/lídio b7)."""
+    try:
+        p = parse(chord.symbol)
+    except Exception:
+        return None
+    if p.fifth is Fifth.AUGMENTED:  # #5
+        return "whole_tone"
+    if p.fifth is Fifth.DIMINISHED:  # b5
+        return "lydian_dominant"
+    t = p.tensions
+    if 6 in t:  # #11
+        return "lydian_dominant"
+    if 1 in t:  # b9
+        return "altered" if 3 in t else "diminished"
+    if 3 in t:  # #9
+        return "altered"
+    return None
+
+
 def recommended_scale(chord: Chord, analysis) -> Optional[Tuple[str, List[Note]]]:
     """Escala-acorde recomendada (modo + notas), pelo grau/função no contexto."""
     try:
@@ -36,14 +59,17 @@ def recommended_scale(chord: Chord, analysis) -> Optional[Tuple[str, List[Note]]
     if chord.quality == "half-diminished":
         return "locrian", build_scale(root, "locrian")
     if chord.is_dominant_seventh:
-        # Acorde dominante: escala dominante pela posição (Chediak, p. 113),
-        # não a escala da tríade diatônica da fundamental.
-        try:
-            key_pc = Note.parse(analysis.key).pitch_class
-            pos = (root.pitch_class - key_pc) % 12
-            mode = "lydian_dominant" if pos in _LYDIAN_DOM_POS else "mixolydian"
-        except Exception:
-            mode = "mixolydian"
+        # Dominante alterado: escala pela alteração (Chediak P5), com precedência.
+        mode = _altered_dominant_scale(chord)
+        if mode is None:
+            # Sem alteração: escala dominante pela posição (Chediak, p. 113),
+            # não a escala da tríade diatônica da fundamental.
+            try:
+                key_pc = Note.parse(analysis.key).pitch_class
+                pos = (root.pitch_class - key_pc) % 12
+                mode = "lydian_dominant" if pos in _LYDIAN_DOM_POS else "mixolydian"
+            except Exception:
+                mode = "mixolydian"
         return mode, build_scale(root, mode)
     if root.pitch_class not in analysis.scale_pcs:
         return None  # não-diatônico (Camada 2 cobre o diatônico)

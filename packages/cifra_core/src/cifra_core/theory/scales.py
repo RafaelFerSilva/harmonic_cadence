@@ -19,6 +19,11 @@ MODE_PATTERNS = {
     "melodic_minor": [0, 2, 3, 5, 7, 9, 11],
     # Lídio b7 (lydian dominant) — o modo "nordestino" do Chediak (pág. 121).
     "lydian_dominant": [0, 2, 4, 6, 7, 9, 10],
+    # Escalas dos dominantes alterados (Chediak P5). Não-heptatônicas (whole_tone,
+    # diminished) têm grafia aproximada; as classes de altura ficam corretas.
+    "whole_tone": [0, 2, 4, 6, 8, 10],
+    "diminished": [0, 1, 3, 4, 6, 7, 9, 10],  # semitom-tom
+    "altered": [0, 1, 3, 4, 6, 8, 10],  # super-lócrio
 }
 
 
