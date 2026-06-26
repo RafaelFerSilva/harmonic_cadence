@@ -6,7 +6,7 @@ autêntica (perfeita precedida de subdominante). Classificação por posição d
 baixo (o que a cifra estabelece).
 """
 
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Sequence, Set
 
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmonic_function import degree_base
@@ -21,18 +21,31 @@ def _inverted(symbol: str) -> bool:
         return False
 
 
+def _modulates(chord_keys: Optional[Sequence[Optional[str]]], i: int) -> bool:
+    """True se os acordes `i` e `i+1` caem em regiões tonais de tons diferentes."""
+    if not chord_keys or i + 1 >= len(chord_keys):
+        return False
+    a, b = chord_keys[i], chord_keys[i + 1]
+    return a is not None and b is not None and a != b
+
+
 def analyze_cadences(
-    degree_seq: List[str], mode: str, all_chords: List[str]
+    degree_seq: List[str],
+    mode: str,
+    all_chords: List[str],
+    chord_keys: Optional[Sequence[Optional[str]]] = None,
 ) -> Dict[str, Set[str]]:
     """Cadências encontradas na sequência (Chediak). `mode` é mantido por
-    compatibilidade; a classificação é por posição de grau."""
+    compatibilidade; a classificação é por posição de grau. `chord_keys` (tom de
+    cada acorde, da região tonal) separa a deceptiva diatônica da modulante."""
     cad: Dict[str, Set[str]] = {
         "Perfeita": set(),
         "Autêntica": set(),
         "Imperfeita": set(),
         "Plagal": set(),
         "Meia-cadência": set(),
-        "Deceptiva": set(),
+        "Deceptiva diatônica": set(),
+        "Deceptiva modulante": set(),
     }
     n = min(len(degree_seq), len(all_chords))
     for i in range(n - 1):
@@ -56,5 +69,8 @@ def analyze_cadences(
         elif a in ("IV", "II") and b == "I":  # plagal (IV→I ou IIm→I)
             cad["Plagal"].add(pair)
         elif a == "V" and b != "I":  # deceptiva: V → não-tônica
-            cad["Deceptiva"].add(pair)
+            if _modulates(chord_keys, i):
+                cad["Deceptiva modulante"].add(pair)
+            else:
+                cad["Deceptiva diatônica"].add(pair)
     return cad

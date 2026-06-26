@@ -29,9 +29,19 @@ def test_plagal_includes_iv_i_and_ii_i():
     assert "Dm → C" in cad(["ii", "I"], ["Dm", "C"])["Plagal"]
 
 
-def test_deceptive_is_v_to_any_non_tonic():
-    assert "G7 → Am" in cad(["V", "vi"], ["G7", "Am"])["Deceptiva"]
-    assert "G7 → F" in cad(["V", "IV"], ["G7", "F"])["Deceptiva"]
+def test_deceptive_diatonic_is_v_to_any_non_tonic():
+    # sem informação de região → diatônica (padrão)
+    assert "G7 → Am" in cad(["V", "vi"], ["G7", "Am"])["Deceptiva diatônica"]
+    assert "G7 → F" in cad(["V", "IV"], ["G7", "F"])["Deceptiva diatônica"]
+
+
+def test_deceptive_modulating_across_a_key_change():
+    # V em Dó seguido de acorde que inicia uma região tonal em Ré
+    c = analyze_cadences(["V", "II"], "major", ["G7", "D"], chord_keys=["C", "D"])
+    assert "G7 → D" in c["Deceptiva modulante"]
+    # mesmo tom em ambos → diatônica
+    c2 = analyze_cadences(["V", "vi"], "major", ["G7", "Am"], chord_keys=["C", "C"])
+    assert "G7 → Am" in c2["Deceptiva diatônica"]
 
 
 def test_half_cadence_rests_on_dominant():

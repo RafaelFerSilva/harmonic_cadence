@@ -17,6 +17,15 @@ from harmonic_analysis.utils.formatting import format_name
 MINOR_MODES = {"dorian", "phrygian", "aeolian", "locrian"}
 
 
+def _chord_keys_for_regions(regions, n):
+    """Tom de cada acorde (por índice) segundo as regiões tonais detectadas."""
+    keys = [None] * n
+    for r in regions:
+        for i in range(r.start, min(r.end + 1, n)):
+            keys[i] = r.estimate.key_note
+    return keys
+
+
 class AnalysisService:
     """
     Serviço principal que coordena a análise harmônica completa.
@@ -295,12 +304,19 @@ class AnalysisService:
                     "partial_results": partial_results,
                 }
 
+            # Regiões tonais (computadas uma vez): alimentam a cadência modulante
+            # e a seção de modulação do relatório.
+            symbols = [chord.symbol for chord in all_chords]
+            try:
+                regions = segment_keys(symbols)
+            except Exception:
+                regions = []
+            chord_keys = _chord_keys_for_regions(regions, len(all_chords))
+
             # Analisa cadências
             try:
                 cadences = (
-                    analyze_cadences(
-                        degree_seq, mode, [chord.symbol for chord in all_chords]
-                    )
+                    analyze_cadences(degree_seq, mode, symbols, chord_keys)
                     if analysis and degree_seq
                     else {}
                 )
@@ -337,7 +353,7 @@ class AnalysisService:
                 function_stats,
                 cadences,
             )
-            # Regiões tonais (detecção de modulação)
+            # Regiões tonais (detecção de modulação) — reusa as já computadas.
             try:
                 result["tonal_regions"] = [
                     {
@@ -346,7 +362,7 @@ class AnalysisService:
                         "key": r.estimate.name,
                         "score": r.estimate.score,
                     }
-                    for r in segment_keys([chord.symbol for chord in all_chords])
+                    for r in regions
                 ]
             except Exception:
                 result["tonal_regions"] = []
