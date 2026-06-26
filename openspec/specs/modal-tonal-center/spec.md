@@ -1,0 +1,92 @@
+# modal-tonal-center Specification
+
+## Purpose
+
+The analyzer classifies the active church mode of a tonal center from the diatonic pitch-class collection and the tonic, computes degrees and characteristic chords relative to the modal tonic, and recognizes the characteristic modal cadences — rather than forcing every piece into major or minor.
+## Requirements
+### Requirement: Modal classification of a tonal center
+
+The analyzer SHALL classify the active mode (ionian, dorian, phrygian, lydian, mixolydian, aeolian, locrian) of a tonal center from the diatonic pitch-class collection and the tonic, rather than forcing every piece into major or minor.
+
+#### Scenario: Mixolydian is recognized by its flat seventh
+- **WHEN** a progression centered on G uses the G-major collection but with `F` natural and no `F#` leading tone (e.g. `G F C G`)
+- **THEN** the mode is classified as G mixolydian
+
+#### Scenario: Dorian is recognized by its raised sixth
+- **WHEN** a minor-centered progression on D uses `B` natural (raised sixth) consistently (e.g. `Dm G Dm Em`)
+- **THEN** the mode is classified as D dorian
+
+#### Scenario: Ambiguous tonal pieces remain major/minor
+- **WHEN** a progression has the leading tone and standard dominant function (e.g. `C F G7 C`)
+- **THEN** it is classified as major/minor, not as a mode
+
+### Requirement: Modal degrees and characteristic chords are diatonic to the mode
+
+When a mode is active, the analyzer SHALL compute degrees relative to the modal tonic and treat the mode's characteristic chords as diatonic — NOT as modal borrowing.
+
+#### Scenario: bVII in mixolydian is a diatonic degree, not a borrowing
+- **WHEN** the active mode is G mixolydian and the chord `F` appears
+- **THEN** `F` is reported as the diatonic `bVII` of the mode
+- **AND** it is NOT labeled as modal borrowing (`Emp`)
+
+#### Scenario: Characteristic chord of the mode is identified
+- **WHEN** the active mode is D dorian and the major `IV` (`G`) appears
+- **THEN** it is identified as the characteristic chord of the mode
+
+### Requirement: Modal cadences
+
+The analyzer SHALL recognize the characteristic modal cadences (at least bVII–I for mixolydian, bII–I for phrygian, and the minor v–i / IV–i shapes) distinct from the tonal authentic/plagal cadences.
+
+#### Scenario: Mixolydian cadence bVII-I
+- **WHEN** in G mixolydian the progression `F G` (bVII–I) occurs
+- **THEN** a mixolydian cadence is reported
+- **AND** it is not misreported as a tonal authentic cadence
+
+#### Scenario: Phrygian cadence bII-I
+- **WHEN** in E phrygian the progression `F E` (bII–I) occurs
+- **THEN** a phrygian cadence is reported
+
+### Requirement: Modal harmonic field
+
+When a mode is active, the analyzer SHALL expose the mode's diatonic harmonic field — its seven diatonic chords as (degree, quality) pairs — **derived from the modal scale** (so it is correct by construction), matching Chediak's modal tables (Vol. I, pp. 122-125). The analyzer SHALL also expose each mode's characteristic note.
+
+#### Scenario: Dorian field matches the source
+- **WHEN** the harmonic field of D dorian is computed
+- **THEN** its tetrads are `Dm7, Em7, F7M, G7, Am7, Bm7(b5), C7M`
+- **AND** they correspond to degrees `Im7, IIm7, bIII7M, IV7, Vm7, VIm7(b5), bVII7M`
+
+#### Scenario: Mixolydian field matches the source
+- **WHEN** the harmonic field of G mixolydian is computed
+- **THEN** its tetrads are `G7, Am7, Bm7(b5), C7M, Dm7, Em7, F7M`
+
+#### Scenario: Phrygian seventh degree is minor, not dominant
+- **WHEN** the harmonic field of E phrygian is computed
+- **THEN** its seventh degree `bVII` is a minor seventh (`Dm7`), not a dominant seventh
+
+#### Scenario: Characteristic note per mode
+- **WHEN** the characteristic note of a mode is queried
+- **THEN** dorian is the natural sixth, phrygian the flat second, lydian the sharp fourth, mixolydian the flat seventh, aeolian the flat sixth, and locrian the flat second and flat sixth
+
+### Requirement: Characteristic cadential and avoided chords per mode
+
+When a mode is active, the analyzer SHALL expose the mode's characteristic cadential chords and its avoided chords, per Chediak (Vol. I, pp. 122-125), alongside the mode's characteristic note. These are the source's curated selection (which chords firm up the modal flavor in a cadence, and which pull back to major/minor tonality), not a derivation of the diatonic field.
+
+#### Scenario: Dorian cadential and avoided chords
+- **WHEN** the active mode is dorian
+- **THEN** the cadential chords are `IIm7`, `IV7`, `bVII7M`
+- **AND** the avoided chord is `VIm7(b5)`
+
+#### Scenario: Mixolydian cadential and avoided chords
+- **WHEN** the active mode is mixolydian
+- **THEN** the cadential chords are `I7`, `Vm7`, `bVII7M`
+- **AND** the avoided chord is `IIIm7(b5)`
+
+#### Scenario: Phrygian cadential and avoided chords
+- **WHEN** the active mode is phrygian
+- **THEN** the cadential chords are `bII7M`, `bVIIm7`
+- **AND** the avoided chords include `Vm7(b5)` and `bIII7`
+
+#### Scenario: The active modal section exposes the selection
+- **WHEN** a piece with an active mode is analyzed
+- **THEN** its modal analysis section reports the characteristic note, the cadential chords, and the avoided chords
+

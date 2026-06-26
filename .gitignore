@@ -50,6 +50,5 @@ data/
 .agents/
 .claude/
 .gemini/
-openspec/
 base_estudo/
 .ruff_cache/
