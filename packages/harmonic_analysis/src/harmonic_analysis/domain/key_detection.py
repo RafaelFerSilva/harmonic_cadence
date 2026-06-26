@@ -7,6 +7,8 @@ from typing import List, Optional, Sequence, Tuple
 
 from cifra_core.theory import realize, root_pitch_class
 
+from harmonic_analysis.domain.modal import detect_mode
+
 # Perfis de tonalidade Krumhansl-Kessler.
 KS_MAJOR = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88]
 KS_MINOR = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17]
@@ -28,6 +30,7 @@ class KeyEstimate:
     name: str          # ex.: "C major"
     key_note: str      # ex.: "C" (para HarmonicAnalysis)
     alternatives: Tuple[Tuple[str, float], ...] = ()
+    church_mode: Optional[str] = None  # modo de igreja quando aplicável
 
 
 @dataclass(frozen=True)
@@ -91,7 +94,11 @@ def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:
     best_score, best_tonic, best_mode = ranked[0]
     name, key_note = _name(best_tonic, best_mode)
     alts = tuple((f"{_name(t, m)[0]}", round(s, 4)) for s, t, m in ranked[1:4])
-    return KeyEstimate(best_tonic, best_mode, round(best_score, 4), name, key_note, alts)
+    info = detect_mode(symbols)
+    church_mode = info.mode if info else None
+    return KeyEstimate(
+        best_tonic, best_mode, round(best_score, 4), name, key_note, alts, church_mode
+    )
 
 
 def _label(symbols: Sequence[str]) -> Optional[Tuple[int, str]]:

@@ -5,6 +5,7 @@ from cifra_core.theory import Note
 from cifra_core.theory import build_scale as theory_build_scale
 
 from harmonic_analysis.domain.chord import Chord
+from harmonic_analysis.domain.modal import modal_degree
 from harmonic_analysis.domain.constants import (
     CHROMATIC_NOTES,
     DEGREES_MAJOR,
@@ -20,7 +21,7 @@ from harmonic_analysis.domain.constants import (
 )
 
 FunctionCode = Literal[
-    "T", "SD", "D", "D2", "SubV", "Sub2", "Dsec", "Emp", "Dim", "Crom", "Outro"
+    "T", "SD", "D", "D2", "SubV", "Sub2", "Dsec", "Emp", "Modal", "Dim", "Crom", "Outro"
 ]
 
 VALID_NOTES = set(CHROMATIC_NOTES)
@@ -31,12 +32,15 @@ class HarmonicAnalysis:
     Realiza análise harmônica completa de uma progressão de acordes.
     """
 
-    def __init__(self, key: str, mode: str = "major"):
+    def __init__(
+        self, key: str, mode: str = "major", church_mode: Optional[str] = None
+    ):
         if not key or key[0] not in CHROMATIC_NOTES:
             raise ValueError(f"Tonalidade inválida: {key}")
 
         self.key = key
         self.mode = mode
+        self.church_mode = church_mode  # modo de igreja ativo (Camada 2), se houver
         self.scale, self.scale_pcs, self.degrees = self._build_scale()
         self.HARMONIC_FUNCTIONS = HARMONIC_FUNCTIONS
         self.VALID_NOTES = VALID_NOTES
@@ -51,6 +55,14 @@ class HarmonicAnalysis:
         degrees = DEGREES_MAJOR if self.mode == "major" else DEGREES_MINOR
         notes = theory_build_scale(Note.parse(self.key), self.mode)
         return [str(n) for n in notes], [n.pitch_class for n in notes], degrees
+
+    def roman_numeral(
+        self, chord: Chord, next_chord: Optional[Chord] = None
+    ) -> str:
+        """Numeral romano do acorde (qualidade + inversão + aplicados)."""
+        from harmonic_analysis.domain.roman import roman_numeral
+
+        return roman_numeral(chord, self, next_chord)
 
     def get_degree(self, chord: Chord) -> Optional[str]:
         try:
@@ -152,7 +164,23 @@ class HarmonicAnalysis:
                 self.HARMONIC_FUNCTIONS["D2"]["description"],
             )
 
-        # 5. Empréstimo Modal
+        # 5a. Função modal: se um modo está ativo e o acorde é diatônico a ele,
+        #     é função modal (não empréstimo).
+        if degree is None and self.church_mode:
+            try:
+                md = modal_degree(
+                    Note.parse(chord.root).pitch_class, self.key, self.church_mode
+                )
+            except Exception:
+                md = None
+            if md is not None:
+                return (
+                    "Modal",
+                    f"Função modal ({md})",
+                    f"Diatônico ao modo {self.church_mode} de {self.key}",
+                )
+
+        # 5b. Empréstimo Modal
         if degree is None:
             modal_source = self.describe_modal_borrowing(chord.root)
             return ("Emp", self.HARMONIC_FUNCTIONS["Emp"]["name"], modal_source)

@@ -2,13 +2,18 @@ import re
 from typing import Any, Counter, Dict, List
 
 from cifra_core import ChordPattern, SongProvider, SongProviderError, fix_encoding
+from cifra_core.theory import root_pitch_class
 
+from harmonic_analysis.domain import chord_scale, voice_leading
 from harmonic_analysis.domain.cadence import analyze_cadences
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
 from harmonic_analysis.domain.key_detection import detect_key, segment_keys
+from harmonic_analysis.domain.modal import detect_mode, modal_cadences, modal_degree
 from harmonic_analysis.presentation.formatter import AnalysisFormatter
 from harmonic_analysis.utils.formatting import format_name
+
+MINOR_MODES = {"dorian", "phrygian", "aeolian", "locrian"}
 
 
 class AnalysisService:
@@ -263,8 +268,17 @@ class AnalysisService:
                     "partial_results": partial_results,
                 }
 
-            # Cria analisador harmônico
-            analysis = HarmonicAnalysis(key, mode) if key else None
+            # Cria analisador harmônico — quando um modo é detectado, usa a
+            # tônica modal (o "final") e o modo ativo (Camada 2).
+            mode_info = detect_mode([c.symbol for c in all_chords])
+            if mode_info:
+                key = mode_info.tonic
+                mode = "minor" if mode_info.mode in MINOR_MODES else "major"
+                analysis = HarmonicAnalysis(key, mode, mode_info.mode)
+            elif key:
+                analysis = HarmonicAnalysis(key, mode)
+            else:
+                analysis = None
 
             # Analisa graus harmônicos
             degree_seq, error, partial_results = self._analyze_degrees(
@@ -332,10 +346,77 @@ class AnalysisService:
                 ]
             except Exception:
                 result["tonal_regions"] = []
+
+            # Camada 2: profundidade musical
+            self._add_depth_sections(result, all_chords, analysis, mode_info)
             return result
 
         except Exception as e:
             raise RuntimeError(f"Erro crítico na análise da música: {str(e)}")
+
+    def _add_depth_sections(self, result, all_chords, analysis, mode_info) -> None:
+        """Popula as seções da Camada 2: modal, RNA, condução de vozes, escala-acorde."""
+        # Análise modal
+        try:
+            if mode_info:
+                md_seq = []
+                for c in all_chords:
+                    try:
+                        md_seq.append(
+                            modal_degree(
+                                root_pitch_class(c.symbol),
+                                mode_info.tonic,
+                                mode_info.mode,
+                            )
+                        )
+                    except Exception:
+                        md_seq.append(None)
+                result["modal_analysis"] = {
+                    "tonic": mode_info.tonic,
+                    "mode": mode_info.mode,
+                    "cadences": modal_cadences(
+                        [d for d in md_seq if d], mode_info.mode
+                    ),
+                }
+            else:
+                result["modal_analysis"] = None
+        except Exception:
+            result["modal_analysis"] = None
+
+        # Cifragem romana
+        try:
+            result["roman_numerals"] = (
+                [
+                    analysis.roman_numeral(
+                        c, all_chords[i + 1] if i + 1 < len(all_chords) else None
+                    )
+                    for i, c in enumerate(all_chords)
+                ]
+                if analysis
+                else []
+            )
+        except Exception:
+            result["roman_numerals"] = []
+
+        # Condução de vozes
+        try:
+            result["voice_leading"] = voice_leading.analyze(all_chords)
+        except Exception:
+            result["voice_leading"] = {}
+
+        # Escala-acorde e tensões
+        try:
+            result["chord_scales"] = (
+                [
+                    cs
+                    for c in all_chords
+                    if (cs := chord_scale.analyze_chord(c, analysis)) is not None
+                ]
+                if analysis
+                else []
+            )
+        except Exception:
+            result["chord_scales"] = []
 
     def analyze_song_from_api(self, artist: str, song: str) -> Dict[str, Any]:
         """
