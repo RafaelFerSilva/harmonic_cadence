@@ -7,6 +7,7 @@ from cifra_core.theory import root_pitch_class
 from harmonic_analysis.domain import chord_scale, voice_leading
 from harmonic_analysis.domain.cadence import analyze_cadences
 from harmonic_analysis.domain.chord import Chord
+from harmonic_analysis.domain.harmonic_function import functional_strength
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
 from harmonic_analysis.domain.key_detection import detect_key, segment_keys
 from harmonic_analysis.domain.modal import detect_mode, modal_cadences, modal_degree
@@ -138,6 +139,7 @@ class AnalysisService:
                                 "chord": chord.symbol,
                                 "degree": None,
                                 "quality": chord.quality,
+                                "strength": None,
                                 "function_code": "Outro",
                                 "function": "Acorde inválido",
                                 "function_description": "Nota raiz inválida ou formato incorreto",
@@ -145,10 +147,12 @@ class AnalysisService:
                         )
                         continue
 
+                    degree = analysis.get_degree(chord) if analysis else None
                     chord_analysis = {
                         "chord": chord.symbol,
-                        "degree": analysis.get_degree(chord) if analysis else None,
+                        "degree": degree,
                         "quality": chord.quality,
+                        "strength": functional_strength(degree),
                     }
 
                     if analysis:

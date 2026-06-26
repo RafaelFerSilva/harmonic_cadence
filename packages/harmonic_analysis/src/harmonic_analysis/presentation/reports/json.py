@@ -58,6 +58,7 @@ class JSONReportGenerator(ReportGenerator):
                     "chord": item["chord"],
                     "degree": item["degree"],
                     "quality": item["quality"],
+                    "strength": item.get("strength"),
                     "function": item["function"],
                     "function_code": item["function_code"],
                     "function_description": item["function_description"],

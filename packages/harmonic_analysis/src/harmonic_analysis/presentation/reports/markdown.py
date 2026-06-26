@@ -226,13 +226,14 @@ class MarkdownReportGenerator(ReportGenerator):
     def _generate_harmonic_analysis(self, analysis: Dict[str, Any]) -> str:
         lines = [
             "## Análise harmônica dos acordes\n",
-            "| Acorde | Grau | Qualidade | Função | Código | Descrição |",
-            "|--------|------|-----------|--------|--------|-----------|",
+            "| Acorde | Grau | Qualidade | Força | Função | Código | Descrição |",
+            "|--------|------|-----------|-------|--------|--------|-----------|",
         ]
 
         for item in analysis["harmonic_analysis"]:
             lines.append(
                 f"| {item['chord']} | {item['degree'] or '-'} | {item['quality']} | "
+                f"{item.get('strength') or '-'} | "
                 f"{item['function'] or '-'} | {item['function_code'] or '-'} | "
                 f"{item['function_description'] or '-'} |"
             )

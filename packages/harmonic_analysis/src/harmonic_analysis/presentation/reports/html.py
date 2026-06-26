@@ -337,6 +337,7 @@ class HTMLReportGenerator(ReportGenerator):
             chord = item["chord"]
             degree = item["degree"] or "-"
             quality = item["quality"]
+            strength = item.get("strength") or "-"
             function = item["function"] or "-"
             function_code = item["function_code"] or "-"
             function_desc = item["function_description"] or "-"
@@ -347,6 +348,7 @@ class HTMLReportGenerator(ReportGenerator):
                     <td>{chord}</td>
                     <td>{degree}</td>
                     <td>{quality}</td>
+                    <td>{strength}</td>
                     <td>{function}</td>
                     <td>{function_code}</td>
                     <td>{function_desc}</td>
@@ -365,6 +367,7 @@ class HTMLReportGenerator(ReportGenerator):
                                     <th>Acorde</th>
                                     <th>Grau</th>
                                     <th>Qualidade</th>
+                                    <th>Força</th>
                                     <th>Função</th>
                                     <th>Código</th>
                                     <th>Descrição</th>
