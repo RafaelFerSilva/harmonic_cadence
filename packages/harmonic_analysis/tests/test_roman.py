@@ -9,8 +9,10 @@ def rn(sym, nxt=None):
 
 
 def test_diatonic_triads_with_quality():
+    # `Bdim`/`B°` é a sétima diminuta (tétrade), não a tríade — convenção
+    # Chediak (pp. 77, 85, 92): `°` inclui a 7ª. Daí `vii°7`.
     got = [rn(s) for s in ["C", "Dm", "Em", "F", "G", "Am", "Bdim"]]
-    assert got == ["I", "ii", "iii", "IV", "V", "vi", "vii°"]
+    assert got == ["I", "ii", "iii", "IV", "V", "vi", "vii°7"]
 
 
 def test_seventh_quality_reflected():

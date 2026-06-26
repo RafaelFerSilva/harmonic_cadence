@@ -10,14 +10,17 @@ class ChordPattern:
     """
 
     CHORD = re.compile(
-        r"([A-G][#b]?"                       # fundamental (com # ou b)
-        r"(?:"                               # pilha de qualidades/extensões
-        r"maj|min|sus|dim|aug|add|7M|m|M|°"  # qualidades (7M = maj7, notação BR)
-        r"|6|7|9|11|13|4|2"                  # extensões
-        r"|[#b](?:5|9|11|13)"               # alterações (b5, #5, b9, #11, ...)
-        r"|\([^)]*\)"                        # tensões entre parênteses
+        r"([A-G][#b]?"                          # fundamental (com # ou b)
+        r"(?:"                                  # pilha de qualidades/extensões
+        r"maj|min|sus|dim|aug|add|alt|7M|m|M|°|º"  # qualidades (7M = maj7, BR)
+        r"|11|13|[245679]"                      # extensões (5 = power chord)
+        r"|[#b](?:5|9|11|13)"                  # alterações #/b (b5, #5, #11, ...)
+        r"|(?:5|9|11|13|2)[+-]"                # alterações ± (5+, 9-, 13-, Cifra Club)
+        r"|/[#b]?\d+"                          # tom acrescentado por barra (6/9)
+        r"|\([^)]*\)"                           # tensões entre parênteses
+        r"|\+"                                  # tríade aumentada (C+)
         r")*"
-        r"(?:/[A-G][#b]?)?)"                # baixo invertido
+        r"(?:/[A-G][#b]?)?)"                   # baixo invertido (nota)
     )
 
     @classmethod

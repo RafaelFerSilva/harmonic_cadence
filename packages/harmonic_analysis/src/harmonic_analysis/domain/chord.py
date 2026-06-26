@@ -1,7 +1,8 @@
-import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
+
+from cifra_core.theory import parse as parse_chord
 
 
 class ChordQuality(Enum):
@@ -11,6 +12,8 @@ class ChordQuality(Enum):
     AUGMENTED = "augmented"
     DOMINANT = "dominant"
     HALF_DIMINISHED = "half-diminished"
+    SUSPENDED = "suspended"
+    POWER = "power"
     UNKNOWN = "unknown"
 
 
@@ -25,49 +28,41 @@ class ChordProperties:
 
 
 class Chord:
+    """Acorde do domínio. Fase 1: deriva a qualidade/slots do parser estruturado
+    de `cifra_core.theory` (fonte única), em vez de fazer sniffing de string.
+    A API pública (`root`, `quality`, `is_minor`, `is_dominant_seventh`,
+    `properties`) é preservada."""
+
     def __init__(self, symbol: str):
         self.symbol = symbol
         self.properties = self._analyze_chord()
 
     def _analyze_chord(self) -> ChordProperties:
-        root = self._extract_root()
-        quality = self._determine_quality()
-        has_seventh = "7" in self.symbol
-        has_ninth = "9" in self.symbol
-        has_extension = any(ext in self.symbol for ext in ["11", "13"])
-        bass = self._extract_bass()
+        try:
+            parsed = parse_chord(self.symbol)
+        except Exception:
+            return ChordProperties(
+                root=self._fallback_root(),
+                quality=ChordQuality.UNKNOWN,
+                has_seventh=False,
+                has_ninth=False,
+                has_extension=False,
+                bass=None,
+            )
         return ChordProperties(
-            root=root,
-            quality=quality,
-            has_seventh=has_seventh,
-            has_ninth=has_ninth,
-            has_extension=has_extension,
-            bass=bass,
+            root=str(parsed.root),
+            quality=ChordQuality(parsed.category().value),
+            has_seventh=parsed.seventh.value != "none",
+            has_ninth="9" in self.symbol,
+            has_extension=any(ext in self.symbol for ext in ["11", "13"]),
+            bass=str(parsed.bass) if parsed.bass is not None else None,
         )
 
-    def _extract_root(self) -> str:
+    def _fallback_root(self) -> str:
+        import re
+
         match = re.match(r"^([A-G][#b]?)", self.symbol)
         return match.group(1) if match else ""
-
-    def _determine_quality(self) -> ChordQuality:
-        s = self.symbol.lower()
-        if "m7b5" in s:
-            return ChordQuality.HALF_DIMINISHED
-        if "dim" in s or "°" in s:
-            return ChordQuality.DIMINISHED
-        if "aug" in s:
-            return ChordQuality.AUGMENTED
-        if "maj" in s or "M" in self.symbol:
-            return ChordQuality.MAJOR
-        if "m" in s and "maj" not in s:
-            return ChordQuality.MINOR
-        if "7" in s and "m" not in s and "maj" not in s:
-            return ChordQuality.DOMINANT
-        return ChordQuality.MAJOR  # default
-
-    def _extract_bass(self) -> Optional[str]:
-        match = re.search(r"/([A-G][#b]?)", self.symbol)
-        return match.group(1) if match else None
 
     @property
     def root(self) -> str:
@@ -83,10 +78,7 @@ class Chord:
 
     @property
     def is_dominant_seventh(self) -> bool:
-        return (
-            self.properties.quality == ChordQuality.DOMINANT
-            and self.properties.has_seventh
-        )
+        return self.properties.quality == ChordQuality.DOMINANT
 
     def __str__(self) -> str:
         return self.symbol
