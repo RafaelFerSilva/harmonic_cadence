@@ -104,3 +104,12 @@ make test     # uv run pytest (toda a suíte)
 make lint     # uv run ruff check packages
 make build    # docker compose build (imagem do scraper)
 ```
+
+## Estado e próximos passos
+
+O conteúdo teórico (ancorado em Almir Chediak) está destilado, implementado e
+testado. A frente atual é **precisão da detecção de tonalidade**. Veja
+[`ROADMAP.md`](ROADMAP.md) para o estado, o baseline de acurácia
+(`uv run python scripts/key_baseline.py`) e o próximo passo (Fase B). O fluxo de
+trabalho usa **OpenSpec** (`openspec list`; changes arquivadas em
+`openspec/changes/archive/`).
