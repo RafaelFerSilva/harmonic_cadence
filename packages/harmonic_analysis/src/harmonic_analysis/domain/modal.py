@@ -32,6 +32,28 @@ MODAL_CADENCE = {
     "aeolian": ("v", "I"),
 }
 
+# Nota característica de cada modo (Chediak, pp. 122-125).
+CHARACTERISTIC_NOTE = {
+    "ionian": None,
+    "dorian": "6",
+    "phrygian": "b2",
+    "lydian": "#4",
+    "mixolydian": "b7",
+    "aeolian": "b6",
+    "locrian": "b2/b6",
+}
+
+# Qualidade da tétrade pelos intervalos (3ª, 5ª, 7ª) acima da fundamental.
+_QUALITY_BY_INTERVALS = {
+    (3, 6, 9): "dim7",
+    (3, 6, 10): "m7b5",
+    (3, 7, 10): "m7",
+    (3, 7, 11): "m(maj7)",
+    (4, 7, 10): "7",
+    (4, 7, 11): "maj7",
+    (4, 8, 11): "maj7#5",
+}
+
 
 @dataclass(frozen=True)
 class ModeInfo:
@@ -120,3 +142,33 @@ def modal_cadences(degree_seq: Sequence[str], mode: str) -> List[Tuple[str, str]
         for i in range(len(degree_seq) - 1)
         if (degree_seq[i], degree_seq[i + 1]) == pat
     ]
+
+
+def _tetrad_quality(scale: Sequence[Note], i: int) -> str:
+    """Qualidade da tétrade empilhada sobre o grau `i` da escala."""
+    root = scale[i % 7]
+    third = scale[(i + 2) % 7]
+    fifth = scale[(i + 4) % 7]
+    seventh = scale[(i + 6) % 7]
+    rpc = root.pitch_class
+    key = (
+        (third.pitch_class - rpc) % 12,
+        (fifth.pitch_class - rpc) % 12,
+        (seventh.pitch_class - rpc) % 12,
+    )
+    return _QUALITY_BY_INTERVALS.get(key, "?")
+
+
+def modal_field(tonic: str, mode: str) -> List[Tuple[str, str]]:
+    """Os 7 acordes diatônicos (grau modal, qualidade) de um modo.
+
+    Derivado da escala (`build_scale`), correto por construção — substitui o
+    campo hardcoded por dado verificável contra Chediak (pp. 122-125).
+    """
+    tonic_note = Note.parse(tonic)
+    scale = build_scale(tonic_note, mode)
+    field: List[Tuple[str, str]] = []
+    for i in range(7):
+        degree = modal_degree(scale[i].pitch_class, tonic, mode)
+        field.append((degree or ROMAN[i], _tetrad_quality(scale, i)))
+    return field

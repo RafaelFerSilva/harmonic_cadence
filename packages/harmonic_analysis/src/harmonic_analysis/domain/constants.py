@@ -105,9 +105,9 @@ MODE_HARMONY = {
     "menor_harmonica": ["m(maj7)", "m7b5", "maj7#5", "m7", "7", "maj7", "dim7"],
     "menor_melodica": ["m(maj7)", "m7", "maj7#5", "7", "7", "m7b5", "m7b5"],
     "dórico": ["m7", "m7", "maj7", "7", "m7", "m7b5", "maj7"],
-    "frígio": ["m7", "maj7", "7", "m7", "m7b5", "maj7", "7"],
-    "lídio": ["maj7", "7", "m7", "m7", "maj7", "m7b5", "m7"],
-    "mixolídio": ["7", "m7", "m7", "maj7", "m7", "m7b5", "maj7"],
+    "frígio": ["m7", "maj7", "7", "m7", "m7b5", "maj7", "m7"],
+    "lídio": ["maj7", "7", "m7", "m7b5", "maj7", "m7", "m7"],
+    "mixolídio": ["7", "m7", "m7b5", "maj7", "m7", "m7", "maj7"],
     "lócrio": ["m7b5", "maj7", "m7", "m7", "maj7", "7", "m7"],
 }
 
