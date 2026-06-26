@@ -140,7 +140,74 @@ class HarmonicCLI:
             help="Lista apenas músicas em cache",
         )
 
+        # Comando: explain — explicação pedagógica (template offline ou LLM opt-in)
+        explain_parser = subparsers.add_parser(
+            "explain", help="Explica a harmonia de uma música em prosa"
+        )
+        explain_parser.add_argument("artist", help="Nome do artista")
+        explain_parser.add_argument("song", help="Nome da música")
+        explain_parser.add_argument(
+            "--engine",
+            choices=["template", "llm"],
+            default="template",
+            help="Motor da explicação: template (offline, padrão) ou llm (opt-in)",
+        )
+        explain_parser.add_argument(
+            "--llm-provider",
+            dest="llm_provider",
+            default="openrouter",
+            help="Provedor de LLM (default: openrouter, gratuito)",
+        )
+        explain_parser.add_argument(
+            "--llm-model",
+            dest="llm_model",
+            default=None,
+            help="Modelo do provedor (default: o gratuito do provedor)",
+        )
+        self._add_provider_flags(explain_parser)
+
+        # Comando: reharmonize — sugestões de reharmonização idiomáticas
+        reharm_parser = subparsers.add_parser(
+            "reharmonize", help="Sugere reharmonizações para uma música"
+        )
+        reharm_parser.add_argument("artist", help="Nome do artista")
+        reharm_parser.add_argument("song", help="Nome da música")
+        self._add_provider_flags(reharm_parser)
+
+        # Comando: fingerprint — DNA harmônico de um artista (corpus via --all)
+        fp_parser = subparsers.add_parser(
+            "fingerprint", help="Impressão digital harmônica de um artista (corpus)"
+        )
+        fp_parser.add_argument("artist", help="Nome do artista")
+        fp_parser.add_argument(
+            "--songs",
+            nargs="+",
+            help="Lista de músicas; omitir para usar todas (--all)",
+        )
+        fp_parser.add_argument(
+            "--all",
+            action="store_true",
+            help="Usa todas as músicas do artista",
+        )
+        self._add_provider_flags(fp_parser)
+
         return parser
+
+    @staticmethod
+    def _add_provider_flags(p: argparse.ArgumentParser) -> None:
+        """Flags comuns de origem/cache para os subcomandos da Camada 3."""
+        p.add_argument(
+            "--provider",
+            choices=["inprocess", "http"],
+            default="inprocess",
+            help="Origem da cifra: inprocess (padrão) ou http",
+        )
+        p.add_argument("--offline", action="store_true", help="Prioriza o cache local")
+        p.add_argument("--refresh", action="store_true", help="Força nova busca")
+        p.add_argument("--no-cache", action="store_true", help="Desativa o cache")
+        p.add_argument(
+            "--api-url", dest="api_url", default=None, help="URL base da API (http)"
+        )
 
     def run(self, args: Optional[List[str]] = None) -> None:
         """Executa o CLI com os argumentos fornecidos."""
@@ -160,6 +227,12 @@ class HarmonicCLI:
                 self._handle_cache(parsed_args)
             elif parsed_args.command == "list":
                 self._handle_list(parsed_args)
+            elif parsed_args.command == "explain":
+                self._handle_explain(parsed_args)
+            elif parsed_args.command == "reharmonize":
+                self._handle_reharmonize(parsed_args)
+            elif parsed_args.command == "fingerprint":
+                self._handle_fingerprint(parsed_args)
         except Exception as e:
             print(f"Erro: {str(e)}")
             sys.exit(1)
@@ -349,6 +422,81 @@ class HarmonicCLI:
         except Exception as e:
             print(f"Erro ao listar músicas: {e}")
             sys.exit(1)
+
+
+    def _handle_explain(self, args: argparse.Namespace) -> None:
+        """Explicação pedagógica — template offline (padrão) ou LLM opt-in."""
+        from harmonic_analysis.explain import (
+            ExplainConfig,
+            LLMConfig,
+            build_explainer,
+        )
+
+        service = self._build_service(args)
+        result = service.analyze_song_from_api(args.artist, args.song)
+        if not result or "error" in result:
+            print(f"Música não encontrada ou análise inválida: {args.artist} - {args.song}")
+            return
+
+        cfg = ExplainConfig(
+            engine=args.engine,
+            llm=LLMConfig(provider=args.llm_provider, model=args.llm_model),
+        )
+        explainer = build_explainer(cfg)
+        if args.engine == "llm" and type(explainer).__name__ == "TemplateExplainer":
+            print(
+                "Aviso: o motor LLM não está disponível "
+                "(extra [explain-llm], chave ou provedor) — usando o template offline."
+            )
+        print(f"\n{explainer.explain(result)}\n")
+
+    def _handle_reharmonize(self, args: argparse.Namespace) -> None:
+        """Imprime as sugestões de reharmonização de uma música."""
+        service = self._build_service(args)
+        result = service.analyze_song_from_api(args.artist, args.song)
+        if not result or "error" in result:
+            print(f"Música não encontrada ou análise inválida: {args.artist} - {args.song}")
+            return
+
+        suggestions = result.get("reharmonizations") or []
+        if not suggestions:
+            print("Nenhuma sugestão de reharmonização encontrada.")
+            return
+        print(f"\nReharmonizações para {result['name']} ({result['key']} {result['mode']}):")
+        for s in suggestions:
+            arrow = " ".join(s["original"]) + " → " + " ".join(s["result"])
+            print(f"  • [{s['technique']}] {arrow}")
+            print(f"    {s['rationale']}")
+
+    def _handle_fingerprint(self, args: argparse.Namespace) -> None:
+        """Impressão digital harmônica de um artista (agregada sobre o corpus)."""
+        from harmonic_analysis.domain.style_fingerprint import build_fingerprint
+
+        service = self._build_service(args)
+        if args.songs:
+            song_names = args.songs
+        else:
+            data = fetch_artist_songs(args.artist)
+            song_names = [song["name"] for song in data["songs"]]
+
+        results = []
+        for name in song_names:
+            r = service.analyze_song_from_api(args.artist, name)
+            if r and "error" not in r:
+                results.append(r)
+
+        if not results:
+            print(f"Nenhuma análise válida para {args.artist}.")
+            return
+
+        fp = build_fingerprint(results).to_dict()
+        print(f"\nImpressão digital harmônica de {args.artist} ({fp['song_count']} músicas):")
+        print("  Distribuição de funções:")
+        for func, weight in sorted(fp["function_distribution"].items(), key=lambda x: -x[1]):
+            print(f"    {func:6} {weight:.1%}")
+        print(f"  Cadências: {fp['cadence_counts']}")
+        print(f"  Uso modal: {fp['modal_usage']:.1%}")
+        print(f"  Densidade de tensões: {fp['tension_density']:.1%}")
 
 
 def main():

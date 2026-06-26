@@ -52,3 +52,4 @@ data/
 .gemini/
 openspec/
 base_estudo/
+.ruff_cache/

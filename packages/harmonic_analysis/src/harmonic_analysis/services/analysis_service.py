@@ -349,6 +349,8 @@ class AnalysisService:
 
             # Camada 2: profundidade musical
             self._add_depth_sections(result, all_chords, analysis, mode_info)
+            # Camada 3: inteligência (parsing probabilístico, reharmonização, explicação)
+            self._add_intelligence_sections(result, all_chords, analysis)
             return result
 
         except Exception as e:
@@ -417,6 +419,36 @@ class AnalysisService:
             )
         except Exception:
             result["chord_scales"] = []
+
+    def _add_intelligence_sections(self, result, all_chords, analysis) -> None:
+        """Popula as seções da Camada 3: parsing probabilístico, reharmonização, explicação."""
+        from harmonic_analysis.domain.functional_hmm import build_functional_parse
+        from harmonic_analysis.domain.reharmonization import reharmonize
+        from harmonic_analysis.explain import ExplainConfig, build_explainer
+
+        # Parsing funcional probabilístico (HMM/Viterbi) — ponte do determinístico.
+        try:
+            result["functional_parse"] = build_functional_parse(
+                result.get("harmonic_analysis", [])
+            )
+        except Exception:
+            result["functional_parse"] = None
+
+        # Sugestões de reharmonização idiomáticas.
+        try:
+            result["reharmonizations"] = (
+                [s.to_dict() for s in reharmonize(all_chords, analysis)]
+                if analysis
+                else []
+            )
+        except Exception:
+            result["reharmonizations"] = []
+
+        # Explicação pedagógica — padrão determinístico/offline (template).
+        try:
+            result["explanation"] = build_explainer(ExplainConfig()).explain(result)
+        except Exception:
+            result["explanation"] = None
 
     def analyze_song_from_api(self, artist: str, song: str) -> Dict[str, Any]:
         """

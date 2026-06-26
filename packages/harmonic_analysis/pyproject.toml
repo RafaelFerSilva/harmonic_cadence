@@ -13,6 +13,10 @@ dependencies = [
 # Provider in-process: traz o scraper pesado (flask/bs4/lxml). Sem este extra,
 # uma instalação só-HTTP permanece enxuta.
 inprocess = ["cifra-scraper"]
+# Explainer por LLM (opt-in). Provedores OpenAI-compatíveis (OpenRouter, Ollama)
+# usam o cliente `openai`; o Claude usa a SDK `anthropic`. Sem este extra, o
+# explainer padrão (template, offline) continua funcionando.
+explain-llm = ["openai>=1.0", "anthropic>=0.40"]
 
 [project.scripts]
 harmonic = "harmonic_analysis.cli.main:main"
