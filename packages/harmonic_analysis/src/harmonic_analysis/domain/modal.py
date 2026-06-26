@@ -9,7 +9,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional, Sequence, Tuple
 
-from cifra_core.theory import Note, build_scale, realize, root_pitch_class
+import collections
+
+from cifra_core.theory import Note, build_scale, parse, realize
 
 ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"]
 PC_TO_NAME = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -94,13 +96,27 @@ def _collection(symbols: Sequence[str]) -> set:
     return pcs
 
 
-def _final_tonic_pc(symbols: Sequence[str]) -> Optional[int]:
-    for s in reversed(symbols):
+def _bass_pc(symbol: str) -> int:
+    """Classe de altura do baixo (slash) do acorde, ou da fundamental."""
+    p = parse(symbol)
+    return (p.bass or p.root).pitch_class
+
+
+def _central_pc(symbols: Sequence[str]) -> Optional[int]:
+    """Estima o centro tonal pelo **baixo mais frequente** (o pedal/finalis), com
+    bônus para o primeiro e o último acorde.
+
+    Mais robusto que a raiz do último acorde: a Sina termina em ``D/A`` (Ré sobre
+    pedal de Lá) — o centro é **Lá** (o baixo), não Ré (a raiz)."""
+    counts: collections.Counter = collections.Counter()
+    n = len(symbols)
+    for i, s in enumerate(symbols):
         try:
-            return root_pitch_class(s)
+            pc = _bass_pc(s)
         except Exception:
             continue
-    return None
+        counts[pc] += 2 if (i == 0 or i == n - 1) else 1
+    return counts.most_common(1)[0][0] if counts else None
 
 
 def detect_mode(symbols: Sequence[str]) -> Optional[ModeInfo]:
@@ -108,7 +124,7 @@ def detect_mode(symbols: Sequence[str]) -> Optional[ModeInfo]:
     if not symbols:
         return None
     coll = _collection(symbols)
-    t = _final_tonic_pc(symbols)
+    t = _central_pc(symbols)
     if t is None or not coll:
         return None
 

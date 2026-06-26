@@ -2,7 +2,7 @@ import re
 from typing import Any, Counter, Dict, List
 
 from cifra_core import ChordPattern, SongProvider, SongProviderError, fix_encoding
-from cifra_core.theory import root_pitch_class
+from cifra_core.theory import Note, root_pitch_class
 
 from harmonic_analysis.domain import chord_scale, voice_leading
 from harmonic_analysis.domain.cadence import analyze_cadences
@@ -22,6 +22,22 @@ from harmonic_analysis.presentation.formatter import AnalysisFormatter
 from harmonic_analysis.utils.formatting import format_name
 
 MINOR_MODES = {"dorian", "phrygian", "aeolian", "locrian"}
+
+
+def _mode_refines_key(mode_info, key, key_mode) -> bool:
+    """Arbitragem: um modo detectado só **refina** a tonalidade do `detect_key`
+    (K-S, confiável em maior/menor) quando concorda com ela na **tônica** E na
+    **qualidade** (maior/menor). Caso contrário é cromatismo tonal disfarçado de
+    modo — e a leitura tonal prevalece.
+    """
+    try:
+        same_tonic = (
+            Note.parse(mode_info.tonic).pitch_class == Note.parse(key).pitch_class
+        )
+    except Exception:
+        return False
+    mode_is_minor = mode_info.mode in MINOR_MODES
+    return same_tonic and (mode_is_minor == (key_mode == "minor"))
 
 
 def _chord_keys_for_regions(regions, n):
@@ -291,6 +307,11 @@ class AnalysisService:
             # Cria analisador harmônico — quando um modo é detectado, usa a
             # tônica modal (o "final") e o modo ativo (Camada 2).
             mode_info = detect_mode([c.symbol for c in all_chords])
+            # Arbitragem: o modo só refina a tonalidade do detect_key; senão é
+            # descartado (cromatismo tonal, não modalismo) — anular o mode_info
+            # mantém TODAS as seções a jusante (incl. modal_analysis) coerentes.
+            if mode_info and not (key and _mode_refines_key(mode_info, key, mode)):
+                mode_info = None
             if mode_info:
                 key = mode_info.tonic
                 mode = "minor" if mode_info.mode in MINOR_MODES else "major"
