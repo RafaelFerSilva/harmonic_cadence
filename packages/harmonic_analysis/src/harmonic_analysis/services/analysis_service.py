@@ -6,7 +6,6 @@ from cifra_core import ChordPattern, SongProvider, SongProviderError, fix_encodi
 from harmonic_analysis.domain.cadence import analyze_cadences
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
-from harmonic_analysis.infra.utils import filter_cifra_lines
 from harmonic_analysis.presentation.formatter import AnalysisFormatter
 from harmonic_analysis.utils.formatting import format_name
 
@@ -227,19 +226,13 @@ class AnalysisService:
                     "error": f"Erro na normalização dos dados: {str(e)}",
                 }
 
-            # Extrai e filtra linhas da cifra
+            # As linhas já chegam limpas do provider (contrato D3 — filtragem
+            # canônica e idempotente vive no cifra_core, aplicada uma única vez).
             cifra_lines = data.get("cifra", [])
-            try:
-                cifra_lines = filter_cifra_lines(cifra_lines)
-                if not cifra_lines:
-                    return {
-                        "success": False,
-                        "error": "Cifra não contém linhas válidas após filtragem.",
-                    }
-            except Exception as e:
+            if not cifra_lines:
                 return {
                     "success": False,
-                    "error": f"Erro na filtragem da cifra: {str(e)}",
+                    "error": "Cifra não contém linhas válidas.",
                 }
 
             # Extrai acordes

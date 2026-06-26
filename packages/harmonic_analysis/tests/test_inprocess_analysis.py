@@ -25,3 +25,10 @@ def test_in_process_analysis_runs_without_server():
     assert result["success"] is True
     assert result["key"] is not None
     assert "harmonic_analysis" in result
+
+
+def test_chord_extraction_over_already_clean_lines():
+    # D3: o analisador confia nas linhas já limpas e ainda extrai os acordes.
+    service = AnalysisService(InProcessSongProvider(StubRepo()))
+    result = service.analyze_song_from_api("Djavan", "Sina")
+    assert set(result["unique_chords"]) == {"C", "Am", "F", "G"}
