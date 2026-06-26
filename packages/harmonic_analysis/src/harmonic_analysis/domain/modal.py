@@ -43,6 +43,28 @@ CHARACTERISTIC_NOTE = {
     "locrian": "b2/b6",
 }
 
+# Acordes cadenciais característicos (tétrades) e acordes a evitar, por modo —
+# seleção curatorial do Chediak (pp. 122-125), não derivável do campo.
+MODAL_CADENTIAL = {
+    "ionian": [],
+    "dorian": ["IIm7", "IV7", "bVII7M"],
+    "phrygian": ["bII7M", "bVIIm7"],
+    "lydian": ["II7", "V7M", "VIIm7"],
+    "mixolydian": ["I7", "Vm7", "bVII7M"],
+    "aeolian": ["IVm7", "bVI7M", "bVII7"],
+    "locrian": [],
+}
+
+MODAL_AVOID = {
+    "ionian": [],
+    "dorian": ["VIm7(b5)"],
+    "phrygian": ["Vm7(b5)", "bIII7"],
+    "lydian": ["#IVm7(b5)"],
+    "mixolydian": ["IIIm7(b5)"],
+    "aeolian": ["IIm7(b5)"],
+    "locrian": [],
+}
+
 # Qualidade da tétrade pelos intervalos (3ª, 5ª, 7ª) acima da fundamental.
 _QUALITY_BY_INTERVALS = {
     (3, 6, 9): "dim7",

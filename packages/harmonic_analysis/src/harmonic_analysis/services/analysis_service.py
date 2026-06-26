@@ -10,7 +10,14 @@ from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmonic_function import functional_strength
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
 from harmonic_analysis.domain.key_detection import detect_key, segment_keys
-from harmonic_analysis.domain.modal import detect_mode, modal_cadences, modal_degree
+from harmonic_analysis.domain.modal import (
+    CHARACTERISTIC_NOTE,
+    MODAL_AVOID,
+    MODAL_CADENTIAL,
+    detect_mode,
+    modal_cadences,
+    modal_degree,
+)
 from harmonic_analysis.presentation.formatter import AnalysisFormatter
 from harmonic_analysis.utils.formatting import format_name
 
@@ -396,6 +403,9 @@ class AnalysisService:
                 result["modal_analysis"] = {
                     "tonic": mode_info.tonic,
                     "mode": mode_info.mode,
+                    "characteristic_note": CHARACTERISTIC_NOTE.get(mode_info.mode),
+                    "cadential_chords": MODAL_CADENTIAL.get(mode_info.mode, []),
+                    "avoid_chords": MODAL_AVOID.get(mode_info.mode, []),
                     "cadences": modal_cadences(
                         [d for d in md_seq if d], mode_info.mode
                     ),
