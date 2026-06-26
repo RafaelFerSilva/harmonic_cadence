@@ -1,7 +1,7 @@
 import re
 import requests
 from bs4 import BeautifulSoup
-from cifra_scraper.utils.encoding import fix_encoding
+from cifra_core import fix_encoding
 from typing import Dict, Any
 
 class CifraClubScraper:

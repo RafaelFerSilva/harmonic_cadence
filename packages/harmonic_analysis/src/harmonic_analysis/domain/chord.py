@@ -1,7 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 
 class ChordQuality(Enum):
@@ -22,25 +22,6 @@ class ChordProperties:
     has_ninth: bool
     has_extension: bool
     bass: Optional[str] = None
-
-
-class ChordPattern:
-    """
-    Utilitário para encontrar acordes em linhas de texto usando regex.
-    """
-
-    CHORD = re.compile(
-        r"([A-G][#b]?"
-        r"(?:m|maj|min|sus|dim|aug|add|M|°)?"
-        r"(?:7|9|11|13)?"
-        r"(?:\(.*?\))?"
-        r"(?:/[A-G][#b]?)?)"
-    )
-
-    @classmethod
-    def find_all(cls, text: str) -> List[str]:
-        """Encontra todos os acordes em um texto."""
-        return cls.CHORD.findall(text)
 
 
 class Chord:

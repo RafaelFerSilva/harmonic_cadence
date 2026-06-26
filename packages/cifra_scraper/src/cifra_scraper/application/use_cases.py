@@ -1,4 +1,4 @@
-from cifra_scraper.domain.entities import Cifra
+from cifra_core import Cifra
 from cifra_scraper.infrastructure.repositories.cifraclub import CifraClubRepository
 
 class GetSongUseCase:

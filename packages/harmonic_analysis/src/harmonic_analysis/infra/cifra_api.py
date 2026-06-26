@@ -1,35 +1,11 @@
 import json
 import os
-import re
-import unicodedata
 
 import requests
 
+from cifra_core import slugify
+
 DATA_DIR = os.path.join(os.path.dirname(__file__), "../../data")
-
-
-def cifra_slug(text: str) -> str:
-    """
-    Converte texto para o formato de URL do Cifra Club.
-
-    Args:
-        text: Texto a ser convertido (nome do artista ou música)
-
-    Returns:
-        str: Texto convertido para formato de URL
-    """
-    # Remove acentos
-    text = unicodedata.normalize("NFKD", text)
-    text = text.encode("ascii", "ignore").decode("ascii")
-
-    # Remove caracteres especiais, mantendo hífens
-    text = re.sub(r"[^\w\s-]", "", text)
-
-    # Divide o texto em palavras
-    words = text.lower().split()
-
-    # Junta as palavras com hífen
-    return "-".join(words)
 
 
 def get_cache_path(artist: str, song: str) -> str:
@@ -43,14 +19,14 @@ def get_cache_path(artist: str, song: str) -> str:
     Returns:
         str: Caminho completo do arquivo de cache
     """
-    artist_slug = cifra_slug(artist)
-    song_slug = cifra_slug(song)
+    artist_slug = slugify(artist)
+    song_slug = slugify(song)
     return os.path.join(DATA_DIR, f"{artist_slug}_{song_slug}.json")
 
 
 def fetch_song_data(artist: str, song: str, use_local_fallback: bool = True) -> dict:
-    artist_slug = cifra_slug(artist)
-    song_slug = cifra_slug(song)
+    artist_slug = slugify(artist)
+    song_slug = slugify(song)
     local_path = get_cache_path(artist, song)
 
     try:
@@ -130,7 +106,7 @@ def fetch_artist_songs(artist: str) -> dict:
     Returns:
         dict: Dados do artista e lista de músicas
     """
-    artist_slug = cifra_slug(artist)
+    artist_slug = slugify(artist)
     try:
         url = f"http://localhost:3000/api/artists/{artist_slug}/songs"
         response = requests.get(url)
@@ -153,7 +129,7 @@ def get_artist_cache_path(artist: str) -> str:
     Returns:
         str: Caminho completo do arquivo de cache
     """
-    artist_slug = cifra_slug(artist)
+    artist_slug = slugify(artist)
     return os.path.join(DATA_DIR, f"{artist_slug}_songs.json")
 
 

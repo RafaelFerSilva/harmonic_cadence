@@ -1,13 +1,14 @@
 import re
 from typing import Any, Counter, Dict, List
 
+from cifra_core import ChordPattern, fix_encoding
+
 from harmonic_analysis.domain.cadence import analyze_cadences
-from harmonic_analysis.domain.chord import Chord, ChordPattern
+from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
 from harmonic_analysis.infra.cifra_api import fetch_song_data
 from harmonic_analysis.infra.utils import filter_cifra_lines
 from harmonic_analysis.presentation.formatter import AnalysisFormatter
-from harmonic_analysis.utils.encoding import fix_encoding
 from harmonic_analysis.utils.formatting import format_name
 
 
