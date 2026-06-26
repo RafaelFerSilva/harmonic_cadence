@@ -1,7 +1,7 @@
 import re
 import requests
 from bs4 import BeautifulSoup
-from cifra_core import fix_encoding
+from cifra_core import fix_encoding, slugify
 
 class CifraClubScraper:
     def clean_cifra_html(self, html: str) -> str:
@@ -37,7 +37,13 @@ class CifraClubScraper:
       return str(soup)
 
     def scrape_cifra(self, artist: str, song: str) -> dict:
-        url = f"https://www.cifraclub.com.br/{artist}/{song}/#tabs=false"
+        # As URLs do Cifra Club são slugs minúsculos com hífens
+        # (ex.: "Djavan", "Oceano" → /djavan/oceano/). Sem slugificar, nomes
+        # com maiúsculas, acentos ou espaços batem em 404.
+        url = (
+            f"https://www.cifraclub.com.br/{slugify(artist)}/{slugify(song)}/"
+            "#tabs=false"
+        )
         response = requests.get(url, headers=self._get_headers())
         soup = BeautifulSoup(response.text, 'lxml')
 
@@ -57,7 +63,7 @@ class CifraClubScraper:
         }
 
     def scrape_artist_songs(self, artist: str) -> list[dict]:
-        url = f"https://www.cifraclub.com.br/{artist}"
+        url = f"https://www.cifraclub.com.br/{slugify(artist)}/"
         response = requests.get(url, headers=self._get_headers())
         response.raise_for_status()
 
