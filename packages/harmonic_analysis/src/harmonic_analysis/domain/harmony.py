@@ -1,6 +1,9 @@
 from collections import Counter, defaultdict
 from typing import Dict, List, Literal, Optional, Tuple
 
+from cifra_core.theory import Note
+from cifra_core.theory import build_scale as theory_build_scale
+
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.constants import (
     CHROMATIC_NOTES,
@@ -8,8 +11,6 @@ from harmonic_analysis.domain.constants import (
     DEGREES_MINOR,
     FUNCTION_PROGRESSIONS,
     HARMONIC_FUNCTIONS,
-    MAJOR_SCALE,
-    MINOR_SCALE,
     MODE_HARMONY,
     MODE_NAMES_PT,
     MODES,
@@ -36,32 +37,28 @@ class HarmonicAnalysis:
 
         self.key = key
         self.mode = mode
-        self.scale, self.degrees = self._build_scale()
+        self.scale, self.scale_pcs, self.degrees = self._build_scale()
         self.HARMONIC_FUNCTIONS = HARMONIC_FUNCTIONS
         self.VALID_NOTES = VALID_NOTES
 
-    def _build_scale(self) -> Tuple[List[str], List[str]]:
-        """Constrói a escala e seus graus baseado na tonalidade e modo."""
-        if self.mode == "major":
-            idx = MAJOR_SCALE.index(self.key[0])
-            scale = MAJOR_SCALE[idx:] + MAJOR_SCALE[:idx]
-            degrees = DEGREES_MAJOR
-        else:
-            idx = MINOR_SCALE.index(self.key[0])
-            scale = MINOR_SCALE[idx:] + MINOR_SCALE[:idx]
-            degrees = DEGREES_MINOR
+    def _build_scale(self) -> Tuple[List[str], List[int], List[str]]:
+        """Constrói a escala (com spelling correto) e seus graus via cifra_core.theory.
 
-        if len(self.key) > 1:  # Considera alterações (#/b)
-            scale[0] = self.key
-        return scale, degrees
+        Diferente da rotação de letras anterior, isto soletra os acidentes —
+        Sol maior tem F#, Fá maior tem Bb — então graus de tonalidades com
+        alterações passam a ser reconhecidos.
+        """
+        degrees = DEGREES_MAJOR if self.mode == "major" else DEGREES_MINOR
+        notes = theory_build_scale(Note.parse(self.key), self.mode)
+        return [str(n) for n in notes], [n.pitch_class for n in notes], degrees
 
     def get_degree(self, chord: Chord) -> Optional[str]:
         try:
-            normalized_root = self.normalize_note(chord.root)
-        except ValueError:
+            root_pc = Note.parse(chord.root).pitch_class
+        except Exception:
             return None
-        if normalized_root in self.scale:
-            degree = self.degrees[self.scale.index(normalized_root)]
+        if root_pc in self.scale_pcs:
+            degree = self.degrees[self.scale_pcs.index(root_pc)]
             if chord.is_minor and degree.isupper():
                 return degree.lower()
             if not chord.is_minor and degree.islower():
@@ -88,6 +85,31 @@ class HarmonicAnalysis:
                 f"Acorde '{chord.symbol}' possui nota raiz inválida ou formato incorreto.",
             )
         degree = self.get_degree(chord)
+
+        # 0. Dominantes aplicados têm prioridade sobre a leitura diatônica por
+        #    grau: um acorde dominante numa região não-V exerce função de
+        #    dominante aplicado mesmo quando sua fundamental coincide com um
+        #    grau diatônico.
+        if chord.is_dominant_seventh:
+            if next_chord:
+                ni = self._get_interval(chord.root, next_chord.root)
+                target_is_tonic = self._get_interval(next_chord.root, self.key) == 0
+                # V7/x resolve uma 5ª justa abaixo (alvo 5 semitons acima); se o
+                # alvo é a tônica, trata-se do dominante primário (função D).
+                if ni == 5 and not target_is_tonic:
+                    target_degree = self.get_degree(next_chord)
+                    return (
+                        "Dsec",
+                        f"Dominante Secundário (V7/{target_degree})",
+                        self.HARMONIC_FUNCTIONS["Dsec"]["description"],
+                    )
+            # SubV (bII7): um semitom acima da tônica.
+            if self._get_interval(chord.root, self.key) == 11:
+                return (
+                    "SubV",
+                    self.HARMONIC_FUNCTIONS["SubV"]["name"],
+                    self.HARMONIC_FUNCTIONS["SubV"]["description"],
+                )
 
         # 1. Função clássica diatônica (T, SD, D, Sub2, Dim, etc)
         for func_code, func_info in self.HARMONIC_FUNCTIONS.items():
@@ -128,26 +150,6 @@ class HarmonicAnalysis:
                 "D2",
                 self.HARMONIC_FUNCTIONS["D2"]["name"],
                 self.HARMONIC_FUNCTIONS["D2"]["description"],
-            )
-
-        # 3. Dominante Secundário
-        if chord.is_dominant_seventh and next_chord:
-            target_chord = next_chord
-            target_root = target_chord.root
-            if target_root and self._get_interval(chord.root, target_root) == 7:
-                target_degree = self.get_degree(target_chord)
-                return (
-                    "Dsec",
-                    f"Dominante Secundário (V7/{target_degree})",
-                    self.HARMONIC_FUNCTIONS["Dsec"]["description"],
-                )
-
-        # 4. Substituto de Dominante (SubV7)
-        if chord.is_dominant_seventh and self._get_interval(chord.root, self.key) == 1:
-            return (
-                "SubV",
-                self.HARMONIC_FUNCTIONS["SubV"]["name"],
-                self.HARMONIC_FUNCTIONS["SubV"]["description"],
             )
 
         # 5. Empréstimo Modal

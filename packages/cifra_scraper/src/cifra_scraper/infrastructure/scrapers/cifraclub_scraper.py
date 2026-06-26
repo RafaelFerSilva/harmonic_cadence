@@ -2,7 +2,6 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from cifra_core import fix_encoding
-from typing import Dict, Any
 
 class CifraClubScraper:
     def clean_cifra_html(self, html: str) -> str:

@@ -6,6 +6,7 @@ from cifra_core import ChordPattern, SongProvider, SongProviderError, fix_encodi
 from harmonic_analysis.domain.cadence import analyze_cadences
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
+from harmonic_analysis.domain.key_detection import detect_key, segment_keys
 from harmonic_analysis.presentation.formatter import AnalysisFormatter
 from harmonic_analysis.utils.formatting import format_name
 
@@ -72,7 +73,9 @@ class AnalysisService:
 
     def _determine_key_and_mode(self, all_chords, data):
         try:
-            key, mode = HarmonicAnalysis.guess_key(all_chords)
+            estimate = detect_key([chord.symbol for chord in all_chords])
+            key = estimate.key_note if estimate else None
+            mode = estimate.mode if estimate else None
             if not key:
                 partial_results = {
                     "name": data.get("name", "Desconhecido"),
@@ -305,7 +308,7 @@ class AnalysisService:
             )
 
             # Monta resultado final
-            return self._build_result(
+            result = self._build_result(
                 data,
                 cifra_lines,
                 all_chords,
@@ -316,6 +319,20 @@ class AnalysisService:
                 function_stats,
                 cadences,
             )
+            # Regiões tonais (detecção de modulação)
+            try:
+                result["tonal_regions"] = [
+                    {
+                        "start": r.start,
+                        "end": r.end,
+                        "key": r.estimate.name,
+                        "score": r.estimate.score,
+                    }
+                    for r in segment_keys([chord.symbol for chord in all_chords])
+                ]
+            except Exception:
+                result["tonal_regions"] = []
+            return result
 
         except Exception as e:
             raise RuntimeError(f"Erro crítico na análise da música: {str(e)}")
