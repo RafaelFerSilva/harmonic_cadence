@@ -354,26 +354,6 @@ class HarmonicAnalysis:
         return first_chord.root, "major"
 
     @staticmethod
-    def extract_sequences(harmonic_analysis):
-        degrees = []
-        functions = []
-        for entry in harmonic_analysis:
-            degree = entry.get("degree", None)
-            function_code = entry.get("function_code", None)
-
-            # Ignorar graus nulos (ex: acordes empréstimos modais)
-            if degree:
-                degrees.append(degree)
-            else:
-                degrees.append("X")  # Marcar como "desconhecido"
-
-            functions.append(function_code)
-
-        return degrees, functions
-
-    from collections import Counter
-
-    @staticmethod
     def analyze_function_stats(harmonic_analysis: List[dict]) -> List[Dict]:
         """Analisa estatísticas das funções harmônicas incluindo exemplos de acordes"""
 
@@ -459,42 +439,6 @@ class HarmonicAnalysis:
                     }
                 )
         return secondary_doms
-
-    @staticmethod
-    def analyze_harmonic_flow(harmonic_analysis):
-        analysis = {
-            "tonic_resolutions": 0,
-            "modal_borrowings": [],
-            "secondary_dominants": [],
-        }
-
-        for i in range(len(harmonic_analysis) - 1):
-            current = harmonic_analysis[i]
-            next_chord = harmonic_analysis[i + 1]
-
-            # Resoluções para tônica
-            if next_chord["function_code"] == "T" and current["function_code"] in [
-                "D",
-                "SubV",
-            ]:
-                analysis["tonic_resolutions"] += 1
-
-            # Empréstimos modais
-            if current["function_code"] == "Emp":
-                analysis["modal_borrowings"].append(
-                    {
-                        "chord": current["chord"],
-                        "description": current["function_description"],
-                    }
-                )
-
-            # Dominantes secundárias
-            if current["function_code"] == "Dsec":
-                analysis["secondary_dominants"].append(
-                    {"chord": current["chord"], "target": next_chord["degree"]}
-                )
-
-        return analysis
 
     def analyze_progressions(self, harmonic_analysis):
         degrees_sequence = [entry["degree"] for entry in harmonic_analysis]

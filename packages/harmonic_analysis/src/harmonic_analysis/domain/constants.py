@@ -1,8 +1,6 @@
 from typing import Dict, List
 
 # Escalas e graus básicos
-MAJOR_SCALE = ["C", "D", "E", "F", "G", "A", "B"]
-MINOR_SCALE = ["A", "B", "C", "D", "E", "F", "G"]
 DEGREES_MAJOR = ["I", "ii", "iii", "IV", "V", "vi", "vii°"]
 DEGREES_MINOR = ["i", "ii°", "III", "iv", "v", "VI", "VII"]
 
@@ -86,18 +84,6 @@ MODE_NAMES_PT = {
     "lócrio": "Modo lócrio",
 }
 
-MODE_NAMES = [
-    "maior",
-    "menor_natural",
-    "menor_harmonica",
-    "menor_melodica",
-    "dórico",
-    "frígio",
-    "lídio",
-    "mixolídio",
-    "lócrio",
-]
-
 # Campo harmônico dos modos
 MODE_HARMONY = {
     "maior": ["maj7", "m7", "m7", "maj7", "7", "m7", "m7b5"],
@@ -109,22 +95,6 @@ MODE_HARMONY = {
     "lídio": ["maj7", "7", "m7", "m7b5", "maj7", "m7", "m7"],
     "mixolídio": ["7", "m7", "m7b5", "maj7", "m7", "m7", "maj7"],
     "lócrio": ["m7b5", "maj7", "m7", "m7", "maj7", "7", "m7"],
-}
-
-# Padrões de cadência
-CADENCE_PATTERNS = {
-    "major": {
-        "authentic": ("V", "I"),
-        "plagal": ("IV", "I"),
-        "deceptive": ("V", "vi"),
-        "half": ("*", "V"),  # * significa qualquer grau
-    },
-    "minor": {
-        "authentic": ("V", "i"),
-        "plagal": ("iv", "i"),
-        "deceptive": ("V", "VI"),
-        "half": ("*", "v"),
-    },
 }
 
 # Substituições de notas para normalização
