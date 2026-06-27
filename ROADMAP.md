@@ -30,8 +30,8 @@ versionado em `openspec/changes/archive/`):
   **uma** detecção de tom (`detect_key`) em todos os entry points; o empréstimo
   modal grafa bemóis corretamente (`Bb`, não `A#`) e passa a identificar acordes
   bemóis (antes "não identificado").
-- **Corpus de validação ampliado** — `widen-key-corpus`: baseline de n≈6 para
-  **n=28**, ouro = tom do **próprio Cifra Club** (independente, sem gap de
+- **Corpus de validação ampliado** — `widen-key-corpus` (+ leva 2): baseline de n≈6
+  para **n=60**, ouro = tom do **próprio Cifra Club** (independente, sem gap de
   transposição → tônica-exata honesta). Fatos `(artista, música, tom)`; cifras não
   armazenadas. (Chediak segue como árbitro **teórico**, não como gold de baseline.)
 - **Fase B v1 — desempate cadencial** — `tonal-center-detection`: um estágio de
@@ -41,11 +41,13 @@ versionado em `openspec/changes/archive/`):
   sintético seguem intactos.
 
 **Baseline de detecção de tonalidade** (`uv run python scripts/key_baseline.py`,
-ouro = tom do Cifra Club, n=28, **com a Fase B v1**): **modo 68% · tônica exata 50% ·
-relativa-consciente 61%** (era 64/46/61 com K-S puro; *Sampa* virou A menor→C maior).
-Sem gap de transposição, a tônica-exata é honesta. Restam **duas** confusões: a
-**relativa** ainda fora da banda em alguns casos (*Papel Marché*, *O Leãozinho*) e a
-**paralela** (mesma tônica, modo trocado: Wave, Chega de Saudade, Valsinha).
+ouro = tom do Cifra Club, **n=60**, com a Fase B v1): **modo 67% · tônica exata 50% ·
+relativa-consciente 62%**. A Fase B v1 **generaliza**: nas 32 músicas acrescentadas
+depois de calibrá-la (quase held-out) as métricas foram 66/50/62 — iguais ao
+in-sample (68/50/61), então o ganho não é overfitting. Sem gap de transposição, a
+tônica-exata é honesta. Restam **duas** confusões: a **relativa** ainda fora da banda
+em alguns casos (*Papel Marché*, *O Leãozinho*) e a **paralela** (mesma tônica, modo
+trocado: Wave, Chega de Saudade, Valsinha).
 
 ## Como rodar
 
@@ -95,13 +97,13 @@ Sol mixolídio).
 
 | # | Tema | Change | Tam. |
 |---|---|---|---|
-| 1 | Ampliar mais o corpus (destrava tunar o EPS com honestidade) | `widen-key-corpus-2` | S |
-| 2 | Override agressivo p/ paralela-erro (Valsinha) | `cadence-override` | M |
-| 3 | Segmentar modulação real (Wave/Chega) na apresentação | `modulation-regions` | M |
+| 1 | Override agressivo p/ paralela-erro (Valsinha) | `cadence-override` | M |
+| 2 | Segmentar modulação real (Wave/Chega) na apresentação | `modulation-regions` | M |
+| 3 | Afrouxar/tunar o EPS da banda (agora com n=60) | `tune-tie-band` | S |
 
 _Concluídos: `enharmonic-spelling`, `consolidate-modal-field` (em
-`finish-note-spelling`), `widen-key-corpus` (n=28), `tonal-center-detection` (Fase B
-v1: modo 64%→68%)._
+`finish-note-spelling`), `widen-key-corpus` + leva 2 (n=60), `tonal-center-detection`
+(Fase B v1: modo 64%→68%, validada quase held-out)._
 
 ## Contexto de fonte (copyright)
 
