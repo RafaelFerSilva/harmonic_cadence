@@ -1,13 +1,15 @@
-"""Baseline de acurácia da detecção de tonalidade contra o ouro do Chediak.
+"""Baseline de acurácia da detecção de tonalidade, contra o tom da própria fonte.
 
-Scrapa os acordes do Cifra Club e compara o tom detectado com o tom anotado por
-Almir Chediak (Vol. I) — que é um **fato** (não protegido por copyright). As
-cifras NÃO são armazenadas; o corpus é re-scrapado a cada execução.
+Scrapa os acordes do Cifra Club e compara o tom **detectado** com o tom **anotado
+pelo próprio Cifra Club** (a "tom" da página). Por virem da mesma fonte, NÃO há
+gap de transposição — a tônica-exata é uma métrica honesta de primeira classe. O
+corpus é uma lista de **fatos** (artista, música, tom); as cifras NÃO são
+armazenadas — re-scrapadas a cada execução (corpus independente, dentro da
+fronteira de copyright: a Parte 4 do Chediak não é ingerida como fixture).
 
-Métricas (a relativa-consciente é a mais honesta dada a transposição entre a
-versão do Cifra Club e a análise do Chediak):
-- modo (maior/menor) — invariante à transposição;
-- tônica exata;
+Métricas:
+- modo (maior/menor);
+- tônica exata (significativa: ouro e acordes vêm da mesma fonte);
 - relativa-consciente (perdoa a confusão maior ↔ relativa menor).
 
 Uso:  uv run python scripts/key_baseline.py   (precisa de rede)
@@ -21,17 +23,38 @@ from cifra_scraper.song_provider import InProcessSongProvider
 from harmonic_analysis.domain.key_detection import detect_key
 from harmonic_analysis.validation import is_relative, parse_key
 
-# (artista, música, tom-Chediak) — anotações de tonalidade do Vol. I (fatos).
+# (artista, música, tom-Cifra Club) — anotação da própria fonte (fato público).
+# Curado raspando de fato; só entram as que scrapam com tom anotado. Inclui casos
+# difíceis (confusão relativa E paralela) de propósito — um baseline não cherry-pick.
 GOLD = [
-    ("Vinicius de Moraes", "Eu Sei Que Vou Te Amar", "C"),
-    ("Joao Bosco", "Papel Marche", "C"),
-    ("Joao Bosco", "O Bebado e o Equilibrista", "A"),
+    ("Tom Jobim", "Garota de Ipanema", "F"),
+    ("Tom Jobim", "Wave", "Dm"),
+    ("Tom Jobim", "Aguas de Marco", "B"),
+    ("Tom Jobim", "Corcovado", "Am"),
+    ("Tom Jobim", "Insensatez", "Bm"),
+    ("Tom Jobim", "Desafinado", "A"),
+    ("Tom Jobim", "Chega de Saudade", "Dm"),
+    ("Tom Jobim", "Triste", "G"),
+    ("Djavan", "Sina", "A"),
+    ("Djavan", "Oceano", "D"),
+    ("Djavan", "Flor de Lis", "C"),
+    ("Djavan", "Samurai", "C#m"),
+    ("Chico Buarque", "Construcao", "Em"),
+    ("Chico Buarque", "Roda Viva", "Bm"),
+    ("Chico Buarque", "A Banda", "D"),
+    ("Chico Buarque", "Calice", "E"),
+    ("Chico Buarque", "Valsinha", "Cm"),
+    ("Chico Buarque", "Atras da Porta", "E"),
+    ("Caetano Veloso", "Sozinho", "D"),
+    ("Caetano Veloso", "Sampa", "C"),
+    ("Caetano Veloso", "O Leaozinho", "C"),
+    ("Gilberto Gil", "Aquele Abraco", "E"),
+    ("Gilberto Gil", "Esperando na Janela", "E"),
+    ("Milton Nascimento", "Travessia", "A"),
     ("Milton Nascimento", "Coracao de Estudante", "F"),
-    ("Chico Buarque", "Valsinha", "Am"),
-    ("Chico Buarque", "Atras da Porta", "Bm"),
-    ("Chico Buarque", "Joao e Maria", "Am"),
-    ("Tom Jobim", "Retrato em Branco e Preto", "Gm"),
-    ("Luiz Bonfa", "Manha de Carnaval", "Am"),
+    ("Joao Bosco", "Papel Marche", "C"),
+    ("Cartola", "As Rosas Nao Falam", "Dm"),
+    ("Vinicius de Moraes", "Eu Sei Que Vou Te Amar", "Em"),
 ]
 
 _PC = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
@@ -69,7 +92,7 @@ def main() -> None:
     exact = sum(a == d for _, a, d in results) / n
     rel = sum(a == d or is_relative(a, d) for _, a, d in results) / n
 
-    print(f"\n{'música':<28}{'Chediak':<9}{'detectado':<11}{'resultado'}")
+    print(f"\n{'música':<28}{'fonte':<9}{'detectado':<11}{'resultado'}")
     print("-" * 60)
     for song, a, d in results:
         if a == d:
@@ -84,7 +107,7 @@ def main() -> None:
         det_s = f"{_PC[d[0]]} {d[1][:3]}"
         print(f"{song[:27]:<28}{ann_s:<9}{det_s:<11}{verdict}")
 
-    print(f"\nBaseline vs ouro Chediak (n={n}):")
+    print(f"\nBaseline vs tom da fonte (Cifra Club) (n={n}):")
     print(f"  modo:                {mode:.0%}")
     print(f"  tonica exata:        {exact:.0%}")
     print(f"  relativa-consciente: {rel:.0%}")
