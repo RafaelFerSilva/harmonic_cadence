@@ -5,7 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional, Sequence, Tuple
 
-from cifra_core.theory import realize, root_pitch_class
+from cifra_core.theory import parse, realize, root_pitch_class
+from cifra_core.theory.chord_parse import Third
 
 from harmonic_analysis.domain.modal import detect_mode
 
@@ -20,6 +21,19 @@ MINOR_NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"]
 # Pesos calibrados no corpus de validação (test_key_corpus): 100% de acerto.
 ROOT_WEIGHT = 2.0      # ênfase na fundamental de cada acorde
 CADENCE_WEIGHT = 2.0   # ênfase no acorde final (resolução cadencial → tônica)
+
+# --- Corroboração cadencial (Fase B) ---------------------------------------
+# Desempata quase-empates do K-S (a confusão maior↔relativa-menor) usando o
+# centro tonal funcional, que o histograma ignora. Fonte: Chediak (as cadências,
+# XXXII pp. 109-111; o acorde final e a função do baixo como marcadores de tom).
+# EPS conservador (banda de empate) e pesos num só lugar — recalibráveis contra o
+# corpus, NÃO maximizados in-sample (ver design de tonal-center-detection).
+TIE_BAND = 0.06            # banda de quase-empate sobre o score K-S do topo
+CADENCE_WINDOW = 4         # nº de acordes finais inspecionados pela cadência
+CORROB_FIRST = 1.0         # 1º acorde com fundamental == tônica
+CORROB_LAST = 2.0          # último acorde com fundamental == tônica
+CORROB_LAST_QUALITY = 1.0  # qualidade do último acorde casa (+) / contraria (−) o modo
+CORROB_CADENCE = 3.0       # cadência autêntica dominante→tônica no fim (marcador forte)
 
 
 @dataclass(frozen=True)
@@ -78,8 +92,55 @@ def _name(tonic_pc: int, mode: str) -> Tuple[str, str]:
     return f"{note} {mode}", note
 
 
+def cadence_corroboration(
+    symbols: Sequence[str], tonic_pc: int, mode: str
+) -> float:
+    """Corroboração funcional de um centro tonal candidato — sinais que o
+    histograma de pitch-classes descarta: o 1º acorde, o último acorde (e sua
+    qualidade vs. o modo) e uma cadência autêntica (a dominante do candidato,
+    ``tônica+7``, resolvendo na tônica) no fim.
+
+    A âncora tonal é o **baixo**, não a fundamental (lição da Sina: ``D/A`` é Ré
+    sobre pedal de Lá — o centro é Lá). Usa o baixo para "assenta na tônica" e
+    para o alvo da cadência; a fundamental só identifica o acorde dominante (a
+    identidade do V independe da inversão). Fonte: Chediak (cadências; baixo)."""
+    roots: List[Optional[int]] = []
+    basses: List[Optional[int]] = []
+    quals: List[Optional[str]] = []
+    for s in symbols:
+        try:
+            p = parse(s)
+            roots.append(p.root.pitch_class)
+            basses.append((p.bass or p.root).pitch_class)
+            quals.append("minor" if p.third is Third.MINOR else "major")
+        except Exception:
+            roots.append(None)
+            basses.append(None)
+            quals.append(None)
+
+    score = 0.0
+    if basses and basses[0] == tonic_pc:
+        score += CORROB_FIRST
+    if basses and basses[-1] == tonic_pc:  # assenta na tônica (baixo)
+        score += CORROB_LAST
+        if roots[-1] == tonic_pc and quals[-1] is not None:  # tônica de fato (raiz)
+            score += CORROB_LAST_QUALITY if quals[-1] == mode else -CORROB_LAST_QUALITY
+
+    # Resolução de função dominante na tônica: a dominante (V, 5ª justa acima) OU
+    # seu substituto tritonal (SubV / bII7, meio-tom acima) — ambos cadência
+    # autêntica em MPB/bossa (Chediak). Identidade pela raiz; alvo pelo baixo.
+    dom = (tonic_pc + 7) % 12
+    subv = (tonic_pc + 1) % 12
+    for i in range(max(0, len(roots) - CADENCE_WINDOW), len(roots) - 1):
+        if roots[i] in (dom, subv) and basses[i + 1] == tonic_pc:
+            score += CORROB_CADENCE
+            break
+    return score
+
+
 def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:
-    """Estima a tonalidade correlacionando o perfil com os 24 perfis K-S."""
+    """Estima a tonalidade correlacionando o perfil com os 24 perfis K-S e, no
+    quase-empate, desempatando pela corroboração cadencial (centro tonal)."""
     profile = pitch_class_profile(symbols)
     if sum(profile) == 0:
         return None
@@ -91,9 +152,21 @@ def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:
         ranked.append((_pearson(rotated, KS_MINOR), tonic, "minor"))
     ranked.sort(key=lambda t: t[0], reverse=True)
 
-    best_score, best_tonic, best_mode = ranked[0]
+    # Desempate cadencial: SÓ entre candidatos em quase-empate (banda TIE_BAND do
+    # topo) escolhe o que o centro tonal funcional corrobora; tie-break pelo score
+    # K-S, então um K-S confiante (fora da banda) nunca é sobreposto.
+    top_score = ranked[0][0]
+    band = [r for r in ranked if r[0] >= top_score - TIE_BAND]
+    best_score, best_tonic, best_mode = max(
+        band, key=lambda r: (cadence_corroboration(symbols, r[1], r[2]), r[0])
+    )
+
     name, key_note = _name(best_tonic, best_mode)
-    alts = tuple((f"{_name(t, m)[0]}", round(s, 4)) for s, t, m in ranked[1:4])
+    alts = tuple(
+        (f"{_name(t, m)[0]}", round(s, 4))
+        for s, t, m in ranked
+        if (t, m) != (best_tonic, best_mode)
+    )[:3]
     info = detect_mode(symbols)
     church_mode = info.mode if info else None
     return KeyEstimate(
