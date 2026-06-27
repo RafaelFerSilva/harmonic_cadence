@@ -37,17 +37,18 @@ versionado em `openspec/changes/archive/`):
 - **Fase B v1 — desempate cadencial** — `tonal-center-detection`: um estágio de
   corroboração cadencial desempata candidatos em quase-empate do K-S usando o centro
   tonal funcional (1º acorde, acorde final, cadência autêntica V/SubV → tônica, com o
-  **baixo** como âncora). Conservador (não sobrepõe K-S confiante); a Sina e o gate
-  sintético seguem intactos.
+  **baixo** como âncora). Resolve a confusão **relativa** (maior↔relativa menor).
+- **Fase B v2 — correção de modo paralelo** — `parallel-mode-correction`: na tônica
+  âncora, inverte o **modo** quando a qualidade dos acordes de tônica contradiz o K-S
+  (a cadência não distingue paralelas — a dominante é comum). Resolve a **paralela**
+  (Wave/Chega/Valsinha). Conservador (gate de âncora-baixo); Sina e gate sintético
+  intactos.
 
 **Baseline de detecção de tonalidade** (`uv run python scripts/key_baseline.py`,
-ouro = tom do Cifra Club, **n=60**, com a Fase B v1): **modo 67% · tônica exata 50% ·
-relativa-consciente 62%**. A Fase B v1 **generaliza**: nas 32 músicas acrescentadas
-depois de calibrá-la (quase held-out) as métricas foram 66/50/62 — iguais ao
-in-sample (68/50/61), então o ganho não é overfitting. Sem gap de transposição, a
-tônica-exata é honesta. Restam **duas** confusões: a **relativa** ainda fora da banda
-em alguns casos (*Papel Marché*, *O Leãozinho*) e a **paralela** (mesma tônica, modo
-trocado: Wave, Chega de Saudade, Valsinha).
+ouro = tom do Cifra Club, **n=60**, com a Fase B v1+v2): **modo 83% · tônica exata
+62% · relativa-consciente 72%** (K-S puro era 64/46/61; v1 só, 67/50/62). A v1
+generalizou (validada quase held-out nas 32 músicas novas: 66/50/62 ≈ in-sample). Sem
+gap de transposição, a tônica-exata é honesta.
 
 ## Como rodar
 
@@ -65,23 +66,18 @@ specs → tasks → implementar → `openspec archive`). As changes vivem em
 
 ## Próximo passo — Fase B, próximos incrementos ⭐
 
-A **v1** (desempate cadencial conservador) está no `main` e subiu o modo para 68%.
+As v1 (relativa) e v2 (paralela) estão no `main` e levaram o modo de 64% para **83%**.
 Os incrementos seguintes, **medindo cada um contra o baseline** e sem quebrar a
 arbitragem modo↔tom nem o gate sintético:
 
-1. **Ampliar o corpus antes de tunar** (n=28 ainda é pequeno) — o EPS da banda foi
-   fixado conservador (0.06) de propósito; tunar ou afrouxar só faz sentido com
-   corpus maior, senão é in-sample chasing. Casos como *Papel Marché* (gap ~0.07)
-   esperam isso.
-2. **Override agressivo para a paralela-erro** (*Valsinha*: cadência `G7→Cm` clara,
-   mas K-S confiantemente em Dó maior) — deixar a corroboração sobrepor um K-S
-   confiante quando o sinal cadencial é forte. Risco de regressão → medir com rigor.
-3. **Segmentação das modulações reais** (*Wave*, *Chega de Saudade*: começam menor,
+1. **Segmentação das modulações reais** (*Wave*, *Chega de Saudade*: começam menor,
    terminam maior) — rótulo único sempre erra; usar `segment_keys`, não a estimativa
-   pontual. É medição/apresentação, não detecção.
-
-Secundário: o K-S não acha a tônica de modos de igreja (`G F C G` → lê Dó maior, não
-Sol mixolídio).
+   pontual. **Nota honesta:** a v2 "acerta" o gold dessas invertendo p/ menor, mas a
+   leitura correta é multi-região. É medição/apresentação, não detecção.
+2. **Tunar/afrouxar o EPS da banda** (agora com n=60) — pegaria casos relativos ainda
+   fora da banda (*Papel Marché*, gap ~0.07) sem in-sample chasing.
+3. **Casos residuais** — *Esquinas*/*Lilás*/*Açaí* (Djavan, harmonia modal complexa),
+   e a tônica de modos de igreja pelo K-S (`G F C G` lido como Dó maior).
 
 ## Trilha paralela (contida, encaixa a qualquer momento)
 
@@ -97,13 +93,14 @@ Sol mixolídio).
 
 | # | Tema | Change | Tam. |
 |---|---|---|---|
-| 1 | Override agressivo p/ paralela-erro (Valsinha) | `cadence-override` | M |
-| 2 | Segmentar modulação real (Wave/Chega) na apresentação | `modulation-regions` | M |
-| 3 | Afrouxar/tunar o EPS da banda (agora com n=60) | `tune-tie-band` | S |
+| 1 | Segmentar modulação real (Wave/Chega) na apresentação | `modulation-regions` | M |
+| 2 | Afrouxar/tunar o EPS da banda (agora com n=60) | `tune-tie-band` | S |
+| 3 | Casos residuais (Djavan modal; tônica de modos) | — | M |
 
 _Concluídos: `enharmonic-spelling`, `consolidate-modal-field` (em
 `finish-note-spelling`), `widen-key-corpus` + leva 2 (n=60), `tonal-center-detection`
-(Fase B v1: modo 64%→68%, validada quase held-out)._
+(Fase B v1, relativa), `parallel-mode-correction` (Fase B v2, paralela; modo
+64%→83% acumulado)._
 
 ## Contexto de fonte (copyright)
 
