@@ -58,19 +58,6 @@ HARMONIC_FUNCTIONS: Dict[str, Dict[str, str | List[str]]] = {
     },
 }
 
-# Modos e suas escalas
-MODES = {
-    "maior": ["C", "D", "E", "F", "G", "A", "B"],
-    "menor_natural": ["C", "D", "Eb", "F", "G", "Ab", "Bb"],
-    "menor_harmonica": ["C", "D", "Eb", "F", "G", "Ab", "B"],
-    "menor_melodica": ["C", "D", "Eb", "F", "G", "A", "B"],
-    "dórico": ["C", "D", "Eb", "F", "G", "A", "Bb"],
-    "frígio": ["C", "Db", "Eb", "F", "G", "Ab", "Bb"],
-    "lídio": ["C", "D", "E", "F#", "G", "A", "B"],
-    "mixolídio": ["C", "D", "E", "F", "G", "A", "Bb"],
-    "lócrio": ["C", "Db", "Eb", "F", "Gb", "Ab", "Bb"],
-}
-
 # Nomes dos modos em português
 MODE_NAMES_PT = {
     "maior": "Maior paralela",
@@ -83,25 +70,6 @@ MODE_NAMES_PT = {
     "mixolídio": "Modo mixolídio",
     "lócrio": "Modo lócrio",
 }
-
-# Campo harmônico dos modos
-MODE_HARMONY = {
-    "maior": ["maj7", "m7", "m7", "maj7", "7", "m7", "m7b5"],
-    "menor_natural": ["m7", "m7b5", "maj7", "m7", "m7", "maj7", "7"],
-    "menor_harmonica": ["m(maj7)", "m7b5", "maj7#5", "m7", "7", "maj7", "dim7"],
-    "menor_melodica": ["m(maj7)", "m7", "maj7#5", "7", "7", "m7b5", "m7b5"],
-    "dórico": ["m7", "m7", "maj7", "7", "m7", "m7b5", "maj7"],
-    "frígio": ["m7", "maj7", "7", "m7", "m7b5", "maj7", "m7"],
-    "lídio": ["maj7", "7", "m7", "m7b5", "maj7", "m7", "m7"],
-    "mixolídio": ["7", "m7", "m7b5", "maj7", "m7", "m7", "maj7"],
-    "lócrio": ["m7b5", "maj7", "m7", "m7", "maj7", "7", "m7"],
-}
-
-# Substituições de notas para normalização
-NOTE_REPLACEMENTS = {"Db": "C#", "Eb": "D#", "Gb": "F#", "Ab": "G#", "Bb": "A#"}
-
-# Notas cromáticas
-CHROMATIC_NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
 PROGRESSIONS = [
     # Progressões clássicas

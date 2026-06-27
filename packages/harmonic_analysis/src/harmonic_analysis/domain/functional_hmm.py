@@ -21,6 +21,7 @@ from typing import Dict, List, Optional, Sequence, Tuple
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmonic_function import functional_strength
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
+from harmonic_analysis.domain.key_detection import detect_key
 
 # Macro-funções (estados ocultos).
 STATES: Tuple[str, ...] = ("T", "SD", "D", "X")
@@ -267,7 +268,9 @@ def parse_progression(
     """Parsing autônomo de uma progressão (offline, sem provider) — útil em testes."""
     chords = [Chord(s) for s in symbols]
     if key is None:
-        key, mode = HarmonicAnalysis.guess_key(chords)
+        est = detect_key([c.symbol for c in chords])
+        if est:
+            key, mode = est.key_note, est.mode
     analysis = HarmonicAnalysis(key, mode)
     codes: List[str] = []
     strengths: List[Optional[str]] = []

@@ -2,7 +2,6 @@
 
 import pytest
 
-from harmonic_analysis.domain.constants import MODE_HARMONY
 from harmonic_analysis.domain.modal import CHARACTERISTIC_NOTE, modal_field
 
 # Oráculo: (grau, qualidade) por modo, conforme as tabelas do Chediak.
@@ -55,16 +54,3 @@ def test_characteristic_notes():
     assert CHARACTERISTIC_NOTE["mixolydian"] == "b7"
     assert CHARACTERISTIC_NOTE["aeolian"] == "b6"
     assert CHARACTERISTIC_NOTE["locrian"] == "b2/b6"
-
-
-# MODE_HARMONY (chaves PT) deve bater com o campo derivado (correto).
-_PT_TO_EN = {
-    "dórico": "dorian", "frígio": "phrygian", "lídio": "lydian",
-    "mixolídio": "mixolydian", "lócrio": "locrian",
-    "maior": "ionian", "menor_natural": "aeolian",
-}
-
-
-@pytest.mark.parametrize("pt,en", _PT_TO_EN.items())
-def test_mode_harmony_constant_matches_derived_field(pt, en):
-    assert MODE_HARMONY[pt] == [q for _deg, q in modal_field("C", en)]

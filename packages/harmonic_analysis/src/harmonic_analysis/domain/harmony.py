@@ -1,21 +1,17 @@
-from collections import Counter, defaultdict
+from collections import defaultdict
 from typing import Dict, List, Literal, Optional, Tuple
 
 from cifra_core.theory import Note
 from cifra_core.theory import build_scale as theory_build_scale
 
 from harmonic_analysis.domain.chord import Chord
-from harmonic_analysis.domain.modal import modal_degree
+from harmonic_analysis.domain.modal import _tetrad_quality, modal_degree
 from harmonic_analysis.domain.constants import (
-    CHROMATIC_NOTES,
     DEGREES_MAJOR,
     DEGREES_MINOR,
     FUNCTION_PROGRESSIONS,
     HARMONIC_FUNCTIONS,
-    MODE_HARMONY,
     MODE_NAMES_PT,
-    MODES,
-    NOTE_REPLACEMENTS,
     PROGRESSION_CATEGORIES,
     PROGRESSIONS,
 )
@@ -24,7 +20,18 @@ FunctionCode = Literal[
     "T", "SD", "D", "D2", "SubV", "Sub2", "Dsec", "Emp", "Modal", "Dim", "Crom", "Outro"
 ]
 
-VALID_NOTES = set(CHROMATIC_NOTES)
+# Chaves de modo PT (legado, exibidas ao usuário) -> nomes do cifra_core.build_scale.
+PT_TO_EN_MODE = {
+    "maior": "major",
+    "menor_natural": "minor",
+    "menor_harmonica": "harmonic_minor",
+    "menor_melodica": "melodic_minor",
+    "dórico": "dorian",
+    "frígio": "phrygian",
+    "lídio": "lydian",
+    "mixolídio": "mixolydian",
+    "lócrio": "locrian",
+}
 
 
 class HarmonicAnalysis:
@@ -35,15 +42,16 @@ class HarmonicAnalysis:
     def __init__(
         self, key: str, mode: str = "major", church_mode: Optional[str] = None
     ):
-        if not key or key[0] not in CHROMATIC_NOTES:
-            raise ValueError(f"Tonalidade inválida: {key}")
+        try:
+            Note.parse(key)
+        except Exception:
+            raise ValueError(f"Tonalidade inválida: {key}") from None
 
         self.key = key
         self.mode = mode
         self.church_mode = church_mode  # modo de igreja ativo (Camada 2), se houver
         self.scale, self.scale_pcs, self.degrees = self._build_scale()
         self.HARMONIC_FUNCTIONS = HARMONIC_FUNCTIONS
-        self.VALID_NOTES = VALID_NOTES
 
     def _build_scale(self) -> Tuple[List[str], List[int], List[str]]:
         """Constrói a escala (com spelling correto) e seus graus via cifra_core.theory.
@@ -241,23 +249,31 @@ class HarmonicAnalysis:
         )
 
     def describe_modal_borrowing(self, chord_root: str) -> str:
-        """Identifica possíveis origens modais do acorde."""
-        if chord_root == self.key:
+        """Identifica possíveis origens modais do acorde (modos paralelos da
+        tônica), comparando por classe de altura — robusto à grafia (bemol ou
+        sustenido). As notas exibidas vêm soletradas de `build_scale`."""
+        try:
+            root_pc = Note.parse(chord_root).pitch_class
+            key_pc = Note.parse(self.key).pitch_class
+        except Exception:
+            return "Origem não identificada"
+        if root_pc == key_pc:
             return "-"
 
-        possible_sources = []
-        for mode_name, scale in MODES.items():
-            transposed_scale = self._transpose_scale(scale, self.key)
-            if chord_root in transposed_scale:
-                possible_sources.append(mode_name)
-
+        possible_sources = [
+            mode_name
+            for mode_name, en in PT_TO_EN_MODE.items()
+            if root_pc
+            in {n.pitch_class for n in theory_build_scale(Note.parse(self.key), en)}
+        ]
         if not possible_sources:
             return "Origem não identificada"
 
         descriptions = []
         for mode_name in possible_sources:
             nome = MODE_NAMES_PT.get(mode_name, mode_name)
-            escala = " ".join(self._transpose_scale(MODES[mode_name], self.key))
+            scale = theory_build_scale(Note.parse(self.key), PT_TO_EN_MODE[mode_name])
+            escala = " ".join(str(n) for n in scale)
             campo = self._build_harmonic_field(mode_name)
             descriptions.append(
                 f"{nome} de {self.key}: [{escala}] | Campo harmônico: {campo}"
@@ -266,59 +282,28 @@ class HarmonicAnalysis:
         return " || ".join(descriptions)
 
     def _build_harmonic_field(self, mode_name: str) -> str:
-        """Constrói o campo harmônico de um modo."""
-        scale = MODES[mode_name]
-        harmony = MODE_HARMONY.get(mode_name, [])
-        transposed_scale = self._transpose_scale(scale, self.key)
+        """Campo harmônico do modo, derivado da escala soletrada (`build_scale`)
+        e da qualidade da tétrade por grau — correto por construção e com grafia
+        enarmônica certa (Chediak, pp. 122-125)."""
+        scale = theory_build_scale(Note.parse(self.key), PT_TO_EN_MODE[mode_name])
         degrees = DEGREES_MAJOR if mode_name == "maior" else DEGREES_MINOR
-
-        if len(transposed_scale) < 7:
-            transposed_scale += [""] * (7 - len(transposed_scale))
-        if len(harmony) < 7:
-            harmony += [""] * (7 - len(harmony))
-        if len(degrees) < 7:
-            degrees += [""] * (7 - len(degrees))
-
-        field = []
-        for deg, note, chord_type in zip(degrees, transposed_scale, harmony):
-            if note:
-                field.append(f"{deg}: {note}{chord_type}")
-        return " | ".join(field)
-
-    @staticmethod
-    def normalize_note(note: str) -> str:
-        if not note:
-            raise ValueError("Nota vazia ou None não é válida")
-        note = note.strip().capitalize()
-        note = NOTE_REPLACEMENTS.get(note, note)
-        if note not in CHROMATIC_NOTES:
-            raise ValueError(f"Nota inválida após normalização: {note}")
-        return note
+        return " | ".join(
+            f"{deg}: {note}{_tetrad_quality(scale, i)}"
+            for i, (deg, note) in enumerate(zip(degrees, scale))
+        )
 
     def validate_chord(self, chord: Chord) -> bool:
         try:
-            normalized_root = self.normalize_note(chord.root)
+            Note.parse(chord.root)
         except Exception:
             return False
-        return normalized_root in self.VALID_NOTES
+        return True
 
     @staticmethod
     def _get_interval(note1: str, note2: str) -> int:
-        """Calcula o intervalo entre duas notas em semitons."""
-        n1 = CHROMATIC_NOTES.index(HarmonicAnalysis.normalize_note(note1))
-        n2 = CHROMATIC_NOTES.index(HarmonicAnalysis.normalize_note(note2))
-        return (n2 - n1) % 12
-
-    def _transpose_scale(self, scale: List[str], target_key: str) -> List[str]:
-        """Transpõe uma escala para uma nova tonalidade."""
-        base_note = "C"
-        interval = self._get_interval(base_note, target_key)
-        return [self._transpose_note(note, interval) for note in scale]
-
-    def _transpose_note(self, note: str, interval: int) -> str:
-        """Transpõe uma nota por um determinado intervalo."""
-        n = CHROMATIC_NOTES.index(self.normalize_note(note))
-        return CHROMATIC_NOTES[(n + interval) % 12]
+        """Intervalo ascendente em semitons (0..11), via classe de altura
+        soletrada — enarmonicamente correto (`Bb` e `A#` dão o mesmo)."""
+        return (Note.parse(note2).pitch_class - Note.parse(note1).pitch_class) % 12
 
     @staticmethod
     def _is_chromatic_approach(
@@ -329,29 +314,6 @@ class HarmonicAnalysis:
             return False
         interval = abs(HarmonicAnalysis._get_interval(chord.root, next_chord.root))
         return interval == 1
-
-    @staticmethod
-    def guess_key(chords: List[Chord]) -> Tuple[Optional[str], Optional[str]]:
-        """Tenta adivinhar a tonalidade baseado nos acordes."""
-        if not chords:
-            return None, None
-
-        first_chord = chords[0]
-
-        # Usar Counter em vez de dicionário fixo
-        qualities_counter = Counter(chord.quality for chord in chords)
-        roots_counter = Counter(chord.root for chord in chords)
-
-        total_chords = len(chords)
-        # Usar .get() para evitar KeyError
-        minor_ratio = (
-            qualities_counter.get("minor", 0) / total_chords if total_chords > 0 else 0
-        )
-
-        if first_chord.is_minor or minor_ratio > 0.3:
-            most_common_root = roots_counter.most_common(1)[0][0]
-            return most_common_root, "minor"
-        return first_chord.root, "major"
 
     @staticmethod
     def analyze_function_stats(harmonic_analysis: List[dict]) -> List[Dict]:

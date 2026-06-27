@@ -16,6 +16,7 @@ from cifra_core.theory import root_pitch_class
 
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
+from harmonic_analysis.domain.key_detection import detect_key
 
 # Nome preferido por classe de altura (bemóis — combina com bII7/SubV e empréstimos).
 PC_TO_NAME = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
@@ -259,7 +260,9 @@ def reharmonize_symbols(
     """Reharmoniza a partir de símbolos (offline, sem provider) — útil em testes/CLI."""
     chords = [Chord(s) for s in symbols]
     if key is None:
-        key, mode = HarmonicAnalysis.guess_key(chords)
+        est = detect_key([c.symbol for c in chords])
+        if est:
+            key, mode = est.key_note, est.mode
     analysis = HarmonicAnalysis(key, mode)
     return reharmonize(chords, analysis)
 
