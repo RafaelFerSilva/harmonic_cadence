@@ -7,7 +7,7 @@ destilada, implementada e testada; a fronteira agora é **precisão** e
 
 ## Status (2026-06-27)
 
-**Feito e no `main`** (~21 changes OpenSpec, 247 testes verdes, `openspec/`
+**Feito e no `main`** (~22 changes OpenSpec, 255 testes verdes, `openspec/`
 versionado em `openspec/changes/archive/`):
 
 - **Teoria harmônica destilada do Chediak** — parsing de acorde (dialeto `±`,
@@ -34,13 +34,18 @@ versionado em `openspec/changes/archive/`):
   **n=28**, ouro = tom do **próprio Cifra Club** (independente, sem gap de
   transposição → tônica-exata honesta). Fatos `(artista, música, tom)`; cifras não
   armazenadas. (Chediak segue como árbitro **teórico**, não como gold de baseline.)
+- **Fase B v1 — desempate cadencial** — `tonal-center-detection`: um estágio de
+  corroboração cadencial desempata candidatos em quase-empate do K-S usando o centro
+  tonal funcional (1º acorde, acorde final, cadência autêntica V/SubV → tônica, com o
+  **baixo** como âncora). Conservador (não sobrepõe K-S confiante); a Sina e o gate
+  sintético seguem intactos.
 
 **Baseline de detecção de tonalidade** (`uv run python scripts/key_baseline.py`,
-ouro = tom do Cifra Club, n=28): **modo 64% · tônica exata 46% · relativa-consciente
-61%**. Sem gap de transposição (ouro e acordes da mesma fonte), a tônica-exata é
-honesta. O corpus expõe **duas** confusões sistemáticas: **relativa** (maior →
-relativa menor; ~4 casos) e **paralela** (mesma tônica, modo trocado: Wave, Chega
-de Saudade, Valsinha; ~5 casos).
+ouro = tom do Cifra Club, n=28, **com a Fase B v1**): **modo 68% · tônica exata 50% ·
+relativa-consciente 61%** (era 64/46/61 com K-S puro; *Sampa* virou A menor→C maior).
+Sem gap de transposição, a tônica-exata é honesta. Restam **duas** confusões: a
+**relativa** ainda fora da banda em alguns casos (*Papel Marché*, *O Leãozinho*) e a
+**paralela** (mesma tônica, modo trocado: Wave, Chega de Saudade, Valsinha).
 
 ## Como rodar
 
@@ -56,22 +61,25 @@ Fluxo de trabalho: cada melhoria é uma **change OpenSpec** (proposal → design
 specs → tasks → implementar → `openspec archive`). As changes vivem em
 `openspec/changes/`, arquivadas em `openspec/changes/archive/AAAA-MM-DD-<nome>`.
 
-## Próximo passo — Fase B (centro tonal) ⭐
+## Próximo passo — Fase B, próximos incrementos ⭐
 
-Alvo **afiado pelo baseline (n=28)**: o K-S erra o **modo** em ~1/3 das músicas,
-por **duas** confusões que o histograma de pitch-classes não distingue:
+A **v1** (desempate cadencial conservador) está no `main` e subiu o modo para 68%.
+Os incrementos seguintes, **medindo cada um contra o baseline** e sem quebrar a
+arbitragem modo↔tom nem o gate sintético:
 
-1. **Relativa** (maior ↔ relativa menor): perfis K-S parecidos (Dó maior ≈ Lá
-   menor) — detecta a relativa menor onde é a maior.
-2. **Paralela** (mesma tônica, modo trocado): songs que oscilam maior/menor
-   paralelo (Wave, Chega de Saudade, Valsinha); o Cifra Club ancora num modo, o
-   K-S no outro.
+1. **Ampliar o corpus antes de tunar** (n=28 ainda é pequeno) — o EPS da banda foi
+   fixado conservador (0.06) de propósito; tunar ou afrouxar só faz sentido com
+   corpus maior, senão é in-sample chasing. Casos como *Papel Marché* (gap ~0.07)
+   esperam isso.
+2. **Override agressivo para a paralela-erro** (*Valsinha*: cadência `G7→Cm` clara,
+   mas K-S confiantemente em Dó maior) — deixar a corroboração sobrepor um K-S
+   confiante quando o sinal cadencial é forte. Risco de regressão → medir com rigor.
+3. **Segmentação das modulações reais** (*Wave*, *Chega de Saudade*: começam menor,
+   terminam maior) — rótulo único sempre erra; usar `segment_keys`, não a estimativa
+   pontual. É medição/apresentação, não detecção.
 
-Desambiguar com sinais que o histograma ignora: **acorde final, cadência (V→I vs
-v→i), primeiro acorde, função do baixo, sensível presente/ausente.** Medir cada
-incremento contra o baseline (46% exata / 61% relativa-consciente), **sem quebrar**
-a arbitragem modo↔tom existente. Secundário: o K-S não acha a tônica de modos
-(`G F C G` → lê Dó maior, não Sol mixolídio).
+Secundário: o K-S não acha a tônica de modos de igreja (`G F C G` → lê Dó maior, não
+Sol mixolídio).
 
 ## Trilha paralela (contida, encaixa a qualquer momento)
 
@@ -87,10 +95,13 @@ a arbitragem modo↔tom existente. Secundário: o K-S não acha a tônica de mod
 
 | # | Tema | Change | Tam. |
 |---|---|---|---|
-| 1 | Fase B: desambiguar relativa **E** paralela | `tonal-center-detection` | M–L |
+| 1 | Ampliar mais o corpus (destrava tunar o EPS com honestidade) | `widen-key-corpus-2` | S |
+| 2 | Override agressivo p/ paralela-erro (Valsinha) | `cadence-override` | M |
+| 3 | Segmentar modulação real (Wave/Chega) na apresentação | `modulation-regions` | M |
 
 _Concluídos: `enharmonic-spelling`, `consolidate-modal-field` (em
-`finish-note-spelling`), `widen-key-corpus` (n=28)._
+`finish-note-spelling`), `widen-key-corpus` (n=28), `tonal-center-detection` (Fase B
+v1: modo 64%→68%)._
 
 ## Contexto de fonte (copyright)
 
