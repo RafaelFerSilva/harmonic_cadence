@@ -35,6 +35,11 @@ CORROB_LAST = 2.0          # último acorde com fundamental == tônica
 CORROB_LAST_QUALITY = 1.0  # qualidade do último acorde casa (+) / contraria (−) o modo
 CORROB_CADENCE = 3.0       # cadência autêntica dominante→tônica no fim (marcador forte)
 
+# Correção de modo paralelo (mesma tônica, maior↔menor): a cadência não distingue
+# (a dominante é comum), então o sinal é a qualidade dos acordes de tônica. Só age na
+# tônica âncora (assenta/cadência) e exige um voto líquido decisivo — recalibrável.
+PARALLEL_VOTE_THRESHOLD = 2  # net de acordes de tônica (menor − maior) p/ inverter
+
 
 @dataclass(frozen=True)
 class KeyEstimate:
@@ -138,9 +143,56 @@ def cadence_corroboration(
     return score
 
 
+def _correct_parallel_mode(
+    symbols: Sequence[str], tonic_pc: int, mode: str
+) -> str:
+    """Corrige a confusão de modo PARALELO (mesma tônica, maior↔menor), que a
+    cadência não distingue (a dominante é comum a ambas). Só age se a tônica é a
+    **âncora tonal** (último baixo == tônica, ou cadência autêntica V/SubV → tônica)
+    e a **qualidade dos acordes de tônica** contradiz o modo do K-S com força. O
+    gate de âncora-baixo impede inverter o modo de uma tônica impostora (confusão
+    relativa). Fonte: Chediak (a 3ª da tônica define o modo)."""
+    roots: List[Optional[int]] = []
+    basses: List[Optional[int]] = []
+    quals: List[Optional[str]] = []
+    for s in symbols:
+        try:
+            p = parse(s)
+            roots.append(p.root.pitch_class)
+            basses.append((p.bass or p.root).pitch_class)
+            quals.append("minor" if p.third is Third.MINOR else "major")
+        except Exception:
+            roots.append(None)
+            basses.append(None)
+            quals.append(None)
+
+    # Gate: a tônica detectada é a âncora tonal?
+    anchored = bool(basses) and basses[-1] == tonic_pc
+    if not anchored:
+        dom, subv = (tonic_pc + 7) % 12, (tonic_pc + 1) % 12
+        for i in range(max(0, len(roots) - CADENCE_WINDOW), len(roots) - 1):
+            if roots[i] in (dom, subv) and basses[i + 1] == tonic_pc:
+                anchored = True
+                break
+    if not anchored:
+        return mode
+
+    vote = sum(
+        (1 if q == "minor" else -1)
+        for r, q in zip(roots, quals)
+        if r == tonic_pc and q is not None
+    )
+    if mode == "major" and vote >= PARALLEL_VOTE_THRESHOLD:
+        return "minor"
+    if mode == "minor" and vote <= -PARALLEL_VOTE_THRESHOLD:
+        return "major"
+    return mode
+
+
 def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:
-    """Estima a tonalidade correlacionando o perfil com os 24 perfis K-S e, no
-    quase-empate, desempatando pela corroboração cadencial (centro tonal)."""
+    """Estima a tonalidade correlacionando o perfil com os 24 perfis K-S; no
+    quase-empate desempata pela corroboração cadencial (tom), e corrige a confusão
+    de modo paralelo na tônica âncora (modo)."""
     profile = pitch_class_profile(symbols)
     if sum(profile) == 0:
         return None
@@ -160,6 +212,14 @@ def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:
     best_score, best_tonic, best_mode = max(
         band, key=lambda r: (cadence_corroboration(symbols, r[1], r[2]), r[0])
     )
+
+    # Correção de modo paralelo (mesma tônica, maior↔menor) — após escolher o tom.
+    corrected = _correct_parallel_mode(symbols, best_tonic, best_mode)
+    if corrected != best_mode:
+        best_mode = corrected
+        best_score = next(
+            s for s, t, m in ranked if (t, m) == (best_tonic, best_mode)
+        )
 
     name, key_note = _name(best_tonic, best_mode)
     alts = tuple(
