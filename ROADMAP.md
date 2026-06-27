@@ -5,9 +5,9 @@ transcrever; medir em vez de achar.** A teoria do Chediak (Vol. I) está
 destilada, implementada e testada; a fronteira agora é **precisão** e
 **apresentação** para o público BR.
 
-## Status (2026-06-26)
+## Status (2026-06-27)
 
-**Feito e no `main`** (~18 changes OpenSpec, ~248 testes verdes, `openspec/`
+**Feito e no `main`** (~20 changes OpenSpec, 247 testes verdes, `openspec/`
 versionado em `openspec/changes/archive/`):
 
 - **Teoria harmônica destilada do Chediak** — parsing de acorde (dialeto `±`,
@@ -23,6 +23,13 @@ versionado em `openspec/changes/archive/`):
   seções degradam visíveis, não em silêncio.
 - **Fase A (medição)** — `capture-song-key` (tom do Cifra Club capturado, antes
   era descartado), `validation-harness` (3 métricas), e o **baseline**.
+- **Limpeza & fonte única de nota** — `remove-dead-code` (módulo órfão
+  `modal_analysis.py` + ~172 LoC mortas) e `finish-note-spelling`: aposentado o
+  subsistema de nota sustenido-só (`MODE_HARMONY`/`MODES`/`NOTE_REPLACEMENTS`/
+  `normalize_note`/`guess_key`). Agora **uma** fonte de nota (`Note` soletrada) e
+  **uma** detecção de tom (`detect_key`) em todos os entry points; o empréstimo
+  modal grafa bemóis corretamente (`Bb`, não `A#`) e passa a identificar acordes
+  bemóis (antes "não identificado").
 
 **Baseline de detecção de tonalidade** (`uv run python scripts/key_baseline.py`,
 vs ouro Chediak, n=6): **modo 67% · tônica exata 33% · relativa-consciente 67%**.
@@ -52,24 +59,30 @@ parecidos). Desambiguar com sinais que o histograma de pitch-classes ignora:
 Medir o ganho contra o baseline. Secundário: o K-S não acha a tônica de modos
 (`G F C G` → ele lê Dó maior, não Sol mixolídio).
 
+> **Pré-requisito de medição:** com n=6 o ganho da Fase B cai dentro do ruído.
+> Ampliar o corpus de validação (abaixo) **antes** de medir — daí a ordem da
+> sequência sugerida.
+
 ## Trilha paralela (contida, encaixa a qualquer momento)
 
-- **Spelling enarmônico** — `describe_modal_borrowing`/`transpose` ainda
-  colapsam em sustenido (`A#` onde é `Bb`); rotear pela `Note` soletrada. É a
-  Tensão #2 da exploração inicial, ainda aberta. (`enharmonic-spelling`)
-- **Consolidação legada** — `MODE_HARMONY` ainda coexiste com o `modal_field`
-  derivado; aposentar o `normalize_note` sustenido-só. (`consolidate-modal-field`)
+- ~~**Spelling enarmônico**~~ — **feito** em `finish-note-spelling` (Tensão #2
+  fechada: empréstimo modal e campo derivado grafam pela `Note` soletrada).
+- ~~**Consolidação legada**~~ — **feito** em `remove-dead-code` +
+  `finish-note-spelling` (`MODE_HARMONY` e `normalize_note` sustenido-só
+  aposentados; fonte única de nota).
 - **Ampliar o corpus de validação** — mais músicas com ouro Chediak (fatos) em
   `scripts/key_baseline.py`; cuidado com a transposição (a métrica de modo é
-  invariante).
+  invariante). **Destrava medir a Fase B** (n=6 é ruído).
 
 ## Sequência sugerida (próximas sessões)
 
 | # | Tema | Change | Tam. |
 |---|---|---|---|
-| 1 | Fase B: desambiguar relativa maior/menor | `tonal-center-detection` | M–L |
-| 2 | Spelling enarmônico | `enharmonic-spelling` | S–M |
-| 3 | Consolidação legada | `consolidate-modal-field` | S |
+| 1 | Ampliar o corpus de validação (destrava medir a Fase B) | `widen-key-corpus` | S |
+| 2 | Fase B: desambiguar relativa maior/menor | `tonal-center-detection` | M–L |
+
+_Concluídos: `enharmonic-spelling` e `consolidate-modal-field` (dobrados em
+`finish-note-spelling`)._
 
 ## Contexto de fonte (copyright)
 
