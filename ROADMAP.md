@@ -5,6 +5,19 @@ transcrever; medir em vez de achar.** A teoria do Chediak (Vol. I) está
 destilada, implementada e testada; a fronteira agora é **precisão** e
 **apresentação** para o público BR.
 
+## Regra de ouro — fonte vs. verdade
+
+> **Cifra Club = input bruto.** Mina de acordes (texto); a utilidade **acaba no
+> scraping**. As anotações da fonte (tom, maior/menor) são pistas crowdsource, **não a
+> verdade** — e **não codificam o centro modal**.
+> **Algoritmo + Chediak = ground truth.** Tensão/repouso, centro tonal e nomenclatura
+> modal só nascem **depois** do motor processar o dado bruto, ou validados contra a
+> literatura. Nunca leia o significado direto da fonte.
+
+Corolário (a lição que re-bloqueou o `modal-center-arbitration`): um alvo só é
+implementável se **o dado bruto o codifica**; quando o CC não codifica o fato de Chediak,
+a frente fica **bloqueada por dado** — precisa de corpus curado, não de mais mecanismo.
+
 ## Status (2026-06-28)
 
 **Feito e no `main`** (~24 changes OpenSpec, 273 testes verdes, `openspec/`
@@ -152,9 +165,27 @@ arbitragem modo↔tom nem o gate sintético:
      relativa 74→**76%**, centro 74→**79%** (Garota corrigida), modo/coleção idênticos,
      **zero regressão**. Conservador: só 1 dos 5 alvos (os outros 4 não têm sinal de
      qualidade limpo). dim7-como-dominante fica para change própria.
-   - **3b-modal — arbitragem modal de centro** — **próxima** (`modal-center-arbitration`):
-     Arrastão→Lá (ausência de dominante funcional + cadência modal → finalis, reusa
-     `modal_coloring`) + métrica de centro modal **degree-relative** ([[center-eval-degree-relative]]).
+   - **3b-modal — arbitragem modal de centro** — **BLOQUEADO POR DADO** (proposta
+     `modal-center-arbitration` aberta, NÃO implementada). A sondagem ao vivo dos 4 fatos
+     `chediak` (a trava do baseline, rodada ANTES de qualquer código) invalidou a premissa do
+     design — o centro modal de Chediak **não está codificado nas cifras do Cifra Club**:
+     - **Arrastão** (Chediak Lá dórico; cc_key=**G**, não Ré): `_central_pc` dá **Mi** (baixo
+       Mi×11, Lá×8, Ré×8), a peça **termina em `D7+`**, e Lá só empata em 2º. Não há cadência
+       a Lá — o finalis Lá é **inrecuperável** por qualquer heurística harmônica.
+     - **Procissão** (Chediak Dó mixolídio; cc_key=Ré): Dó aparece **1×** em 80 acordes — a
+       peça oscila Ré/Lá. Centro Dó **impossível** a partir destas cifras.
+     - **Upa Neguinho** (Chediak Ré mixolídio) e **Pra Não Dizer** (Chediak Mi eólio): o
+       **centro já é detectado certo** (Ré maior / Fá menor = finalis); só o **nome do modo**
+       diverge (mixo/eólio vs maior/menor) — trabalho de `modal_coloring`, não recuperação de
+       centro. Seus cc_key ainda estão transpostos vs. as cifras (Upa B, Pra Não Dizer Fá).
+
+     Conclusão (regra de ouro acima): a arbitragem está **bloqueada por dado, não por
+     mecanismo** — exige um **corpus de MPB modal curado** cujas cifras codifiquem o finalis
+     (melodia indisponível; harmonia-só não basta). Construir o overlay+métrica como
+     especificado embarcaria um detector que erra Arrastão e uma métrica ~0% nos únicos casos
+     de divergência real — ou forçaria fudge do gold (proibido). A métrica degree-relative
+     ([[center-eval-degree-relative]]) e o overlay ficam de pé como design; reabrir quando o
+     corpus existir. A **coloração** modal (3b-cor) já entrega o *sabor* hoje.
    - **3b — arbitragem modal↔tonal de centro** — **bloqueado**: a falha de centro espalha
      por V/vi/iii/IV sem gate único, e cada gate arriscaria as ~41 corretas. A detecção de
      **centro** modal (separar Lá dórico de Ré mixolídio em Arrastão; tonalizar o silêncio
