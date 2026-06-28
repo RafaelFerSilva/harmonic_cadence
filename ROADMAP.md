@@ -165,6 +165,17 @@ arbitragem modo↔tom nem o gate sintético:
      relativa 74→**76%**, centro 74→**79%** (Garota corrigida), modo/coleção idênticos,
      **zero regressão**. Conservador: só 1 dos 5 alvos (os outros 4 não têm sinal de
      qualidade limpo). dim7-como-dominante fica para change própria.
+   - **3b-gate-v2 — afrouxar o gate de qualidade (V-como-tônica residual)** — **feito** em
+     `loosen-tritone-gate`: um SEGUNDO caminho no `_tritone_gate`, ancorado no **alvo de
+     resolução** em vez da pureza do V. Caminho A (Y exclusivamente dominante → Garota)
+     intacto; caminho B corrige Y→X=(Y−7) mesmo quando Y descansa OCASIONALMENTE, se um
+     V7/SubV **funcional** resolve em X (estrutural), X é o repouso **predominante** e X é o
+     **primeiro acorde** (a abertura é a âncora robusta; o último engana — Esquinas FECHA na
+     relativa, e usá-lo regrediria o modo, flagrado pela trava ao vivo). Hipótese validada por
+     sondagem+simulação read-only ANTES de codar. Corrige **A Banda, Apesar de Você, Menino do
+     Rio** (V→I): exata **69→74%**, relativa **76→81%**, **centro 79→95% (18/19)**, modo 86% e
+     coleção 97% **idênticos**, **zero regressão**. Resta só **Aquele Abraço** (tônica `I7` de
+     funk: a tônica real soa como dominante e o IV parece repouso — caso distinto, change própria).
    - **dim7-como-dominante (V7(b9) rootless)** — **feito** em `dim7-as-dominant`: um
      diminuto de 7ª é um V7(b9) **sem fundamental** (Chediak p. 90, "diminutos equivalentes
      e relação com V7(9-)"): `B°7` = `G7(b9)` − G → dominante de C. Na **camada de função**

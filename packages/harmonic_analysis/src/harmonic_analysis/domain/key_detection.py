@@ -210,37 +210,45 @@ def _chord_infos(symbols: Sequence[str]):
     return out
 
 
-def _tritone_gate(
-    symbols: Sequence[str], ks_best: Tuple[int, str]
-) -> Optional[Tuple[int, str]]:
-    """Centro corrigido pelo gate de QUALIDADE, ou None — ultraconservador.
-
-    Só dispara quando o centro do K-S (Y) aparece **exclusivamente como dominante-7**
-    (`Category.DOMINANT`) — nunca como acorde de repouso — E esse Y7 **resolve** uma 5ª
-    abaixo, num alvo X que aparece como acorde **estável** (maj7/6/m7/tríade). Aí o K-S
-    confundiu o V (Y) com a tônica; o centro real é X.
-
-    Guard do blues/mixolídio (Chediak p.121, "não resolução do trítono com expectativa"):
-    se Y nunca resolve, OU o alvo X também só aparece como dominante (tudo é tensão, sem
-    repouso — o caso do blues I7-IV7-V7), o gate ABORTA e o K-S/coloração modal decide.
-    Conservadoríssimo: nas peças corretas a tônica aparece como repouso → retorna None."""
-    infos = _chord_infos(symbols)
-    present = [i for i in infos if i is not None]
-    if not present:
+def _x_mode(present, X: int) -> Optional[str]:
+    """Modo de X pela qualidade ESTÁVEL dos acordes em X (maj/min), ou None se X
+    nunca descansa (só dominante → não é repouso, não é tônica)."""
+    stable = [c for (r, _b, c) in present if r == X and c in (Category.MAJOR, Category.MINOR)]
+    if not stable:
         return None
-    ks_pc = ks_best[0]
+    return "minor" if Category.MINOR in stable and Category.MAJOR not in stable else "major"
 
-    # (1) Como o centro do K-S aparece? Se ALGUMA vez como repouso (não-dominante),
-    # ele descansa → é tônica de fato → não mexe.
+
+def _functional_dominant_resolves(infos, X: int) -> bool:
+    """Um V7/SubV7 FUNCIONAL (trítono, `Category.DOMINANT`) resolve em X em posição
+    estrutural/final (baixo seguinte assenta em X). Mesmo crivo do
+    `verify_tonal_center` (Chediak p.84/87), replicado no domínio para não acoplar
+    `key_detection` a `scripts/`."""
+    dom = (X + 7) % 12   # V de X
+    subv = (X + 1) % 12  # SubV (bII7) de X
+    n = len(infos)
+    for i in range(max(0, n - CADENCE_WINDOW), n - 1):
+        cur, nxt = infos[i], infos[i + 1]
+        if (
+            cur is not None
+            and nxt is not None
+            and cur[2] is Category.DOMINANT
+            and cur[0] in (dom, subv)
+            and nxt[1] == X
+        ):
+            return True
+    return False
+
+
+def _exclusive_dominant_path(infos, present, ks_pc: int) -> Optional[Tuple[int, str]]:
+    """Caminho A (restrito): Y aparece SÓ como dominante-7 e resolve uma 5ª abaixo
+    num alvo X de repouso. Pega o caso Garota de Ipanema (C7→F)."""
+    # (1) Se Y descansa alguma vez (acorde não-dominante), é tônica de fato.
     ks_cats = [c for (r, _b, c) in present if r == ks_pc]
     if not ks_cats or any(c is not Category.DOMINANT for c in ks_cats):
         return None
-
-    # (2) Y só aparece como dominante. O alvo é a 5ª justa abaixo (V7→I).
     X = (ks_pc - 7) % 12
-
-    # (3) Esse Y7 de fato resolve no alvo? (baixo seguinte assenta em X) — senão é
-    # tônica de blues que não resolve (guard).
+    # (2/3) Algum Y7 resolve no alvo (baixo seguinte em X)?
     resolves = any(
         cur is not None
         and nxt is not None
@@ -251,15 +259,69 @@ def _tritone_gate(
     )
     if not resolves:
         return None
+    # (4) X tem que ser repouso (senão é blues I7→IV7 → aborta).
+    mode = _x_mode(present, X)
+    return (X, mode) if mode is not None else None
 
-    # (4) O alvo X tem que ser REPOUSO: aparecer como acorde estável (maj/min, não
-    # dominante). Se X também só é dominante (blues I7→IV7), aborta → K-S/modal decide.
-    x_cats = [c for (r, _b, c) in present if r == X]
-    stable = [c for c in x_cats if c in (Category.MAJOR, Category.MINOR)]
-    if not stable:
+
+def _anchored_resolution_path(infos, present, ks_pc: int) -> Optional[Tuple[int, str]]:
+    """Caminho B (ancorado por resolução): mesmo que Y descanse OCASIONALMENTE (o
+    caminho A aborta), corrige Y→X=(Y−7) quando o sinal FUNCIONAL é limpo — um
+    V7/SubV funcional resolve em X (estrutural), X é o repouso PREDOMINANTE, e X é
+    âncora estrutural (1º ou último acorde). Pega o V-como-tônica residual da MPB
+    (A Banda/Apesar/Menino do Rio), onde a tônica-real-V é reusada como acorde de
+    passagem e por isso aparece como repouso vez ou outra. Validado por simulação
+    no corpus: corrige 3, zero regressão das corretas."""
+    X = (ks_pc - 7) % 12
+    if X == ks_pc:
         return None
-    x_mode = "minor" if Category.MINOR in stable and Category.MAJOR not in stable else "major"
-    return (X, x_mode)
+    # (1) V7/SubV funcional → X em posição estrutural/final.
+    if not _functional_dominant_resolves(infos, X):
+        return None
+    # (2) X é o repouso PREDOMINANTE (maj/min > dominante na raiz X, e ≥ 2).
+    cats_X = [c for (r, _b, c) in present if r == X]
+    rest = sum(1 for c in cats_X if c in (Category.MAJOR, Category.MINOR))
+    dom = sum(1 for c in cats_X if c is Category.DOMINANT)
+    if not (rest > dom and rest >= 2):
+        return None
+    # (3) X é âncora estrutural: raiz do PRIMEIRO acorde parseável. Só o primeiro
+    # (não o último): a peça estabelece a tônica na abertura (CORROB_FIRST), e o
+    # último acorde engana — Esquinas (tônica Fá) FECHA na relativa Ré menor, e usar
+    # o último faria o gate trocar o modo (regressão). Abrir em X é o sinal robusto.
+    first_root = next((t[0] for t in infos if t is not None), None)
+    if X != first_root:
+        return None
+    mode = _x_mode(present, X)
+    return (X, mode) if mode is not None else None
+
+
+def _tritone_gate(
+    symbols: Sequence[str], ks_best: Tuple[int, str]
+) -> Optional[Tuple[int, str]]:
+    """Centro corrigido pelo gate de QUALIDADE, ou None — ultraconservador.
+
+    Discriminador FUNCIONAL (Chediak): a tônica é repouso, o V é tensão. Dois
+    caminhos, ambos corrigindo o centro K-S `Y` para `X = (Y−7) mod 12`:
+
+    - **A (restrito):** `Y` aparece SÓ como dominante-7 e resolve numa 5ª abaixo num
+      alvo X de repouso (Garota de Ipanema). Ver `_exclusive_dominant_path`.
+    - **B (ancorado):** mesmo que `Y` descanse ocasionalmente, corrige quando um
+      V7/SubV funcional resolve em X (estrutural), X é o repouso predominante e X é
+      âncora (1º/último acorde) — o V-como-tônica residual da MPB. Ver
+      `_anchored_resolution_path`.
+
+    Guards (ambos os caminhos): blues sem repouso aborta (X também só dominante),
+    dim7 inelegível (não é `Category.DOMINANT`), tônica que descansa não é rebaixada
+    pelo A. Conservador: nas peças corretas nenhum caminho dispara."""
+    infos = _chord_infos(symbols)
+    present = [i for i in infos if i is not None]
+    if not present:
+        return None
+    ks_pc = ks_best[0]
+    a = _exclusive_dominant_path(infos, present, ks_pc)
+    if a is not None:
+        return a
+    return _anchored_resolution_path(infos, present, ks_pc)
 
 
 def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:

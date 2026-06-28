@@ -40,6 +40,30 @@ def test_gate_returns_none_when_ks_center_absent():
     assert _tritone_gate(["Dm7", "G7", "Em7", "A7"], (0, "major")) is None
 
 
+# --- caminho B: ancorado por resolução (V-como-tônica que descansa às vezes) ---
+
+
+def test_gate_path_b_corrects_v_that_rests_occasionally():
+    # A Banda-like: Lá (Y) é predominante dominante mas descansa 1× (Lá tríade), então
+    # o caminho A aborta. Ré (X=Y−7) é repouso predominante, Lá7→Ré resolve no fim, e
+    # Ré é âncora (1º/último). O caminho B corrige Lá→Ré.
+    syms = ["D", "A7", "D", "Bm", "A", "G", "A7", "D"]
+    assert _tritone_gate(syms, (9, "major")) == (2, "major")
+
+
+def test_gate_path_b_requires_structural_anchor():
+    # Mesma resolução funcional e repouso predominante em Ré, mas Ré NÃO é o 1º nem o
+    # último acorde (pontas em Mi menor) → o guard de âncora barra o caminho B.
+    syms = ["Em", "A7", "D", "G", "D", "A", "A7", "D", "Em"]
+    assert _tritone_gate(syms, (9, "major")) is None
+
+
+def test_gate_path_b_requires_functional_dominant():
+    # Ré é repouso predominante e âncora, mas nenhum V7/SubV funcional resolve nele
+    # (Lá aparece só como tríade) → sem o crivo do trítono, o caminho B não dispara.
+    assert _tritone_gate(["D", "A", "D", "Bm", "G", "D"], (9, "major")) is None
+
+
 # --- não-regressão (a invariante das 41 / diatônico) --------------------------
 
 

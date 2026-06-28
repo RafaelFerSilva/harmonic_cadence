@@ -82,9 +82,9 @@ openspec list --specs   # capabilities (specs)
 
 ## Estado atual
 
-Teoria destilada/implementada/testada (~26 changes, **300 testes verdes**). Corpus de
+Teoria destilada/implementada/testada (~28 changes, **312 testes verdes**). Corpus de
 validação **n=60** (ouro = tom do Cifra Club). Baseline atual: **modo 86% · tônica exata
-69% · relativa 76% · coleção 97% · centro estrutural 79%** (ver [ROADMAP.md](ROADMAP.md)).
+74% · relativa 81% · coleção 97% · centro estrutural 95% (18/19)** (ver [ROADMAP.md](ROADMAP.md)).
 
 A Fase B (centro tonal) está madura: desempate cadencial (v1, confusão relativa), correção
 de modo paralelo (v2), filtro de afinação (v3), e o **gate de qualidade do 3b** — corrige
