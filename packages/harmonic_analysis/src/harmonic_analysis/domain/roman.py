@@ -95,6 +95,18 @@ def roman_numeral(
         return "?"
     idx = _degree_index(analysis, root_pc)
     if idx is None:
+        # Diminuto de 7ª cromático ascendente: numeral de grau alterado (#I°7,
+        # #II°7, #IV°7, #V°7, #VI°7) — V7(b9) rootless resolvendo um semitom
+        # acima (preserva a marca °7; a função/glosa vem do analyze_function).
+        if chord.quality == "diminished":
+            try:
+                key_pc = Note.parse(analysis.key).pitch_class
+            except Exception:
+                return "?"
+            sharp_degree = {1: "I", 3: "II", 6: "IV", 8: "V", 10: "VI"}
+            deg = sharp_degree.get((root_pc - key_pc) % 12)
+            if deg is not None:
+                return f"#{deg.lower()}°7"
         return "?"  # não-diatônico (Camada 2 cobre diatônico + aplicados)
 
     base = _case(ROMAN[idx], chord) + _quality_mark(chord)

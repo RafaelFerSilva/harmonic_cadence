@@ -165,6 +165,17 @@ arbitragem modo↔tom nem o gate sintético:
      relativa 74→**76%**, centro 74→**79%** (Garota corrigida), modo/coleção idênticos,
      **zero regressão**. Conservador: só 1 dos 5 alvos (os outros 4 não têm sinal de
      qualidade limpo). dim7-como-dominante fica para change própria.
+   - **dim7-como-dominante (V7(b9) rootless)** — **feito** em `dim7-as-dominant`: um
+     diminuto de 7ª é um V7(b9) **sem fundamental** (Chediak p. 90, "diminutos equivalentes
+     e relação com V7(9-)"): `B°7` = `G7(b9)` − G → dominante de C. Na **camada de função**
+     (não no parsing): um dim7 que resolve um semitom acima da raiz escrita vira dominante —
+     primário (`°7 = V7(b9)` de I) ou secundário rootless (`°7 = V7(b9)/x`); sem essa
+     resolução é diminuto de aproximação (sem função dominante). Ganha escala diminuta
+     (octatônica do dominante implícito, raiz−4) e numeral de grau alterado (`#i°7`/`#iv°7`),
+     **preservando** a marca `°7`. Decisão de risco: **não** toca `Category`/parsing nem
+     `_tritone_gate`/`detect_key` → baseline **idêntico** (modo 86 · exata 69 · relativa 76 ·
+     coleção 97 · centro 79), zero regressão; +9 testes (309 verdes). v2 (adiada): resolução
+     descendente, alvo estável, baixo do alvo (slash).
    - **3b-modal — arbitragem modal de centro** — **BLOQUEADO POR DADO** (proposta
      `modal-center-arbitration` aberta, NÃO implementada). A sondagem ao vivo dos 4 fatos
      `chediak` (a trava do baseline, rodada ANTES de qualquer código) invalidou a premissa do

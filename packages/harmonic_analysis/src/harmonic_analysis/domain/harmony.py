@@ -167,6 +167,30 @@ class HarmonicAnalysis:
                     self.HARMONIC_FUNCTIONS["SubV"]["description"],
                 )
 
+        # 0c. Diminuto de 7ª como dominante SEM fundamental (V7(b9) rootless):
+        #     B°7 (B-D-F-Ab) = G7(b9) (G-B-D-F-Ab) sem o G → dominante de C. A
+        #     fundamental implícita está uma 3ª maior abaixo (root-4); a tônica de
+        #     resolução, um semitom acima da fundamental escrita (Chediak, p. 90 —
+        #     "diminutos equivalentes e relação com V7(9-)"). Só é dominante quando
+        #     resolve no acorde um semitom acima; senão é diminuto de aproximação/
+        #     passagem (cai na leitura diatônica/cromática abaixo).
+        if chord.quality == "diminished" and next_chord:
+            if self._get_interval(chord.root, next_chord.root) == 1:
+                if self._get_interval(next_chord.root, self.key) == 0:
+                    return (
+                        "D",
+                        "Dominante (°7 = V7(b9) de I)",
+                        "Diminuto de 7ª = V7(b9) sem fundamental, resolvendo na "
+                        "tônica (Chediak p. 90): tensão dominante, não repouso.",
+                    )
+                target_degree = self.get_degree(next_chord)
+                return (
+                    "Dsec",
+                    f"Dominante Secundário (°7 = V7(b9)/{target_degree})",
+                    "Diminuto de 7ª = V7(b9) sem fundamental — dominante rootless "
+                    "do alvo um semitom acima (Chediak p. 90).",
+                )
+
         # 1. Função clássica diatônica (T, SD, D, Sub2, Dim, etc)
         for func_code, func_info in self.HARMONIC_FUNCTIONS.items():
             if degree in func_info["degrees"]:

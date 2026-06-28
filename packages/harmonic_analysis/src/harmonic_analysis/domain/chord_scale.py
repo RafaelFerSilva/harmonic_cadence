@@ -22,6 +22,9 @@ DEGREE_SCALE = [
 # Rótulo da tensão pelo intervalo (semitons) acima da fundamental.
 TENSION_LABEL = {1: "b9", 2: "9", 3: "#9", 5: "11", 6: "#11", 8: "b13", 9: "13"}
 
+# Classe de altura → nome soletrado (bemóis canônicos, padrão do projeto).
+_PC_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"]
+
 # Posições (semitons da tônica) de acordes dominantes que pedem lídio b7
 # (Chediak, pág. 113): II7, IV7, bVI7, bVII7, VII7. As demais → mixolídio.
 _LYDIAN_DOM_POS = {2, 5, 8, 10, 11}
@@ -58,6 +61,14 @@ def recommended_scale(chord: Chord, analysis) -> Optional[Tuple[str, List[Note]]
         return None
     if chord.quality == "half-diminished":
         return "locrian", build_scale(root, "locrian")
+    if chord.quality == "diminished":
+        # Diminuto de 7ª = V7(b9) sem fundamental (Chediak p. 90): a escala-acorde é
+        # a diminuta (octatônica). A coleção correta é a do dominante implícito, uma
+        # 3ª maior abaixo da fundamental escrita (B°7 → G7(b9) → octatônica de G);
+        # o semitom-tom (build_scale "diminished") da implícita devolve exatamente
+        # a octatônica que contém as notas do acorde.
+        implied = Note.parse(_PC_NAMES[(root.pitch_class - 4) % 12])
+        return "diminished", build_scale(implied, "diminished")
     if chord.is_dominant_seventh:
         # Dominante alterado: escala pela alteração (Chediak P5), com precedência.
         mode = _altered_dominant_scale(chord)
