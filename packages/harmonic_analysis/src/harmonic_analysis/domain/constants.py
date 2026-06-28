@@ -41,6 +41,12 @@ HARMONIC_FUNCTIONS: Dict[str, Dict[str, str | List[str]]] = {
         "description": "Dominante de outro grau que não a tônica",
         "degrees": ["V7/II", "V7/III", "V7/IV", "V7/V", "V7/VI", "V7/VII"],
     },
+    "Daux": {
+        "name": "Dominante Auxiliar",
+        "description": "Dominante de um acorde de empréstimo modal, resolvendo "
+        "5ª justa abaixo (Chediak p.99): o alvo é emprestado, não diatônico",
+        "degrees": [],
+    },
     "Emp": {
         "name": "Empréstimo Modal",
         "description": "Acordes vindos do modo paralelo",

@@ -176,6 +176,15 @@ arbitragem modo↔tom nem o gate sintético:
      Rio** (V→I): exata **69→74%**, relativa **76→81%**, **centro 79→95% (18/19)**, modo 86% e
      coleção 97% **idênticos**, **zero regressão**. Resta só **Aquele Abraço** (tônica `I7` de
      funk: a tônica real soa como dominante e o IV parece repouso — caso distinto, change própria).
+   - **dominante auxiliar + SubV7 secundário** — **feito** em
+     `dominant-auxiliary-and-secondary-subv`: Chediak XVIII (p.99, lida do scan). O **alvo**
+     distingue: dominante **secundário** prepara grau diatônico (V7/x), **auxiliar** prepara
+     acorde de **empréstimo modal** (`Bb7→Eb` = V7/bIII; novo código `Daux`). O **SubV7
+     secundário** prepara grau diatônico resolvendo ½t abaixo (`Ab7→G` = SubV7/V; `Eb7→Dm` =
+     SubV7/ii). Reorganizou o ramo de dominante: I7/IV7 blues (XXXIV) → resolução funcional →
+     bVII7/bVI7-empréstimo-sem-resolução → secundário/SubV primário (a resolução precede a
+     leitura de empréstimo: `Bb7`/`Ab7` que resolvem deixam de ser `Emp`; `Bb7→C` segue Emp).
+     Camada de função, **baseline idêntico**; 326 testes (+8). Próxima: II cadencial XIX.
    - **classificação completa do diminuto** — **feito** em `classify-diminished-chords`: o
      diminuto não-dominante deixa de ser rotulado **"Empréstimo Modal"** (errado: empréstimo é
      tríade/tétrade maior/menor de modo paralelo, nunca um diminuto) e passa a ser classificado

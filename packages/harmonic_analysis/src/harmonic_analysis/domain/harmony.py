@@ -17,8 +17,16 @@ from harmonic_analysis.domain.constants import (
 )
 
 FunctionCode = Literal[
-    "T", "SD", "D", "D2", "SubV", "Sub2", "Dsec", "Emp", "Modal", "Dim", "Crom", "Outro"
+    "T", "SD", "D", "D2", "SubV", "Sub2", "Dsec", "Daux", "Emp", "Modal", "Dim",
+    "Crom", "Outro"
 ]
+
+# Grau cromático (com bemol) por offset de semitons da tônica — para nomear o
+# alvo de um dominante auxiliar (empréstimo modal): bII, bIII, bVI, bVII, etc.
+_CHROMATIC_DEGREE = {
+    0: "I", 1: "bII", 2: "II", 3: "bIII", 4: "III", 5: "IV",
+    6: "bV", 7: "V", 8: "bVI", 9: "VI", 10: "bVII", 11: "VII",
+}
 
 # Chaves de modo PT (legado, exibidas ao usuário) -> nomes do cifra_core.build_scale.
 PT_TO_EN_MODE = {
@@ -107,43 +115,69 @@ class HarmonicAnalysis:
         degree = self.get_degree(chord)
 
         # 0. Dominantes aplicados têm prioridade sobre a leitura diatônica por
-        #    grau: um acorde dominante numa região não-V exerce função de
-        #    dominante aplicado mesmo quando sua fundamental coincide com um
-        #    grau diatônico.
+        #    grau. Ordem (Chediak): I7/IV7 blues (XXXIV) → resolução funcional
+        #    (XVIII: SubV2/auxiliar) → bVII7/bVI7 empréstimo sem resolução → V7/x
+        #    secundário / SubV primário. A resolução precede a leitura de empréstimo
+        #    de bVII7/bVI7: um Bb7/Ab7 que RESOLVE é dominante, não subdominante menor.
         if chord.is_dominant_seventh:
-            # 0a. Acordes de 7ª da dominante SEM função dominante (Chediak,
-            #     pp. 111-113) — têm precedência sobre a leitura de dominante
-            #     secundário. `pos` = semitons da tônica até a fundamental.
             pos = self._get_interval(self.key, chord.root)
-            if pos == 0:  # I7 — função blues (tônica com 7ª)
+            # 0a. I7/IV7 = blues (função especial fixa, Chediak XXXIV). Antes de tudo.
+            if pos == 0:  # I7
                 return (
                     "T",
                     "Tônica (I7 blues)",
                     "7ª sobre a tônica: função blues, não dominante (Chediak)",
                 )
-            if pos == 5:  # IV7 — função blues
+            if pos == 5:  # IV7
                 return (
                     "SD",
                     "Subdominante (IV7 blues)",
                     "7ª sobre a subdominante: função blues, não dominante (Chediak)",
                 )
-            if pos == 10:  # bVII7 — subdominante menor (empréstimo modal no maior)
+            # 0b. Resolução funcional (Chediak XVIII, p.99) — precede bVII7/bVI7 Emp.
+            if next_chord:
+                ni = self._get_interval(chord.root, next_chord.root)
+                target_is_tonic = self._get_interval(next_chord.root, self.key) == 0
+                target_degree = self.get_degree(next_chord)
+                # SubV7 secundário: fundamental ½t acima de um alvo DIATÔNICO não-tônica.
+                if (
+                    self._get_interval(next_chord.root, chord.root) == 1
+                    and target_degree is not None
+                    and not target_is_tonic
+                ):
+                    return (
+                        "SubV",
+                        f"SubV7 secundário (SubV7/{target_degree})",
+                        "SubV7 de um grau diatônico, resolve ½t abaixo (Chediak p.99).",
+                    )
+                # Dominante auxiliar: resolve 5ª abaixo num alvo de EMPRÉSTIMO MODAL
+                # (não-diatônico, não-tônica) — o alvo emprestado distingue do secundário.
+                if ni == 5 and not target_is_tonic and target_degree is None:
+                    alvo = _CHROMATIC_DEGREE[
+                        self._get_interval(self.key, next_chord.root)
+                    ]
+                    return (
+                        "Daux",
+                        f"Dominante Auxiliar (V7/{alvo})",
+                        self.HARMONIC_FUNCTIONS["Daux"]["description"],
+                    )
+            # 0c. bVII7/bVI7 SEM resolução funcional → subdominante menor (empréstimo).
+            if pos == 10:  # bVII7
                 return (
                     "Emp",
                     "Subdominante menor (bVII7)",
                     "bVII7: subdominante menor / empréstimo modal (Chediak)",
                 )
-            if pos == 8:  # bVI7 — subdominante menor alterado
+            if pos == 8:  # bVI7
                 return (
                     "Emp",
                     "Subdominante menor alterado (bVI7)",
                     "bVI7: subdominante menor alterado (Chediak)",
                 )
+            # 0d. V7/x secundário (alvo diatônico) e VII7 cadencial.
             if next_chord:
                 ni = self._get_interval(chord.root, next_chord.root)
                 target_is_tonic = self._get_interval(next_chord.root, self.key) == 0
-                # V7/x resolve uma 5ª justa abaixo (alvo 5 semitons acima); se o
-                # alvo é a tônica, trata-se do dominante primário (função D).
                 if ni == 5 and not target_is_tonic:
                     target_degree = self.get_degree(next_chord)
                     return (
@@ -151,15 +185,13 @@ class HarmonicAnalysis:
                         f"Dominante Secundário (V7/{target_degree})",
                         self.HARMONIC_FUNCTIONS["Dsec"]["description"],
                     )
-                # VII7 que resolve direto na tônica: função cadencial. (Quando
-                # resolve uma 5ª abaixo no III, cai no Dsec V7/III acima.)
                 if pos == 11 and target_is_tonic:
                     return (
                         "D",
                         "VII7 cadencial",
                         "VII7 resolvendo direto na tônica: função cadencial (Chediak)",
                     )
-            # SubV (bII7): um semitom acima da tônica.
+            # 0e. SubV primário (bII7): um semitom acima da tônica.
             if self._get_interval(chord.root, self.key) == 11:
                 return (
                     "SubV",
