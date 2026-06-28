@@ -44,11 +44,9 @@ def test_tier2_sections_present_for_tonal_piece():
     assert any("dorian" in s for s in scales)
 
 
-def test_tier2_modal_piece_uses_modal_function():
+def test_tier2_modal_piece_is_not_auto_promoted():
+    # A detecção automática de modo foi removida (change fix-or-remove-church-mode):
+    # mesmo uma progressão modal limpa ("G F C G") é lida tonalmente, sem seção modal.
     r = _analyze(ModalStub(), "Modal")
     assert r["success"] is True
-    assert r["modal_analysis"] is not None
-    assert r["modal_analysis"]["mode"] == "mixolydian"
-    codes = {e.get("function_code") for e in r["harmonic_analysis"]}
-    assert "Modal" in codes      # bVII é função modal
-    assert "Emp" not in codes    # ...e não empréstimo
+    assert r["modal_analysis"] is None

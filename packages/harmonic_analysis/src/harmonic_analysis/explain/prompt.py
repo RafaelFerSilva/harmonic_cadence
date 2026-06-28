@@ -41,6 +41,7 @@ def summarize_facts(analysis: dict) -> Dict[str, object]:
     plagal = sorted(cadences.get("Plagal", []) or [])
 
     modal = analysis.get("modal_analysis")
+    coloring = analysis.get("modal_coloring")
 
     return {
         "key": key,
@@ -52,6 +53,7 @@ def summarize_facts(analysis: dict) -> Dict[str, object]:
         "authentic": authentic,
         "plagal": plagal,
         "modal": modal,
+        "coloring": coloring,
     }
 
 
@@ -73,6 +75,14 @@ def render_summary(facts: Dict[str, object]) -> List[str]:
     if modal:
         lines.append(
             f"O centro tonal é modal: {modal['tonic']} {church_mode_pt(modal['mode'])}."
+        )
+
+    coloring = facts.get("coloring")
+    if coloring:
+        ev = "; ".join(coloring.get("evidence") or [])
+        lines.append(
+            f"A peça é tonal, com coloração {church_mode_pt(coloring['flavor'])}"
+            f"{f' ({ev})' if ev else ''} — uma cor modal sobre a leitura tonal."
         )
 
     if facts.get("authentic"):

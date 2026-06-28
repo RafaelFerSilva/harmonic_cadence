@@ -6,19 +6,24 @@ The analyzer classifies the active church mode of a tonal center from the diaton
 ## Requirements
 ### Requirement: Modal classification of a tonal center
 
-The analyzer SHALL classify the active mode (ionian, dorian, phrygian, lydian, mixolydian, aeolian, locrian) of a tonal center from the diatonic pitch-class collection and the tonic, rather than forcing every piece into major or minor.
+The analyzer SHALL provide modal classification (ionian, dorian, phrygian, lydian, mixolydian, aeolian, locrian) as a **library function** that, given a clean diatonic pitch-class collection and a tonic, identifies the mode. This classification SHALL NOT be applied automatically to promote the tonal center of an analyzed song: deriving a mode from the full pitch-class collection of a real song is unreliable (the union of every chord's pitches is near-chromatic, and the permissive phrygian branch fires on ordinary minor pieces — empirically 12/60 spurious phrygian on the validation corpus). The pipeline SHALL NOT emit a modal-analysis section from automatic detection; the tonal reading from `detect_key` prevails. Reintroducing automatic modal detection is deferred to a future change that supplies a curated modal corpus and a principled modal-vs-tonal discriminator.
 
-#### Scenario: Mixolydian is recognized by its flat seventh
-- **WHEN** a progression centered on G uses the G-major collection but with `F` natural and no `F#` leading tone (e.g. `G F C G`)
-- **THEN** the mode is classified as G mixolydian
+#### Scenario: Mixolydian is recognized by its flat seventh (library)
+- **WHEN** the modal classifier is called on a clean progression centered on G that uses the G-major collection but with `F` natural and no `F#` leading tone (e.g. `G F C G`)
+- **THEN** it returns G mixolydian
 
-#### Scenario: Dorian is recognized by its raised sixth
-- **WHEN** a minor-centered progression on D uses `B` natural (raised sixth) consistently (e.g. `Dm G Dm Em`)
-- **THEN** the mode is classified as D dorian
+#### Scenario: Dorian is recognized by its raised sixth (library)
+- **WHEN** the modal classifier is called on a clean minor-centered progression on D that uses `B` natural (raised sixth) consistently (e.g. `Dm G Dm Em`)
+- **THEN** it returns D dorian
 
-#### Scenario: Ambiguous tonal pieces remain major/minor
-- **WHEN** a progression has the leading tone and standard dominant function (e.g. `C F G7 C`)
-- **THEN** it is classified as major/minor, not as a mode
+#### Scenario: Ambiguous tonal pieces are not classified as a mode
+- **WHEN** the classifier sees a progression with the leading tone and standard dominant function (e.g. `C F G7 C`)
+- **THEN** it returns no mode (None)
+
+#### Scenario: A real analyzed song is not auto-promoted to a mode
+- **WHEN** a full song is analyzed through the pipeline
+- **THEN** no modal-analysis section is produced by automatic modal detection
+- **AND** the song's key and mode are the tonal reading from `detect_key`
 
 ### Requirement: Modal degrees and characteristic chords are diatonic to the mode
 
@@ -69,7 +74,7 @@ When a mode is active, the analyzer SHALL expose the mode's diatonic harmonic fi
 
 ### Requirement: Characteristic cadential and avoided chords per mode
 
-When a mode is active, the analyzer SHALL expose the mode's characteristic cadential chords and its avoided chords, per Chediak (Vol. I, pp. 122-125), alongside the mode's characteristic note. These are the source's curated selection (which chords firm up the modal flavor in a cadence, and which pull back to major/minor tonality), not a derivation of the diatonic field.
+When a mode is given, the library SHALL expose the mode's characteristic cadential chords and its avoided chords, per Chediak (Vol. I, pp. 122-125), alongside the mode's characteristic note. These are the source's curated selection (which chords firm up the modal flavor in a cadence, and which pull back to major/minor tonality), not a derivation of the diatonic field.
 
 #### Scenario: Dorian cadential and avoided chords
 - **WHEN** the active mode is dorian
@@ -86,27 +91,9 @@ When a mode is active, the analyzer SHALL expose the mode's characteristic caden
 - **THEN** the cadential chords are `bII7M`, `bVIIm7`
 - **AND** the avoided chords include `Vm7(b5)` and `bIII7`
 
-#### Scenario: The active modal section exposes the selection
-- **WHEN** a piece with an active mode is analyzed
-- **THEN** its modal analysis section reports the characteristic note, the cadential chords, and the avoided chords
-
-### Requirement: A mode refines, never overrides, the detected key
-
-A church mode SHALL be applied to a piece only when it **refines** the key from `detect_key` — i.e., it shares the same tonic AND the same major/minor quality. A mode that disagrees on the tonic, or flips the major/minor quality, SHALL be rejected as tonal chromaticism, and the tonal reading from `detect_key` prevails. When a mode is rejected, the modal analysis section MUST also be absent (no key/mode contradiction in the output). The modal tonal center SHALL be estimated from the most prominent bass (the pedal/finalis), not from the root of the final chord.
-
-#### Scenario: A tonal piece ending on a slash chord is not misread as a mode on the slash root
-- **WHEN** a piece in A major rests on an `A` pedal and ends on `D/A` (D over the A bass)
-- **THEN** its key is reported as A major
-- **AND** it is NOT reported as D minor or a D mode (the tonal center is the bass A, not the root D)
-
-#### Scenario: A mode that flips the quality is rejected
-- **WHEN** `detect_key` reports D major and a mode classifier suggests D phrygian (a minor mode) from incidental chromaticism
-- **THEN** the piece stays D major
-- **AND** no modal analysis section is reported
-
-#### Scenario: A mode that agrees in tonic and quality is accepted as a refinement
-- **WHEN** `detect_key` reports A minor and the mode classifier reports A phrygian (same tonic, both minor)
-- **THEN** the piece is refined to A phrygian
+#### Scenario: The library exposes the selection for a given mode
+- **WHEN** the cadential and avoided chords of a mode are queried
+- **THEN** the characteristic note, the cadential chords, and the avoided chords for that mode are returned
 
 ### Requirement: Modal harmonic field has a single canonical implementation
 

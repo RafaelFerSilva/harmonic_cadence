@@ -71,6 +71,7 @@ class MarkdownReportGenerator(ReportGenerator):
             f.write(self._generate_roman_numerals(analysis))
             f.write(self._generate_tonal_regions(analysis))
             f.write(self._generate_modal_analysis(analysis))
+            f.write(self._generate_modal_coloring(analysis))
             f.write(self._generate_voice_leading(analysis))
             f.write(self._generate_chord_scales(analysis))
 
@@ -119,6 +120,17 @@ class MarkdownReportGenerator(ReportGenerator):
             "## Análise modal\n\n"
             f"- Centro modal: **{modal['tonic']} {church_mode_pt(modal['mode'])}**\n"
             f"- Cadências modais: {cad}\n\n"
+        )
+
+    def _generate_modal_coloring(self, analysis: Dict[str, Any]) -> str:
+        coloring = analysis.get("modal_coloring")
+        if not self._present(coloring):
+            return ""
+        ev = "; ".join(coloring.get("evidence") or []) or "—"
+        return (
+            "## Coloração modal\n\n"
+            f"- Traços **{church_mode_pt(coloring['flavor'])}s** ({ev}) — "
+            "coloração sobre a leitura tonal, não a substitui.\n\n"
         )
 
     def _generate_voice_leading(self, analysis: Dict[str, Any]) -> str:

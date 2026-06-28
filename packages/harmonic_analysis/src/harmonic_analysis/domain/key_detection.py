@@ -6,9 +6,7 @@ from dataclasses import dataclass
 from typing import List, Optional, Sequence, Tuple
 
 from cifra_core.theory import parse, realize, root_pitch_class
-from cifra_core.theory.chord_parse import Third
-
-from harmonic_analysis.domain.modal import detect_mode
+from cifra_core.theory.chord_parse import Category, Third
 
 # Perfis de tonalidade Krumhansl-Kessler.
 KS_MAJOR = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88]
@@ -28,7 +26,10 @@ CADENCE_WEIGHT = 2.0   # ênfase no acorde final (resolução cadencial → tôn
 # XXXII pp. 109-111; o acorde final e a função do baixo como marcadores de tom).
 # EPS conservador (banda de empate) e pesos num só lugar — recalibráveis contra o
 # corpus, NÃO maximizados in-sample (ver design de tonal-center-detection).
-TIE_BAND = 0.06            # banda de quase-empate sobre o score K-S do topo
+# TIE_BAND=0.10: recalibrado (era 0.06) para cobrir "Papel Marché" (João Bosco),
+# onde o gap K-S entre A minor (correto pelo histograma) e C major (gold Cifra Club)
+# era ~0.08-0.10 — C major não entrava na banda apesar de corrob=7.00 vs 0.00.
+TIE_BAND = 0.10            # banda de quase-empate sobre o score K-S do topo
 CADENCE_WINDOW = 4         # nº de acordes finais inspecionados pela cadência
 CORROB_FIRST = 1.0         # 1º acorde com fundamental == tônica
 CORROB_LAST = 2.0          # último acorde com fundamental == tônica
@@ -49,7 +50,6 @@ class KeyEstimate:
     name: str          # ex.: "C major"
     key_note: str      # ex.: "C" (para HarmonicAnalysis)
     alternatives: Tuple[Tuple[str, float], ...] = ()
-    church_mode: Optional[str] = None  # modo de igreja quando aplicável
 
 
 @dataclass(frozen=True)
@@ -189,6 +189,79 @@ def _correct_parallel_mode(
     return mode
 
 
+# --- Gate de qualidade (Fase B / 3b) — corrige o CENTRO escapando da TIE_BAND ----
+# Discriminador funcional (Chediak): a TÔNICA é repouso (aparece como maj7/6/m7/tríade);
+# o V é tensão (aparece como dominante-7, o trítono). Se o centro do K-S aparece
+# EXCLUSIVAMENTE como dominante e resolve numa 5ª abaixo num acorde de REPOUSO, o K-S
+# pegou o V — corrige-se p/ o alvo. Robusto a secundários (o sinal é a saúde do repouso
+# da peça inteira, não notas isoladas) e a blues (lá nenhum acorde é repouso → aborta).
+
+
+def _chord_infos(symbols: Sequence[str]):
+    """(raiz_pc, baixo_pc, categoria) por acorde; None quando não parseia."""
+    out = []
+    for s in symbols:
+        try:
+            p = parse(s)
+            cat = p.category() if callable(p.category) else p.category
+            out.append((p.root.pitch_class, (p.bass or p.root).pitch_class, cat))
+        except Exception:
+            out.append(None)
+    return out
+
+
+def _tritone_gate(
+    symbols: Sequence[str], ks_best: Tuple[int, str]
+) -> Optional[Tuple[int, str]]:
+    """Centro corrigido pelo gate de QUALIDADE, ou None — ultraconservador.
+
+    Só dispara quando o centro do K-S (Y) aparece **exclusivamente como dominante-7**
+    (`Category.DOMINANT`) — nunca como acorde de repouso — E esse Y7 **resolve** uma 5ª
+    abaixo, num alvo X que aparece como acorde **estável** (maj7/6/m7/tríade). Aí o K-S
+    confundiu o V (Y) com a tônica; o centro real é X.
+
+    Guard do blues/mixolídio (Chediak p.121, "não resolução do trítono com expectativa"):
+    se Y nunca resolve, OU o alvo X também só aparece como dominante (tudo é tensão, sem
+    repouso — o caso do blues I7-IV7-V7), o gate ABORTA e o K-S/coloração modal decide.
+    Conservadoríssimo: nas peças corretas a tônica aparece como repouso → retorna None."""
+    infos = _chord_infos(symbols)
+    present = [i for i in infos if i is not None]
+    if not present:
+        return None
+    ks_pc = ks_best[0]
+
+    # (1) Como o centro do K-S aparece? Se ALGUMA vez como repouso (não-dominante),
+    # ele descansa → é tônica de fato → não mexe.
+    ks_cats = [c for (r, _b, c) in present if r == ks_pc]
+    if not ks_cats or any(c is not Category.DOMINANT for c in ks_cats):
+        return None
+
+    # (2) Y só aparece como dominante. O alvo é a 5ª justa abaixo (V7→I).
+    X = (ks_pc - 7) % 12
+
+    # (3) Esse Y7 de fato resolve no alvo? (baixo seguinte assenta em X) — senão é
+    # tônica de blues que não resolve (guard).
+    resolves = any(
+        cur is not None
+        and nxt is not None
+        and cur[0] == ks_pc
+        and cur[2] is Category.DOMINANT
+        and nxt[1] == X
+        for cur, nxt in zip(infos, infos[1:])
+    )
+    if not resolves:
+        return None
+
+    # (4) O alvo X tem que ser REPOUSO: aparecer como acorde estável (maj/min, não
+    # dominante). Se X também só é dominante (blues I7→IV7), aborta → K-S/modal decide.
+    x_cats = [c for (r, _b, c) in present if r == X]
+    stable = [c for c in x_cats if c in (Category.MAJOR, Category.MINOR)]
+    if not stable:
+        return None
+    x_mode = "minor" if Category.MINOR in stable and Category.MAJOR not in stable else "major"
+    return (X, x_mode)
+
+
 def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:
     """Estima a tonalidade correlacionando o perfil com os 24 perfis K-S; no
     quase-empate desempata pela corroboração cadencial (tom), e corrige a confusão
@@ -213,6 +286,17 @@ def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:
         band, key=lambda r: (cadence_corroboration(symbols, r[1], r[2]), r[0])
     )
 
+    # Gate de qualidade (3b): se o centro do K-S aparece só como dominante-7 e resolve
+    # numa 5ª abaixo num acorde de repouso, o K-S confundiu o V com a tônica — corrige.
+    # Ultraconservador (não toca peça cuja tônica descansa); blues aborta. Ver _tritone_gate.
+    gated = _tritone_gate(symbols, (best_tonic, best_mode))
+    if gated is not None and gated != (best_tonic, best_mode):
+        best_tonic, best_mode = gated
+        best_score = next(
+            (s for s, t, m in ranked if (t, m) == (best_tonic, best_mode)),
+            best_score,
+        )
+
     # Correção de modo paralelo (mesma tônica, maior↔menor) — após escolher o tom.
     corrected = _correct_parallel_mode(symbols, best_tonic, best_mode)
     if corrected != best_mode:
@@ -227,10 +311,8 @@ def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:
         for s, t, m in ranked
         if (t, m) != (best_tonic, best_mode)
     )[:3]
-    info = detect_mode(symbols)
-    church_mode = info.mode if info else None
     return KeyEstimate(
-        best_tonic, best_mode, round(best_score, 4), name, key_note, alts, church_mode
+        best_tonic, best_mode, round(best_score, 4), name, key_note, alts
     )
 
 
@@ -267,3 +349,82 @@ def segment_keys(symbols: Sequence[str], window: int = 8) -> List[KeyRegion]:
                 regions.append(KeyRegion(a, b, est))
             cs = i
     return regions
+
+
+def _region_len(r: KeyRegion) -> int:
+    return r.end - r.start + 1
+
+
+def _same_key(a: KeyRegion, b: KeyRegion) -> bool:
+    return (
+        a.estimate.tonic_pc == b.estimate.tonic_pc
+        and a.estimate.mode == b.estimate.mode
+    )
+
+
+def _coalesce(regions: List[KeyRegion]) -> List[KeyRegion]:
+    """Funde regiões adjacentes de mesma tonalidade (tônica + modo iguais).
+
+    A estimativa da região maior prevalece (mais confiável); o span resultante
+    cobre ambas.
+    """
+    if not regions:
+        return []
+    merged = [regions[0]]
+    for r in regions[1:]:
+        prev = merged[-1]
+        if _same_key(prev, r):
+            keep = prev.estimate if _region_len(prev) >= _region_len(r) else r.estimate
+            merged[-1] = KeyRegion(prev.start, r.end, keep)
+        else:
+            merged.append(r)
+    return merged
+
+
+def dominant_regions(
+    regions: List[KeyRegion], n_chords: int, min_pct: float = 0.10
+) -> List[KeyRegion]:
+    """Pós-processa a saída de ``segment_keys`` em regiões dominantes legíveis.
+
+    Funde fragmentos adjacentes de mesma tonalidade e, em seguida, absorve
+    iterativamente cada região menor que ``min_pct`` dos acordes totais na vizinha
+    de mesma tonalidade (se houver) ou, na falta dela, na vizinha de score K-S mais
+    próximo. ``segment_keys`` NÃO é alterado — esta função só reduz a granularidade
+    da apresentação (e habilita a métrica multi-região). A absorvente mantém sua
+    própria estimativa (ela domina) e estende o span para cobrir a região pequena.
+    """
+    merged = _coalesce(list(regions))
+    if len(merged) <= 1 or n_chords <= 0:
+        return merged
+
+    threshold = min_pct * n_chords
+    while len(merged) > 1:
+        idx = min(range(len(merged)), key=lambda i: _region_len(merged[i]))
+        if _region_len(merged[idx]) >= threshold:
+            break
+        small = merged[idx]
+        left = merged[idx - 1] if idx > 0 else None
+        right = merged[idx + 1] if idx < len(merged) - 1 else None
+
+        same_key = [nb for nb in (left, right) if nb and _same_key(nb, small)]
+        if same_key:
+            absorber = same_key[0]
+        elif left and right:
+            absorber = min(
+                (left, right),
+                key=lambda nb: abs(nb.estimate.score - small.estimate.score),
+            )
+        else:
+            absorber = left or right  # região pequena numa das pontas
+
+        new_region = KeyRegion(
+            min(absorber.start, small.start),
+            max(absorber.end, small.end),
+            absorber.estimate,
+        )
+        kept = [r for r in merged if r is not small and r is not absorber]
+        kept.append(new_region)
+        kept.sort(key=lambda r: r.start)
+        merged = _coalesce(kept)
+
+    return merged

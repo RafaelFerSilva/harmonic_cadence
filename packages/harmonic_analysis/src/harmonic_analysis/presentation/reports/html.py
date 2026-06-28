@@ -176,6 +176,7 @@ class HTMLReportGenerator(ReportGenerator):
         {self._generate_cadences_html(analysis)}
         {self._generate_tonal_regions_html(analysis)}
         {self._generate_modal_analysis_html(analysis)}
+        {self._generate_modal_coloring_html(analysis)}
         {self._generate_voice_leading_html(analysis)}
         {self._generate_chord_scales_html(analysis)}
         {self._generate_reharmonizations_html(analysis)}
@@ -238,6 +239,17 @@ class HTMLReportGenerator(ReportGenerator):
             f"<p><strong>Cadências modais:</strong> {cad}</p>"
         )
         return self._section("Análise modal", body)
+
+    def _generate_modal_coloring_html(self, analysis: Dict[str, Any]) -> str:
+        coloring = analysis.get("modal_coloring")
+        if not self._present(coloring):
+            return ""
+        ev = "; ".join(coloring.get("evidence") or []) or "—"
+        body = (
+            f"<p>Traços <strong>{church_mode_pt(coloring['flavor'])}s</strong> ({ev}) — "
+            "coloração sobre a leitura tonal, não a substitui.</p>"
+        )
+        return self._section("Coloração modal", body)
 
     def _generate_voice_leading_html(self, analysis: Dict[str, Any]) -> str:
         vl = analysis.get("voice_leading")

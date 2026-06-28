@@ -5,9 +5,9 @@ transcrever; medir em vez de achar.** A teoria do Chediak (Vol. I) está
 destilada, implementada e testada; a fronteira agora é **precisão** e
 **apresentação** para o público BR.
 
-## Status (2026-06-27)
+## Status (2026-06-28)
 
-**Feito e no `main`** (~22 changes OpenSpec, 255 testes verdes, `openspec/`
+**Feito e no `main`** (~24 changes OpenSpec, 273 testes verdes, `openspec/`
 versionado em `openspec/changes/archive/`):
 
 - **Teoria harmônica destilada do Chediak** — parsing de acorde (dialeto `±`,
@@ -43,12 +43,41 @@ versionado em `openspec/changes/archive/`):
   (a cadência não distingue paralelas — a dominante é comum). Resolve a **paralela**
   (Wave/Chega/Valsinha). Conservador (gate de âncora-baixo); Sina e gate sintético
   intactos.
+- **Fase B v3 — filtro de afinação + recalibração da banda** — `tune-tie-band`: duas
+  correções cirúrgicas. (1) `cifra_core/lines.py` passa a descartar linhas de afinação
+  ("Afinação Drop D", "Capotraste") que eram parseadas como acordes e poluíam o perfil
+  K-S. (2) `TIE_BAND` recalibrado de 0.06 → **0.10**: Papel Marché (João Bosco,
+  gold=C) tinha gap K-S ~0.09 — C major ficava fora da banda apesar de corrob=7.00 vs
+  0.00 de A minor. **Resolve Papel Marché** (de ERRO → exato).
+- **Incremento 1 — segmentação de modulação real** — `modulation-regions`: medição
+  honesta + apresentação limpa das músicas bitonais (Chediak p. 116-118, modulação
+  por acorde pivô — em Wave/Chega de Saudade o A7 é V7 de Ré menor E de Ré maior). (1)
+  Nova `dominant_regions` pós-processa `segment_keys` (window=8 intacto) fundindo
+  fragmentos < 10% dos acordes → 2-4 regiões legíveis (Wave: 21 → ~3). `tonal_regions`
+  no relatório passa a usá-la. (2) Gold multi-região `(primária, [secundárias])` no
+  baseline + `evaluate_modulating_song` (acerto parcial = primária; total = todas as
+  regiões). Wave e Chega saem do denominador monotonal e viram **acerto total**
+  (Dm + D maior detectados). **Não toca** `detect_key`/`TIE_BAND`/`segment_keys`.
 
 **Baseline de detecção de tonalidade** (`uv run python scripts/key_baseline.py`,
-ouro = tom do Cifra Club, **n=60**, com a Fase B v1+v2): **modo 83% · tônica exata
-62% · relativa-consciente 72%** (K-S puro era 64/46/61; v1 só, 67/50/62). A v1
-generalizou (validada quase held-out nas 32 músicas novas: 66/50/62 ≈ in-sample). Sem
-gap de transposição, a tônica-exata é honesta.
+ouro = tom do Cifra Club, com a Fase B v1+v2+v3 + o gate de qualidade do 3b):
+- **Monotonais (n=58):** **modo 86% · tônica exata 69% · relativa-consciente 76% ·
+  coleção (armadura) 97%**. (Antes do gate de qualidade: 67/74; o gate corrigiu Garota
+  de Ipanema — V-como-tônica — sem regredir nada.)
+- **Centro estrutural (Chediak, degree-relative, `chediak-structural-gold`):** **79%**
+  (15/19 verificados por dominante funcional). O buraco restante = 4 casos de
+  V-detectado-como-tônica (A Banda, Aquele Abraço, Apesar de Você, Menino do Rio), onde
+  o sinal de **qualidade** não é limpo o bastante para o gate disparar com segurança.
+- **Leitura da coleção 97%** (`collection-aware-metric`, Incremento 3a): das falhas de
+  tônica-exata, só **2** erram a coleção diatônica de fato (Desafinado +10, Começar de
+  Novo +3); as demais acertam a armadura e erram só o **centro** dentro dela. Métrica
+  **aditiva** — a tônica-exata segue o número honesto de primeira classe.
+- **Modulantes (n=2):** acerto parcial 100% · acerto total 100% (Wave, Chega).
+
+(Progressão: K-S puro 64/46/61 → Fase B v1+v2 83/62/72 → +v3+gate **86/69/76**. Sem gap
+de transposição, a tônica-exata é honesta. O gate de qualidade só corrige o centro quando
+o palpite do K-S aparece **exclusivamente como dominante-7** e resolve num acorde de
+repouso — ultraconservador, zero regressão.)
 
 ## Como rodar
 
@@ -70,14 +99,69 @@ As v1 (relativa) e v2 (paralela) estão no `main` e levaram o modo de 64% para *
 Os incrementos seguintes, **medindo cada um contra o baseline** e sem quebrar a
 arbitragem modo↔tom nem o gate sintético:
 
-1. **Segmentação das modulações reais** (*Wave*, *Chega de Saudade*: começam menor,
-   terminam maior) — rótulo único sempre erra; usar `segment_keys`, não a estimativa
-   pontual. **Nota honesta:** a v2 "acerta" o gold dessas invertendo p/ menor, mas a
-   leitura correta é multi-região. É medição/apresentação, não detecção.
-2. **Tunar/afrouxar o EPS da banda** (agora com n=60) — pegaria casos relativos ainda
-   fora da banda (*Papel Marché*, gap ~0.07) sem in-sample chasing.
+1. ~~**Segmentação das modulações reais**~~ — **feito** em `modulation-regions`
+   (`dominant_regions` + gold multi-região; Wave/Chega medidas como modulantes, acerto
+   total; window=8 e `detect_key` intactos).
+2. ~~**Tunar/afrouxar o EPS da banda**~~ — **feito** em `tune-tie-band` (TIE_BAND
+   0.06→0.10; filtro de linhas de afinação; Papel Marché resolvido; modo 83%→87%).
 3. **Casos residuais** — *Esquinas*/*Lilás*/*Açaí* (Djavan, harmonia modal complexa),
    e a tônica de modos de igreja pelo K-S (`G F C G` lido como Dó maior).
+   - **3a — métrica coleção-consciente** — **feito** em `collection-aware-metric`:
+     4ª métrica `same_collection` (a tônica detectada é grau diatônico do gold ≈
+     armadura) no harness e no baseline + verdict "coleção" por música. Mede honestamente
+     que o resíduo é centro-dentro-da-coleção (97%), não detector quebrado. Não toca
+     `detect_key`/`segment_keys`/`TIE_BAND`/`modal.py`.
+   - **3b-pré — aposentar o `detect_mode` falso** — **feito** em
+     `fix-or-remove-church-mode`: a detecção automática de modo de igreja foi removida do
+     pipeline (gerava "Centro modal: X frígio" errado em 12/60 — todos eólios reais,
+     zero modo verdadeiro). Provado por sondagem que dois consertos in-place não
+     convergem (cadência modal: sintético 8/8→3/8, 6 falsos; só fundamentais: 8/8→2/8,
+     10 falsos). A **biblioteca modal** (campo/cadências/tabelas Chediak pp.122-125)
+     fica intacta; o campo morto `KeyEstimate.church_mode` saiu. Baseline **idêntico**
+     (não toca detecção). Remove a mentira ativa e desbloqueia o 3b.
+   - **3b-cor — coloração modal (overlay tonal-ortodoxo)** — **feito** em
+     `modal-coloring-overlay`: reintroduz o modalismo como **anotação descritiva** sobre a
+     análise tonal — não eixo concorrente. `detect_coloring` resume os empréstimos já
+     computados, **ancorado na tônica do `detect_key`** (sem re-centrar), e emite
+     `modal_coloring` (campo + linha PT-BR), omitido por padrão. v1 = **mixolídio** (sobre
+     maior: bVII→I / bVII / v-menor) e **frígio** (sobre menor: bII→i estrutural ≥2);
+     dórico fora (compartilha coleção → depende do 3b). Gatilhos calibrados contra o
+     ground-truth de Chediak (pp. 124-127, `scripts/modal_coloring_groundtruth.py`):
+     dispara em Ponteio/Upa Neguinho/Canto de Ossanha, **silêncio** nas eólias
+     (Wave/Corcovado/Insensatez/Construção). Divergências vs Chediak documentadas
+     (arranjo: Procissão tonalizada; centro: Arrastão Ré-maior↔Lá-dórico). Baseline
+     **idêntico**. O detector lê harmonia, não melodia.
+   - **3b-corpus — 2º ouro + métrica de centro** — **feito** em `chediak-structural-gold`:
+     `center_accuracy` invariante a transposição (offset relativo ao tom do Cifra Club),
+     sobre o subconjunto **verificado por dominante funcional** (Chediak p.84/87), com
+     proveniência (verified/chediak/unverified) blindando contra anotação crowdsource. As 4
+     métricas Cifra-Club **idênticas** (86/67/74/97). **Buraco de centro tonal: 74%
+     (14/19)** — 5 casos de V-detectado-como-tônica (Garota F→C, A Banda D→A, Aquele Abraço
+     E→A, Apesar D→A, Menino do Rio F→C). A validação restringiu o escopo a tonal: o centro
+     **modal** (offset≠0) foi adiado porque seu offset não pode vir de subtração absoluta
+     (Chediak↔Cifra Club podem divergir de transposição — Pra Não Dizer Mi vs Fá). É o
+     pré-requisito (a) do gate.
+   - **3b-gate — gate de qualidade (V-como-tônica)** — **feito** em
+     `tonal-center-tritone-gate`: o `detect_key` corrige o centro escapando da TIE_BAND
+     quando o palpite do K-S aparece **só como dominante-7** e resolve numa 5ª abaixo num
+     acorde de **repouso** (Chediak: tônica repousa, V é tensão). Robusto a secundários (o
+     sinal é a saúde do repouso da peça, não notas) e a blues (sem repouso → aborta). Duas
+     abordagens antes falharam a trava (4-filtros: exata 67→36% por disparar em
+     secundários; coleção-fit: 0 alvos + modo −3) — a densidade de secundários da MPB
+     derrota discriminadores de coleção/trítono. O de qualidade venceu: exata 67→**69%**,
+     relativa 74→**76%**, centro 74→**79%** (Garota corrigida), modo/coleção idênticos,
+     **zero regressão**. Conservador: só 1 dos 5 alvos (os outros 4 não têm sinal de
+     qualidade limpo). dim7-como-dominante fica para change própria.
+   - **3b-modal — arbitragem modal de centro** — **próxima** (`modal-center-arbitration`):
+     Arrastão→Lá (ausência de dominante funcional + cadência modal → finalis, reusa
+     `modal_coloring`) + métrica de centro modal **degree-relative** ([[center-eval-degree-relative]]).
+   - **3b — arbitragem modal↔tonal de centro** — **bloqueado**: a falha de centro espalha
+     por V/vi/iii/IV sem gate único, e cada gate arriscaria as ~41 corretas. A detecção de
+     **centro** modal (separar Lá dórico de Ré mixolídio em Arrastão; tonalizar o silêncio
+     da coloração) é uma change futura: exige (a) um **corpus de MPB modal curado** e (b)
+     um **discriminador modal↔tonal principiado** — o critério do Chediak que separa
+     mediante de mixolídio (resolução de dominante funcional, pp. 121-123) sobre acordes
+     reais. A coloração (3b-cor) entrega o **sabor** modal hoje; o **centro** fica para cá.
 
 ## Trilha paralela (contida, encaixa a qualquer momento)
 
@@ -93,14 +177,25 @@ arbitragem modo↔tom nem o gate sintético:
 
 | # | Tema | Change | Tam. |
 |---|---|---|---|
-| 1 | Segmentar modulação real (Wave/Chega) na apresentação | `modulation-regions` | M |
-| 2 | Afrouxar/tunar o EPS da banda (agora com n=60) | `tune-tie-band` | S |
-| 3 | Casos residuais (Djavan modal; tônica de modos) | — | M |
+| ~~1~~ | ~~Segmentar modulação real (Wave/Chega) na apresentação~~ | ~~`modulation-regions`~~ | ~~M~~ |
+| ~~2~~ | ~~Afrouxar/tunar o EPS da banda (agora com n=60)~~ | ~~`tune-tie-band`~~ | ~~S~~ |
+| ~~3a~~ | ~~Métrica coleção-consciente (armadura)~~ | ~~`collection-aware-metric`~~ | ~~S~~ |
+| ~~3b-pré~~ | ~~Aposentar o `detect_mode` falso (preserva biblioteca)~~ | ~~`fix-or-remove-church-mode`~~ | ~~S~~ |
+| ~~3b-cor~~ | ~~Coloração modal (overlay tonal-ortodoxo: mixolídio/frígio)~~ | ~~`modal-coloring-overlay`~~ | ~~M~~ |
+| 3b | Arbitragem modal↔tonal de **centro** (corpus modal + discriminador) | — (bloqueado) | L |
 
 _Concluídos: `enharmonic-spelling`, `consolidate-modal-field` (em
 `finish-note-spelling`), `widen-key-corpus` + leva 2 (n=60), `tonal-center-detection`
 (Fase B v1, relativa), `parallel-mode-correction` (Fase B v2, paralela; modo
-64%→83% acumulado)._
+64%→83% acumulado), `tune-tie-band` (Fase B v3, filtro de afinação + TIE_BAND
+0.06→0.10, Papel Marché resolvido; modo 83%→87% acumulado), `modulation-regions`
+(Incremento 1, `dominant_regions` + gold multi-região; Wave/Chega como modulantes),
+`collection-aware-metric` (Incremento 3a, 4ª métrica coleção/armadura 97%; mede o
+resíduo como centro-dentro-da-coleção, não detector quebrado), `fix-or-remove-church-mode`
+(3b-pré, remove a detecção automática de modo falsa — 12/60 frígios espúrios — preservando
+a biblioteca modal; baseline idêntico), `modal-coloring-overlay` (3b-cor, reintrodução
+tonal-ortodoxa do modalismo como overlay descritivo ancorado: mixolídio/frígio, calibrado
+contra Chediak pp.124-127; dispara em Ponteio/Canto de Ossanha, silêncio nas eólias)._
 
 ## Contexto de fonte (copyright)
 

@@ -8,6 +8,7 @@ _TOM_RE = re.compile(r"^tom:", re.IGNORECASE)     # marcação de tom
 _PART_RE = re.compile(r"^Parte \d+ de \d+$")      # "Parte 1 de 2"
 _SECTION_RE = re.compile(r"^\[.*\]$")             # [Intro], [Refrão], ...
 _RIFF_RE = re.compile(r"\(Riff", re.IGNORECASE)   # (Riff 1), ...
+_AFIN_RE = re.compile(r"(afinac|drop\s+[a-g]|capotraste)", re.IGNORECASE)  # tuning lines
 
 
 def clean_text(text: str) -> str:
@@ -38,6 +39,8 @@ def _is_noise(line: str) -> bool:
     if _SECTION_RE.match(line):
         return True
     if _RIFF_RE.search(line):
+        return True
+    if _AFIN_RE.search(line):
         return True
     return False
 

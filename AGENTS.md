@@ -66,11 +66,23 @@ openspec list --specs   # capabilities (specs)
 
 ## Estado atual
 
-Teoria destilada/implementada/testada (~20 changes, 247 testes verdes). Frente
-atual: **precisão da detecção de tonalidade** — a fraqueza sistemática é a
-confusão **maior ↔ relativa menor**. Próximo passo é a Fase B (centro tonal);
-ver [ROADMAP.md](ROADMAP.md). Antes de medir ganho, ampliar o corpus de validação
-(n=6 hoje é ruído).
+Teoria destilada/implementada/testada (~26 changes, **300 testes verdes**). Corpus de
+validação **n=60** (ouro = tom do Cifra Club). Baseline atual: **modo 86% · tônica exata
+69% · relativa 76% · coleção 97% · centro estrutural 79%** (ver [ROADMAP.md](ROADMAP.md)).
+
+A Fase B (centro tonal) está madura: desempate cadencial (v1, confusão relativa), correção
+de modo paralelo (v2), filtro de afinação (v3), e o **gate de qualidade do 3b** — corrige
+o V detectado como tônica quando o palpite do K-S aparece só como dominante-7 e resolve num
+acorde de repouso (Chediak: tônica repousa, V é tensão; densidade de secundários da MPB
+derrota discriminadores estatísticos — só o funcional vence). O modalismo virou **overlay
+descritivo** (`modal-coloring`), não eixo concorrente; a detecção de modo automática falsa
+foi removida.
+
+**Próxima frente:** `modal-center-arbitration` (Arrastão→Lá: ausência de dominante + cadência
+modal → finalis; + métrica de centro modal degree-relative). Depois: afrouxar o gate p/ os 4
+V-como-tônica restantes (guiado por dado, com a trava do baseline); e dim7-como-dominante
+(viio7 = V7b9). **Regra de ouro:** toda recalibração de detecção mede contra o baseline ao
+vivo — zero regressão das corretas é inegociável (já barrou 2 ships ruins).
 
 ---
 

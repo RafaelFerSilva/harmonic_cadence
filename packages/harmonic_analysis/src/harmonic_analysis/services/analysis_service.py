@@ -3,26 +3,20 @@ import re
 from typing import Any, Counter, Dict, List
 
 from cifra_core import ChordPattern, SongProvider, SongProviderError, fix_encoding
-from cifra_core.theory import Note, root_pitch_class
 
 from harmonic_analysis.domain import chord_scale, voice_leading
 from harmonic_analysis.domain.cadence import analyze_cadences
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmonic_function import functional_strength
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
-from harmonic_analysis.domain.key_detection import detect_key, segment_keys
-from harmonic_analysis.domain.modal import (
-    CHARACTERISTIC_NOTE,
-    MODAL_AVOID,
-    MODAL_CADENTIAL,
-    detect_mode,
-    modal_cadences,
-    modal_degree,
+from harmonic_analysis.domain.key_detection import (
+    detect_key,
+    dominant_regions,
+    segment_keys,
 )
+from harmonic_analysis.domain.modal_coloring import detect_coloring
 from harmonic_analysis.presentation.formatter import AnalysisFormatter
 from harmonic_analysis.utils.formatting import format_name
-
-MINOR_MODES = {"dorian", "phrygian", "aeolian", "locrian"}
 
 logger = logging.getLogger(__name__)
 
@@ -39,22 +33,6 @@ def _safe_section(result, name, compute, default):
         result.setdefault("diagnostics", []).append(
             {"section": name, "error": f"{type(e).__name__}: {e}"}
         )
-
-
-def _mode_refines_key(mode_info, key, key_mode) -> bool:
-    """Arbitragem: um modo detectado só **refina** a tonalidade do `detect_key`
-    (K-S, confiável em maior/menor) quando concorda com ela na **tônica** E na
-    **qualidade** (maior/menor). Caso contrário é cromatismo tonal disfarçado de
-    modo — e a leitura tonal prevalece.
-    """
-    try:
-        same_tonic = (
-            Note.parse(mode_info.tonic).pitch_class == Note.parse(key).pitch_class
-        )
-    except Exception:
-        return False
-    mode_is_minor = mode_info.mode in MINOR_MODES
-    return same_tonic and (mode_is_minor == (key_mode == "minor"))
 
 
 def _chord_keys_for_regions(regions, n):
@@ -324,19 +302,10 @@ class AnalysisService:
                     "partial_results": partial_results,
                 }
 
-            # Cria analisador harmônico — quando um modo é detectado, usa a
-            # tônica modal (o "final") e o modo ativo (Camada 2).
-            mode_info = detect_mode([c.symbol for c in all_chords])
-            # Arbitragem: o modo só refina a tonalidade do detect_key; senão é
-            # descartado (cromatismo tonal, não modalismo) — anular o mode_info
-            # mantém TODAS as seções a jusante (incl. modal_analysis) coerentes.
-            if mode_info and not (key and _mode_refines_key(mode_info, key, mode)):
-                mode_info = None
-            if mode_info:
-                key = mode_info.tonic
-                mode = "minor" if mode_info.mode in MINOR_MODES else "major"
-                analysis = HarmonicAnalysis(key, mode, mode_info.mode)
-            elif key:
+            # Cria analisador harmônico a partir da leitura tonal do detect_key.
+            # A detecção automática de modo de igreja foi removida (gerava falsos
+            # frígios em músicas reais); a teoria modal segue como biblioteca pura.
+            if key:
                 analysis = HarmonicAnalysis(key, mode)
             else:
                 analysis = None
@@ -401,7 +370,10 @@ class AnalysisService:
                 function_stats,
                 cadences,
             )
-            # Regiões tonais (detecção de modulação) — reusa as já computadas.
+            # Regiões tonais (detecção de modulação) — reusa as já computadas, mas
+            # expõe as DOMINANTES (pós-processadas): funde fragmentos pequenos para
+            # 2-4 regiões legíveis em vez de dezenas de janelas brutas. As regiões
+            # cruas seguem alimentando a cadência modulante (chord_keys), acima.
             _safe_section(
                 result,
                 "tonal_regions",
@@ -412,13 +384,13 @@ class AnalysisService:
                         "key": r.estimate.name,
                         "score": r.estimate.score,
                     }
-                    for r in regions
+                    for r in dominant_regions(regions, len(all_chords))
                 ],
                 [],
             )
 
             # Camada 2: profundidade musical
-            self._add_depth_sections(result, all_chords, analysis, mode_info)
+            self._add_depth_sections(result, all_chords, analysis)
             # Camada 3: inteligência (parsing probabilístico, reharmonização, explicação)
             self._add_intelligence_sections(result, all_chords, analysis)
             return result
@@ -426,34 +398,25 @@ class AnalysisService:
         except Exception as e:
             raise RuntimeError(f"Erro crítico na análise da música: {str(e)}")
 
-    def _add_depth_sections(self, result, all_chords, analysis, mode_info) -> None:
-        """Popula as seções da Camada 2: modal, RNA, condução de vozes, escala-acorde."""
+    def _add_depth_sections(self, result, all_chords, analysis) -> None:
+        """Popula as seções da Camada 2: RNA, condução de vozes, escala-acorde."""
 
-        def _modal():
-            if not mode_info:
-                return None
-            md_seq = []
-            for c in all_chords:
-                try:
-                    md_seq.append(
-                        modal_degree(
-                            root_pitch_class(c.symbol),
-                            mode_info.tonic,
-                            mode_info.mode,
-                        )
-                    )
-                except Exception:
-                    md_seq.append(None)
-            return {
-                "tonic": mode_info.tonic,
-                "mode": mode_info.mode,
-                "characteristic_note": CHARACTERISTIC_NOTE.get(mode_info.mode),
-                "cadential_chords": MODAL_CADENTIAL.get(mode_info.mode, []),
-                "avoid_chords": MODAL_AVOID.get(mode_info.mode, []),
-                "cadences": modal_cadences([d for d in md_seq if d], mode_info.mode),
-            }
-
-        _safe_section(result, "modal_analysis", _modal, None)
+        # A detecção automática de modo de igreja foi removida (gerava falsos
+        # frígios); a chave permanece sempre None para preservar o schema do
+        # resultado, e os relatórios omitem a seção quando ausente/None.
+        result["modal_analysis"] = None
+        # Coloração modal: overlay descritivo aditivo, ancorado na tônica TONAL.
+        # NÃO altera key/mode/graus/funções — só resume os empréstimos já presentes.
+        _safe_section(
+            result,
+            "modal_coloring",
+            lambda: detect_coloring(
+                analysis.key, analysis.mode, [c.symbol for c in all_chords]
+            )
+            if analysis
+            else None,
+            None,
+        )
         _safe_section(
             result,
             "roman_numerals",

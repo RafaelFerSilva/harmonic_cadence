@@ -91,6 +91,25 @@ def test_filter_collapses_consecutive_duplicates():
     assert clean_cifra_lines(["C  G", "C  G", "C  G", "Am"]) == ["C  G", "Am"]
 
 
+def test_filter_removes_tuning_drop_line():
+    lines = ["Am7", "Afinação Drop D: D A D G B E", "G7"]
+    assert clean_cifra_lines(lines) == ["Am7", "G7"]
+
+
+def test_filter_removes_capotraste_line():
+    assert clean_cifra_lines(["Capotraste na 2ª casa", "C  G"]) == ["C  G"]
+
+
+def test_filter_keeps_normal_chord_line_after_tuning_fix():
+    assert clean_cifra_lines(["Am7"]) == ["Am7"]
+
+
+def test_filter_idempotent_after_tuning_rule():
+    lines = ["Am7", "Afinação Drop D: D A D G B E", "G7"]
+    once = clean_cifra_lines(lines)
+    assert clean_cifra_lines(once) == once
+
+
 # --- models -------------------------------------------------------------------
 
 def test_cifra_round_trips_through_serialization():

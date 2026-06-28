@@ -27,7 +27,7 @@ The shared `cifra-core` package SHALL provide one `fix_encoding` implementation,
 
 ### Requirement: Single source of truth for cifra line preprocessing
 
-The `cifra-core` package SHALL own cifra line cleaning/filtering (tablature, section/structural markers, blank and consecutive-duplicate lines), exposing one canonical filter consumed by both packages. Line filtering MUST happen in exactly one place in the end-to-end pipeline, and MUST preserve the relative order of the lines it keeps.
+The `cifra-core` package SHALL own cifra line cleaning/filtering (tablature, section/structural markers, tuning/instrument lines, blank and consecutive-duplicate lines), exposing one canonical filter consumed by both packages. Line filtering MUST happen in exactly one place in the end-to-end pipeline, and MUST preserve the relative order of the lines it keeps.
 
 #### Scenario: Filtering is not duplicated end-to-end
 - **WHEN** a cifra travels from scrape to analysis
@@ -45,6 +45,11 @@ The `cifra-core` package SHALL own cifra line cleaning/filtering (tablature, sec
 #### Scenario: Section and structural markers are removed
 - **WHEN** the input contains markers such as `[Intro]`, `Parte 1 de 2`, or `tom: C`
 - **THEN** those lines are absent from the output
+
+#### Scenario: Instrument tuning lines are removed
+- **WHEN** the input contains a tuning line (e.g. `"Afinação Drop D: D A D G B E"`, `"Capotraste na 2ª casa"`)
+- **THEN** that line is absent from the output
+- **AND** the single-letter note names within it are NOT extracted as chord symbols
 
 #### Scenario: Chord and lyric content is kept in order
 - **WHEN** the input mixes chord lines and lyric lines with tablature between them
