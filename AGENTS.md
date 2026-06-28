@@ -82,7 +82,7 @@ openspec list --specs   # capabilities (specs)
 
 ## Estado atual
 
-Teoria destilada/implementada/testada (~28 changes, **312 testes verdes**). Corpus de
+Teoria destilada/implementada/testada (~28 changes, **318 testes verdes**). Corpus de
 validação **n=60** (ouro = tom do Cifra Club). Baseline atual: **modo 86% · tônica exata
 74% · relativa 81% · coleção 97% · centro estrutural 95% (18/19)** (ver [ROADMAP.md](ROADMAP.md)).
 
@@ -94,11 +94,16 @@ derrota discriminadores estatísticos — só o funcional vence). O modalismo vi
 descritivo** (`modal-coloring`), não eixo concorrente; a detecção de modo automática falsa
 foi removida.
 
-**Próxima frente:** `modal-center-arbitration` (Arrastão→Lá: ausência de dominante + cadência
-modal → finalis; + métrica de centro modal degree-relative). Depois: afrouxar o gate p/ os 4
-V-como-tônica restantes (guiado por dado, com a trava do baseline); e dim7-como-dominante
-(viio7 = V7b9). **Regra de ouro:** toda recalibração de detecção mede contra o baseline ao
-vivo — zero regressão das corretas é inegociável (já barrou 2 ships ruins).
+**Já fechados (camada de função + detecção):** `dim7-as-dominant` (viio7 = V7(b9) rootless,
+Chediak p.90), `loosen-tritone-gate` (V-como-tônica residual: exata 69→74, centro 79→95;
+resta só Aquele Abraço = tônica `I7` de funk), `classify-diminished-chords` (diminuto
+descendente/auxiliar deixam de ser `Emp`, Chediak pp.102-104). `modal-center-arbitration`
+está **bloqueado por dado** (as cifras do CC não codificam o centro modal de Chediak).
+
+**Frentes abertas:** buracos funcionais do Chediak ainda não cobertos (dominante auxiliar
+XVIII, II-V's/dominantes estendidos XXVIII, interpolados XXIX); e o caso `I7`-funk (Aquele
+Abraço). **Regra de ouro:** toda recalibração de detecção mede contra o baseline ao vivo —
+zero regressão das corretas é inegociável (já barrou ships ruins).
 
 ---
 

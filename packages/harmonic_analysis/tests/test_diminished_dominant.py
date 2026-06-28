@@ -18,6 +18,13 @@ def _fn(key, sym, nxt):
     return h.analyze_function(Chord(sym), None, Chord(nxt) if nxt else None)
 
 
+def _fn3(key, prev, sym, nxt):
+    h = HarmonicAnalysis(key, "major")
+    return h.analyze_function(
+        Chord(sym), Chord(prev) if prev else None, Chord(nxt) if nxt else None
+    )
+
+
 # --- função: dim7-dominante (resolve um semitom acima) ------------------------
 
 
@@ -80,6 +87,52 @@ def test_chromatic_dim7_keeps_altered_numeral_with_diminished_mark():
     assert h.roman_numeral(Chord("B°7"), Chord("C")) == "vii°7"   # diatônico
     assert h.roman_numeral(Chord("C#°7"), Chord("Dm")) == "#i°7"  # cromático
     assert h.roman_numeral(Chord("F#°7"), Chord("G")) == "#iv°7"
+
+
+# --- classificação do diminuto NÃO-dominante (Chediak XXI-XXII, pp.102-104) ----
+
+
+def test_descending_diminished_is_classified_descending_not_emp():
+    # Ab°7 → G: a fundamental desce um semitom → diminuto descendente, NÃO empréstimo.
+    code, name, _ = _fn3("C", "Am", "Ab°7", "G")
+    assert code == "Dim"
+    assert "descendente" in name.lower()
+
+
+def test_descending_diminished_db_to_c():
+    code, name, _ = _fn3("C", "Dm", "Db°7", "C")
+    assert code == "Dim" and "descendente" in name.lower()
+
+
+def test_auxiliary_diminished_is_classified_auxiliary_not_emp():
+    # C C#°7 C: sai de C e volta a C → bordadura (auxiliar), NÃO empréstimo.
+    code, name, _ = _fn3("C", "C", "C#°7", "C")
+    assert code == "Dim"
+    assert "auxiliar" in name.lower()
+
+
+def test_auxiliary_diminished_dm():
+    code, name, _ = _fn3("C", "Dm", "D#°7", "Dm")
+    assert code == "Dim" and "auxiliar" in name.lower()
+
+
+def test_ascending_diminished_stays_dominant():
+    # O ascendente que resolve ½t acima segue dominante (não vira auxiliar/descendente).
+    code, name, _ = _fn3("C", "C", "C#°7", "Dm")
+    assert code == "Dsec" and "V7(b9)/ii" in name
+
+
+def test_no_diminished_is_ever_modal_borrowing():
+    # Invariante: nenhum diminuto é rotulado empréstimo modal (Emp).
+    cases = [
+        ("C", "Am", "Ab°7", "G"),
+        ("C", "C", "C#°7", "C"),
+        ("C", "Dm", "Db°7", "C"),
+        ("C", "Dm", "D#°7", "Dm"),
+        ("C", "C", "C#°7", "Dm"),
+        ("C", "Am", "B°7", "C"),
+    ]
+    assert all(_fn3(*c)[0] != "Emp" for c in cases)
 
 
 def test_dim7_maps_to_diminished_octatonic_scale():

@@ -191,7 +191,35 @@ class HarmonicAnalysis:
                     "do alvo um semitom acima (Chediak p. 90).",
                 )
 
-        # 1. Função clássica diatônica (T, SD, D, Sub2, Dim, etc)
+        # 0d. Diminuto de 7ª NÃO-dominante (não resolve ½t acima): classificado por
+        #     TIPO (Chediak XXI-XXII, pp.102-104), nunca como empréstimo modal — um
+        #     diminuto jamais é empréstimo (empréstimo é tríade/tétrade maior/menor de
+        #     modo paralelo). O ascendente já saiu como dominante no 0c acima.
+        if chord.quality == "diminished":
+            if (
+                prev_chord
+                and next_chord
+                and self._get_interval(prev_chord.root, next_chord.root) == 0
+            ):
+                return (
+                    "Dim",
+                    "Diminuto auxiliar",
+                    "Bordadura: sai de um acorde e retorna a ele (Chediak pp.102-103).",
+                )
+            if next_chord and self._get_interval(next_chord.root, chord.root) == 1:
+                return (
+                    "Dim",
+                    "Diminuto descendente",
+                    "A fundamental desce um semitom para o próximo acorde "
+                    "(Chediak pp.102-103).",
+                )
+            return (
+                "Dim",
+                "Diminuto",
+                "Acorde diminuto conectivo / de passagem (Chediak pp.102-104).",
+            )
+
+        # 1. Função clássica diatônica (T, SD, D, Sub2, etc)
         for func_code, func_info in self.HARMONIC_FUNCTIONS.items():
             if degree in func_info["degrees"]:
                 # Validações específicas para algumas funções
@@ -202,20 +230,8 @@ class HarmonicAnalysis:
                     else:
                         continue  # Não é substituto se não preparar dominante
 
-                if func_code == "Dim":
-                    # Diminuto de passagem geralmente aparece entre acordes vizinhos
-                    if prev_chord and next_chord:
-                        interval_prev = self._get_interval(prev_chord.root, chord.root)
-                        interval_next = self._get_interval(chord.root, next_chord.root)
-                        # Exemplo: diminuto de passagem é meio tom entre acordes vizinhos
-                        if interval_prev == 1 and interval_next == 1:
-                            return (
-                                func_code,
-                                func_info["name"],
-                                func_info["description"],
-                            )
-                        else:
-                            continue  # Não é diminuto de passagem se não estiver entre vizinhos
+                # (O diminuto já é classificado no ramo 0d acima — por tipo, não por
+                # grau —, então a seção 1 nunca mais o alcança.)
 
                 # Para outras funções, retorna direto
                 return (func_code, func_info["name"], func_info["description"])

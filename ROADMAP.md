@@ -176,6 +176,14 @@ arbitragem modo↔tom nem o gate sintético:
      Rio** (V→I): exata **69→74%**, relativa **76→81%**, **centro 79→95% (18/19)**, modo 86% e
      coleção 97% **idênticos**, **zero regressão**. Resta só **Aquele Abraço** (tônica `I7` de
      funk: a tônica real soa como dominante e o IV parece repouso — caso distinto, change própria).
+   - **classificação completa do diminuto** — **feito** em `classify-diminished-chords`: o
+     diminuto não-dominante deixa de ser rotulado **"Empréstimo Modal"** (errado: empréstimo é
+     tríade/tétrade maior/menor de modo paralelo, nunca um diminuto) e passa a ser classificado
+     por TIPO (Chediak XXI-XXII, pp.102-104): **descendente** (fundamental desce ½t),
+     **auxiliar** (bordadura: sai e volta ao mesmo acorde), e genérico de passagem. O
+     **ascendente** segue dominante (`dim7-as-dominant`) e o `vii°7` segue D. Limpou o ramo
+     `"Dim"` que virou código morto (ofuscado pelo `0c`). Camada de função, **baseline
+     idêntico**; 318 testes (+6). Sondagem ao vivo flagrou o buraco (descendente/auxiliar→`Emp`).
    - **dim7-como-dominante (V7(b9) rootless)** — **feito** em `dim7-as-dominant`: um
      diminuto de 7ª é um V7(b9) **sem fundamental** (Chediak p. 90, "diminutos equivalentes
      e relação com V7(9-)"): `B°7` = `G7(b9)` − G → dominante de C. Na **camada de função**
