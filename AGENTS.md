@@ -16,6 +16,22 @@ divergências, **nunca chute**. Quando a teoria for ambígua, o livro decide. Mo
 interno em inglês canônico (`Note` soletrada, bemóis corretos — `Bb`, não `A#`);
 relatórios humanos em PT-BR.
 
+## Regra de ouro — separação de responsabilidades (fonte vs. verdade)
+
+- **Cifra Club = input bruto (texto).** É a mina de acordes (sequências de
+  caracteres). Sua utilidade **termina no scraping**. As anotações da fonte (o "tom",
+  o rótulo maior/menor) são pistas crowdsource-ingênuas, **não a verdade** — confundem
+  relativa/paralela, transpõem por tessitura, e **não codificam o centro modal** (provado
+  ao vivo: em Arrastão o centro de Chediak é Lá, mas as cifras do CC não têm finalis em Lá).
+- **Seu algoritmo + Chediak = ground truth.** O *significado* dos acordes — tensão/repouso,
+  centro tonal, nomenclatura modal — só nasce **depois** que o motor (parsers, filtros,
+  gates de qualidade) processa o dado bruto, ou quando validado contra a literatura
+  (Chediak / academia). Nunca leia o significado direto da anotação da fonte.
+
+Corolário operacional: um alvo de detecção/centro só é implementável se **o dado bruto
+o codifica**. Quando o corpus do CC não codifica o fato de Chediak (centro modal), a frente
+fica **bloqueada por dado** — precisa de um corpus curado, não de mais mecanismo.
+
 ## Layout (monorepo `uv` workspace)
 
 ```
