@@ -176,6 +176,14 @@ arbitragem modo↔tom nem o gate sintético:
      Rio** (V→I): exata **69→74%**, relativa **76→81%**, **centro 79→95% (18/19)**, modo 86% e
      coleção 97% **idênticos**, **zero regressão**. Resta só **Aquele Abraço** (tônica `I7` de
      funk: a tônica real soa como dominante e o IV parece repouso — caso distinto, change própria).
+   - **II cadencial secundário/auxiliar** — **feito** em `ii-cadential-secondary-auxiliary`:
+     Chediak XIX (p.100, lida do scan). Um acorde **menor** separado do dominante por 4ªJ
+     ascendente (ii→V) é um II cadencial; o tipo vem do **alvo do dominante** (5ª abaixo):
+     tônica→**primário** (`Dm7 G7`), grau diatônico→**secundário** (`F#m7 B7`→Em = de V7/III),
+     empréstimo→**auxiliar** (`Cm7 F7`→Bb = de V7/bVII). Antes o secundário virava `Emp`
+     (errado) e o auxiliar `T`; o `D2` ("Segunda Cadencial") estava morto (SD pegava `ii`
+     antes) e foi revivido para os 3 tipos. Sem metro nas cifras, usa a relação harmônica (não
+     o tempo forte). Camada de função, **baseline idêntico**; 334 testes (+8). Fecha XVIII-XIX.
    - **dominante auxiliar + SubV7 secundário** — **feito** em
      `dominant-auxiliary-and-secondary-subv`: Chediak XVIII (p.99, lida do scan). O **alvo**
      distingue: dominante **secundário** prepara grau diatônico (V7/x), **auxiliar** prepara

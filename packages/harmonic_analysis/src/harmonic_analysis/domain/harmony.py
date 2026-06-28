@@ -251,6 +251,38 @@ class HarmonicAnalysis:
                 "Acorde diminuto conectivo / de passagem (Chediak pp.102-104).",
             )
 
+        # 0e. II cadencial (Chediak XIX, p.100): um acorde MENOR separado do dominante
+        #     por 4ªJ ascendente (ii→V). O tipo vem do alvo do dominante (5ª justa
+        #     abaixo da fundamental do V): tônica→primário, grau diatônico→secundário,
+        #     empréstimo modal→auxiliar. Sem metro nas cifras, usa-se a relação
+        #     harmônica (não o tempo forte). Precede a leitura SD/Emp/T desses iim7.
+        if (
+            chord.is_minor
+            and next_chord is not None
+            and next_chord.is_dominant_seventh
+            and self._get_interval(chord.root, next_chord.root) == 5
+        ):
+            try:
+                v_root = Note.parse(next_chord.root).pitch_class
+                key_pc = Note.parse(self.key).pitch_class
+            except Exception:
+                v_root = None
+            if v_root is not None:
+                alvo_pc = (v_root + 5) % 12
+                alvo_grau = _CHROMATIC_DEGREE[(alvo_pc - key_pc) % 12]
+                if alvo_pc == key_pc:
+                    nome = "II cadencial primário"
+                elif alvo_pc in self.scale_pcs:
+                    nome = f"II cadencial secundário (de V7/{alvo_grau})"
+                else:
+                    nome = f"II cadencial auxiliar (de V7/{alvo_grau})"
+                return (
+                    "D2",
+                    nome,
+                    "Acorde menor que prepara o dominante; tipo pelo alvo do V, "
+                    "5ª justa abaixo (Chediak p.100).",
+                )
+
         # 1. Função clássica diatônica (T, SD, D, Sub2, etc)
         for func_code, func_info in self.HARMONIC_FUNCTIONS.items():
             if degree in func_info["degrees"]:
@@ -268,17 +300,8 @@ class HarmonicAnalysis:
                 # Para outras funções, retorna direto
                 return (func_code, func_info["name"], func_info["description"])
 
-        # 2. Segunda Cadencial (II-V-I)
-        if (
-            degree in self.HARMONIC_FUNCTIONS["D2"]["degrees"]
-            and next_chord
-            and self.get_degree(next_chord) in ["V", "V7"]
-        ):
-            return (
-                "D2",
-                self.HARMONIC_FUNCTIONS["D2"]["name"],
-                self.HARMONIC_FUNCTIONS["D2"]["description"],
-            )
+        # (O II cadencial é classificado no ramo 0e acima — pela relação ii→V e o
+        # alvo do dominante —, substituindo a antiga "Segunda Cadencial" por grau.)
 
         # 5a. Função modal: se um modo está ativo e o acorde é diatônico a ele,
         #     é função modal (não empréstimo).

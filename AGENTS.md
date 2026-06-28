@@ -82,7 +82,7 @@ openspec list --specs   # capabilities (specs)
 
 ## Estado atual
 
-Teoria destilada/implementada/testada (~28 changes, **326 testes verdes**). Corpus de
+Teoria destilada/implementada/testada (~28 changes, **334 testes verdes**). Corpus de
 validação **n=60** (ouro = tom do Cifra Club). Baseline atual: **modo 86% · tônica exata
 74% · relativa 81% · coleção 97% · centro estrutural 95% (18/19)** (ver [ROADMAP.md](ROADMAP.md)).
 
@@ -100,13 +100,15 @@ resta só Aquele Abraço = tônica `I7` de funk), `classify-diminished-chords` (
 descendente/auxiliar deixam de ser `Emp`, Chediak pp.102-104). `modal-center-arbitration`
 está **bloqueado por dado** (as cifras do CC não codificam o centro modal de Chediak).
 
-Também fechado: `dominant-auxiliary-and-secondary-subv` (Chediak XVIII p.99 — dominante
-auxiliar = alvo de empréstimo modal; SubV7 secundário; código `Daux`).
+Também fechados: `dominant-auxiliary-and-secondary-subv` (Chediak XVIII p.99 — dominante
+auxiliar = alvo de empréstimo modal; SubV7 secundário; código `Daux`) e
+`ii-cadential-secondary-auxiliary` (Chediak XIX p.100 — II cadencial primário/secundário/
+auxiliar pelo alvo do dominante; revive o `D2`). A preparação de graus (XVIII-XIX) está completa.
 
-**Frentes abertas:** buracos funcionais do Chediak ainda não cobertos — **II cadencial
-secundário/auxiliar (XIX, próxima)**, II-V's/dominantes estendidos (XXVIII), interpolados
-(XXIX); e o caso `I7`-funk (Aquele Abraço). **Regra de ouro:** toda recalibração de detecção
-mede contra o baseline ao vivo — zero regressão das corretas é inegociável (já barrou ships ruins).
+**Frentes abertas:** buracos funcionais do Chediak ainda não cobertos — II-V's/dominantes
+estendidos (XXVIII), acordes interpolados (XXIX); e o caso `I7`-funk (Aquele Abraço). **Regra
+de ouro:** toda recalibração de detecção mede contra o baseline ao vivo — zero regressão das
+corretas é inegociável (já barrou ships ruins).
 
 ---
 
