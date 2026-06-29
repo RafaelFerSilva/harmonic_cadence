@@ -52,3 +52,8 @@ data/
 .gemini/
 base_estudo/
 .ruff_cache/
+
+# Cifras locais (substrato do local-chord-input) — fora da fronteira de copyright,
+# não versionadas (coerente com "não armazenar cifras", só fatos no corpus).
+cifras/
+songbook-bossa-nova-v2.md
