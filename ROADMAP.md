@@ -178,6 +178,17 @@ arbitragem modo↔tom nem o gate sintético:
      Rio** (V→I): exata **69→74%**, relativa **76→81%**, **centro 79→95% (18/19)**, modo 86% e
      coleção 97% **idênticos**, **zero regressão**. Resta só **Aquele Abraço** (tônica `I7` de
      funk: a tônica real soa como dominante e o IV parece repouso — caso distinto, change própria).
+   - **SubV's estendidos (XXVIII c/d)** — **feito** em `extended-subv`: Chediak XXVIII c/d
+     (pp.107-108). Espelho do `Dext` por 4ªJ, mas por **semitom descendente** — e com
+     **detecção de cadeia**: um pré-passe (`subv_extended_indices`) acha runs maximais de
+     dominantes descendo ½t, comprimento **≥3** (≥2 movimentos), e marca todos menos o
+     terminal. Só a cadeia conta — o par local `F7 E7` é ambíguo com blues `IV7→III7` (foi o
+     motivo do adiamento na change irmã) e **não** dispara. Membros viram `Dext` (sabor SubV),
+     sem número romano, escala mixolídio; o verificador roda **antes** do gate de blues (um
+     `F7` dentro da cadeia sobrepõe o `IV7 blues`); o terminal (`Db7→C`) segue `SubV` primário.
+     Corrige de quebra o gap `Dext → "X"` no `FUNCTION_MACRO` do HMM (agora `"D"`,
+     retroativo ao XXVIII(a)). Camada de função + roman + chord-scale + HMM; **baseline
+     idêntico** (não toca `detect_key`); 349 testes (+8). Fecha a porta do semitom (XXVIII).
    - **dominantes estendidos (XXVIII(a))** — **feito** em `extended-dominants`: Chediak XXVIII
      (pp.107-108, lida do scan, offset 0). Um dominante que resolve **em OUTRO dominante** por
      4ªJ ascendente (ciclo de quintas — `A7 D7 G7 C`) pertence à **cadeia, não à tonalidade**:

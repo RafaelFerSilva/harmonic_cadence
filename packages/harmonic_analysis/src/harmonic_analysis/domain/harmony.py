@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, Literal, Optional, Tuple
+from typing import Dict, List, Literal, Optional, Sequence, Tuple
 
 from cifra_core.theory import Note
 from cifra_core.theory import build_scale as theory_build_scale
@@ -73,12 +73,13 @@ class HarmonicAnalysis:
         return [str(n) for n in notes], [n.pitch_class for n in notes], degrees
 
     def roman_numeral(
-        self, chord: Chord, next_chord: Optional[Chord] = None
+        self, chord: Chord, next_chord: Optional[Chord] = None,
+        subv_extended: bool = False,
     ) -> str:
         """Numeral romano do acorde (qualidade + inversão + aplicados)."""
         from harmonic_analysis.domain.roman import roman_numeral
 
-        return roman_numeral(chord, self, next_chord)
+        return roman_numeral(chord, self, next_chord, subv_extended)
 
     def get_degree(self, chord: Chord) -> Optional[str]:
         try:
@@ -99,10 +100,15 @@ class HarmonicAnalysis:
         chord: Chord,
         prev_chord: Optional[Chord] = None,
         next_chord: Optional[Chord] = None,
+        subv_extended: bool = False,
     ) -> Tuple[FunctionCode, str, str]:
         """
         Analisa a função harmônica do acorde no contexto.
         Retorna: (código_função, nome_função, descrição)
+
+        `subv_extended`: verdadeiro quando o acorde é membro de uma cadeia de SubV's
+        estendidos (Chediak XXVIII c/d) — determinado pelo pré-passe
+        `subv_extended_indices` sobre a progressão inteira (par local é ambíguo).
         """
 
         # Validação do acorde
@@ -120,6 +126,19 @@ class HarmonicAnalysis:
         #    secundário / SubV primário. A resolução precede a leitura de empréstimo
         #    de bVII7/bVI7: um Bb7/Ab7 que RESOLVE é dominante, não subdominante menor.
         if chord.is_dominant_seventh:
+            # 0a''. SubV estendido (Chediak XXVIII c/d, pp.107-108): membro de uma
+            #       cadeia de dominantes descendo por semitom (>=3, via pré-passe).
+            #       Vem ANTES do gate de blues: um IV7 dentro da cadeia (ex. F7 em
+            #       F#7 F7 E7 Eb7 D7 Db7) é cromático de cadeia, não blues. Reusa o
+            #       código Dext (sabor SubV); o terminal da cadeia não recebe o flag.
+            if subv_extended:
+                return (
+                    "Dext",
+                    "Dominante Estendido (SubV)",
+                    "SubV estendido: membro de cadeia de dominantes descendo 1/2t, "
+                    "resolve em outro dominante (Chediak XXVIII c/d, pp.107-108); "
+                    "não leva número romano, escala-acorde mixolídio.",
+                )
             pos = self._get_interval(self.key, chord.root)
             # 0a. I7/IV7 = blues (função especial fixa, Chediak XXXIV). Antes de tudo.
             if pos == 0:  # I7
@@ -414,6 +433,36 @@ class HarmonicAnalysis:
         """Intervalo ascendente em semitons (0..11), via classe de altura
         soletrada — enarmonicamente correto (`Bb` e `A#` dão o mesmo)."""
         return (Note.parse(note2).pitch_class - Note.parse(note1).pitch_class) % 12
+
+    @classmethod
+    def subv_extended_indices(cls, chords: Sequence[Chord]) -> set:
+        """Índices de SubV's estendidos (Chediak XXVIII c/d, pp.107-108).
+
+        Acha runs MAXIMAIS de dominantes-7 consecutivos em que cada par desce por
+        semitom (`_get_interval(i, i+1) == 11`); para cada run de comprimento >= 3
+        (>= 2 movimentos), marca todos os membros MENOS o último — o último não
+        resolve 1/2t num dominante (run maximal), logo é o terminal (ex.: Db7->C),
+        não estendido. Um run de 2 (par isolado, ex. F7 E7) é AMBÍGUO com blues e
+        fica de fora: a cadeia, não o par local, caracteriza o SubV estendido.
+        """
+        members: set = set()
+        n = len(chords)
+        i = 0
+        while i < n:
+            # estende o run enquanto o par (j, j+1) for dominante->dominante 1/2t desc.
+            j = i
+            while (
+                j + 1 < n
+                and chords[j].is_dominant_seventh
+                and chords[j + 1].is_dominant_seventh
+                and cls._get_interval(chords[j].root, chords[j + 1].root) == 11
+            ):
+                j += 1
+            run_len = j - i + 1  # acordes no run [i..j]
+            if run_len >= 3:
+                members.update(range(i, j))  # todos menos o último (j)
+            i = j + 1 if j > i else i + 1
+        return members
 
     @staticmethod
     def _is_chromatic_approach(

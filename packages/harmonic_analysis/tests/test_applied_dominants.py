@@ -141,3 +141,78 @@ def test_blues_iv7_not_extended_even_before_fourth_above_dominant():
     # F7 (IV7 blues) seguido de Bb7 (4ªJ acima) continua SD blues, não Dext.
     code, _, _ = _fn("C", "F7", "Bb7")
     assert code == "SD"
+
+
+# --- SubV estendido (cadeia de semitom descendente) — Chediak XXVIII c/d, p.107 ---
+
+
+def _chain_fn(key, seq):
+    """Classifica cada acorde da sequência com o flag de cadeia (pré-passe)."""
+    h = HarmonicAnalysis(key, "major")
+    chords = [Chord(s) for s in seq]
+    members = h.subv_extended_indices(chords)
+    out = []
+    for i, c in enumerate(chords):
+        nxt = chords[i + 1] if i + 1 < len(chords) else None
+        code, name, _ = h.analyze_function(c, None, nxt, i in members)
+        out.append((code, name))
+    return out, members
+
+
+def test_subv_chain_members_are_extended():
+    seq = ["C", "F#7", "F7", "E7", "Eb7", "D7", "Db7", "C"]
+    out, members = _chain_fn("C", seq)
+    assert sorted(members) == [1, 2, 3, 4, 5]  # F#7..D7 (Db7 terminal fora)
+    for i in (1, 2, 3, 4, 5):
+        assert out[i][0] == "Dext"
+        assert "SubV" in out[i][1]
+
+
+def test_subv_chain_terminal_stays_primary_subv():
+    seq = ["C", "F#7", "F7", "E7", "Eb7", "D7", "Db7", "C"]
+    out, _ = _chain_fn("C", seq)
+    assert out[6][0] == "SubV"  # Db7 → C (resolve 1/2t na tônica): SubV primário
+
+
+def test_subv_chain_overrides_blues_iv7():
+    # F7 (IV7) dentro da cadeia confirmada vira Dext, não SD blues.
+    out, _ = _chain_fn("C", ["C", "F#7", "F7", "E7", "Eb7", "D7", "Db7", "C"])
+    assert out[2][0] == "Dext"
+
+
+def test_isolated_semitone_pair_is_not_a_chain():
+    out, members = _chain_fn("C", ["F7", "E7"])
+    assert members == set()
+    assert out[0][0] == "SD"  # F7 segue IV7 blues
+
+
+def test_broken_run_under_three_is_not_a_chain():
+    # B7 Bb7 (run de 2, quebrado por A não-dominante) não vira cadeia.
+    _, members = _chain_fn("C", ["B7", "Bb7", "A", "G7"])
+    assert members == set()
+
+
+def test_subv_chain_member_carries_no_applied_numeral():
+    h = HarmonicAnalysis("C", "major")
+    seq = [Chord(s) for s in ["C", "F#7", "F7", "E7", "Eb7", "D7", "Db7", "C"]]
+    members = h.subv_extended_indices(seq)
+    # Eb7 (índice 4) é membro → cifra simples, sem V7/x.
+    rn = h.roman_numeral(seq[4], seq[5], 4 in members)
+    assert rn == "Eb7"
+
+
+def test_subv_chain_member_takes_mixolydian_scale():
+    from harmonic_analysis.domain import chord_scale
+
+    h = HarmonicAnalysis("C", "major")
+    seq = [Chord(s) for s in ["C", "F#7", "F7", "E7", "Eb7", "D7", "Db7", "C"]]
+    members = h.subv_extended_indices(seq)
+    # Eb7 (bIII7) sozinho não seria mixolídio; na cadeia, é.
+    mode, _ = chord_scale.recommended_scale(seq[4], h, seq[5], 4 in members)
+    assert mode == "mixolydian"
+
+
+def test_dext_maps_to_dominant_macro_in_hmm():
+    from harmonic_analysis.domain.functional_hmm import FUNCTION_MACRO
+
+    assert FUNCTION_MACRO["Dext"] == "D"

@@ -154,6 +154,9 @@ class AnalysisService:
 
     def _detailed_harmonic_analysis(self, analysis, all_chords):
         harmonic_analysis = []
+        # Cadeias de SubV's estendidos (Chediak XXVIII c/d) — pré-passe sobre a
+        # progressão inteira; o par local é ambíguo, só a cadeia conta.
+        subv_members = HarmonicAnalysis.subv_extended_indices(all_chords)
         try:
             for i, chord in enumerate(all_chords):
                 try:
@@ -184,7 +187,7 @@ class AnalysisService:
 
                     if analysis:
                         function_result = analysis.analyze_function(
-                            chord, prev_chord, next_chord
+                            chord, prev_chord, next_chord, i in subv_members
                         )
                         chord_analysis.update(
                             {
@@ -401,6 +404,12 @@ class AnalysisService:
     def _add_depth_sections(self, result, all_chords, analysis) -> None:
         """Popula as seções da Camada 2: RNA, condução de vozes, escala-acorde."""
 
+        # Membros de cadeias de SubV estendido (Chediak XXVIII c/d) — uma vez (O(n)),
+        # compartilhado pelas seções roman_numerals e chord_scales.
+        subv_members = (
+            analysis.subv_extended_indices(all_chords) if analysis else set()
+        )
+
         # A detecção automática de modo de igreja foi removida (gerava falsos
         # frígios); a chave permanece sempre None para preservar o schema do
         # resultado, e os relatórios omitem a seção quando ausente/None.
@@ -422,7 +431,9 @@ class AnalysisService:
             "roman_numerals",
             lambda: [
                 analysis.roman_numeral(
-                    c, all_chords[i + 1] if i + 1 < len(all_chords) else None
+                    c,
+                    all_chords[i + 1] if i + 1 < len(all_chords) else None,
+                    i in subv_members,
                 )
                 for i, c in enumerate(all_chords)
             ]
@@ -444,6 +455,7 @@ class AnalysisService:
                         c,
                         analysis,
                         all_chords[i + 1] if i + 1 < len(all_chords) else None,
+                        i in subv_members,
                     )
                 )
                 is not None

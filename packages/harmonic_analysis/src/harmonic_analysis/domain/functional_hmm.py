@@ -36,6 +36,7 @@ FUNCTION_MACRO: Dict[str, str] = {
     "D": "D",
     "Dsec": "D",
     "SubV": "D",
+    "Dext": "D",
     "Emp": "X",
     "Modal": "X",
     "Dim": "X",
@@ -272,11 +273,12 @@ def parse_progression(
         if est:
             key, mode = est.key_note, est.mode
     analysis = HarmonicAnalysis(key, mode)
+    subv_members = analysis.subv_extended_indices(chords)
     codes: List[str] = []
     strengths: List[Optional[str]] = []
     for i, c in enumerate(chords):
         prev = chords[i - 1] if i > 0 else None
         nxt = chords[i + 1] if i < len(chords) - 1 else None
-        codes.append(analysis.analyze_function(c, prev, nxt)[0])
+        codes.append(analysis.analyze_function(c, prev, nxt, i in subv_members)[0])
         strengths.append(functional_strength(analysis.get_degree(c)))
     return parse_codes(codes, [c.symbol for c in chords], strengths)

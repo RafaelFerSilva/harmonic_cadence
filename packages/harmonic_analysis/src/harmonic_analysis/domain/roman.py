@@ -79,9 +79,14 @@ def _inversion_figure(chord: Chord) -> str:
 
 
 def roman_numeral(
-    chord: Chord, analysis, next_chord: Optional[Chord] = None
+    chord: Chord, analysis, next_chord: Optional[Chord] = None,
+    subv_extended: bool = False,
 ) -> str:
     """Numeral romano do acorde no contexto da análise."""
+    # SubV estendido (Chediak XXVIII c/d): membro de cadeia de semitom → NÃO leva
+    # número romano; a cifra analítica é o próprio acorde (verdade vem do pré-passe).
+    if subv_extended:
+        return chord.symbol
     # Acorde aplicado (dominante secundário) tem notação própria.
     if chord.is_dominant_seventh and next_chord:
         ni = analysis._get_interval(chord.root, next_chord.root)

@@ -54,7 +54,8 @@ def _altered_dominant_scale(chord: Chord) -> Optional[str]:
 
 
 def recommended_scale(
-    chord: Chord, analysis, next_chord: Optional[Chord] = None
+    chord: Chord, analysis, next_chord: Optional[Chord] = None,
+    subv_extended: bool = False,
 ) -> Optional[Tuple[str, List[Note]]]:
     """Escala-acorde recomendada (modo + notas), pelo grau/função no contexto."""
     try:
@@ -75,10 +76,11 @@ def recommended_scale(
         # Dominante alterado: escala pela alteração (Chediak P5), com precedência.
         mode = _altered_dominant_scale(chord)
         if mode is None:
-            # Dominante estendido (Chediak XXVIII(a), p.339): resolve em OUTRO
-            # dominante por 4ªJ ascendente → mixolídio, independente da posição
-            # (a regra específica do estendido vence o default posicional p.113).
-            if (
+            # Dominante estendido (Chediak XXVIII, p.339): resolve em OUTRO dominante
+            # → mixolídio, independente da posição (a regra específica do estendido
+            # vence o default posicional p.113). Duas portas: 4ªJ ascendente (XXVIII-a,
+            # local) ou cadeia de semitom (XXVIII c/d, `subv_extended` via pré-passe).
+            if subv_extended or (
                 next_chord is not None
                 and next_chord.is_dominant_seventh
                 and analysis._get_interval(chord.root, next_chord.root) == 5
@@ -126,10 +128,11 @@ def tensions_and_avoids(chord: Chord, scale_notes: List[Note]) -> Tuple[List[str
 
 
 def analyze_chord(
-    chord: Chord, analysis, next_chord: Optional[Chord] = None
+    chord: Chord, analysis, next_chord: Optional[Chord] = None,
+    subv_extended: bool = False,
 ) -> Optional[Dict]:
     """Mapeamento escala-acorde + tensões/avoid de um acorde, ou None se não-diatônico."""
-    rec = recommended_scale(chord, analysis, next_chord)
+    rec = recommended_scale(chord, analysis, next_chord, subv_extended)
     if rec is None:
         return None
     mode, scale = rec
