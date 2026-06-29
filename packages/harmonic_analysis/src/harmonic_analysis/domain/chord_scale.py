@@ -53,7 +53,9 @@ def _altered_dominant_scale(chord: Chord) -> Optional[str]:
     return None
 
 
-def recommended_scale(chord: Chord, analysis) -> Optional[Tuple[str, List[Note]]]:
+def recommended_scale(
+    chord: Chord, analysis, next_chord: Optional[Chord] = None
+) -> Optional[Tuple[str, List[Note]]]:
     """Escala-acorde recomendada (modo + notas), pelo grau/função no contexto."""
     try:
         root = Note.parse(chord.root)
@@ -73,14 +75,26 @@ def recommended_scale(chord: Chord, analysis) -> Optional[Tuple[str, List[Note]]
         # Dominante alterado: escala pela alteração (Chediak P5), com precedência.
         mode = _altered_dominant_scale(chord)
         if mode is None:
-            # Sem alteração: escala dominante pela posição (Chediak, p. 113),
-            # não a escala da tríade diatônica da fundamental.
-            try:
-                key_pc = Note.parse(analysis.key).pitch_class
-                pos = (root.pitch_class - key_pc) % 12
-                mode = "lydian_dominant" if pos in _LYDIAN_DOM_POS else "mixolydian"
-            except Exception:
+            # Dominante estendido (Chediak XXVIII(a), p.339): resolve em OUTRO
+            # dominante por 4ªJ ascendente → mixolídio, independente da posição
+            # (a regra específica do estendido vence o default posicional p.113).
+            if (
+                next_chord is not None
+                and next_chord.is_dominant_seventh
+                and analysis._get_interval(chord.root, next_chord.root) == 5
+            ):
                 mode = "mixolydian"
+            else:
+                # Sem alteração: escala dominante pela posição (Chediak, p. 113),
+                # não a escala da tríade diatônica da fundamental.
+                try:
+                    key_pc = Note.parse(analysis.key).pitch_class
+                    pos = (root.pitch_class - key_pc) % 12
+                    mode = (
+                        "lydian_dominant" if pos in _LYDIAN_DOM_POS else "mixolydian"
+                    )
+                except Exception:
+                    mode = "mixolydian"
         return mode, build_scale(root, mode)
     if root.pitch_class not in analysis.scale_pcs:
         return None  # não-diatônico (Camada 2 cobre o diatônico)
@@ -111,9 +125,11 @@ def tensions_and_avoids(chord: Chord, scale_notes: List[Note]) -> Tuple[List[str
     return tensions, avoids
 
 
-def analyze_chord(chord: Chord, analysis) -> Optional[Dict]:
+def analyze_chord(
+    chord: Chord, analysis, next_chord: Optional[Chord] = None
+) -> Optional[Dict]:
     """Mapeamento escala-acorde + tensões/avoid de um acorde, ou None se não-diatônico."""
-    rec = recommended_scale(chord, analysis)
+    rec = recommended_scale(chord, analysis, next_chord)
     if rec is None:
         return None
     mode, scale = rec

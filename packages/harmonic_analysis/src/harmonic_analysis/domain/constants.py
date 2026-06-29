@@ -47,6 +47,14 @@ HARMONIC_FUNCTIONS: Dict[str, Dict[str, str | List[str]]] = {
         "5ª justa abaixo (Chediak p.99): o alvo é emprestado, não diatônico",
         "degrees": [],
     },
+    "Dext": {
+        "name": "Dominante Estendido",
+        "description": "Dominante que resolve em OUTRO dominante por 4ª justa "
+        "ascendente (ciclo de quintas); pertence à cadeia, não à tonalidade, "
+        "logo não leva número romano (Chediak XXVIII(a), pp.107-108). "
+        "Escala-acorde: mixolídio",
+        "degrees": [],
+    },
     "Emp": {
         "name": "Empréstimo Modal",
         "description": "Acordes vindos do modo paralelo",

@@ -438,8 +438,15 @@ class AnalysisService:
             "chord_scales",
             lambda: [
                 cs
-                for c in all_chords
-                if (cs := chord_scale.analyze_chord(c, analysis)) is not None
+                for i, c in enumerate(all_chords)
+                if (
+                    cs := chord_scale.analyze_chord(
+                        c,
+                        analysis,
+                        all_chords[i + 1] if i + 1 < len(all_chords) else None,
+                    )
+                )
+                is not None
             ]
             if analysis
             else [],

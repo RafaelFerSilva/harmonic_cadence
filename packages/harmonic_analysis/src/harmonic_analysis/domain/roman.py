@@ -86,6 +86,13 @@ def roman_numeral(
     if chord.is_dominant_seventh and next_chord:
         ni = analysis._get_interval(chord.root, next_chord.root)
         target_is_tonic = analysis._get_interval(next_chord.root, analysis.key) == 0
+        # Dominante estendido (Chediak XXVIII(a), pp.107-108): resolve em OUTRO
+        # dominante por 4ªJ ascendente → NÃO leva número romano ("o som não está
+        # diretamente vinculado à tonalidade"); a cifra analítica é o próprio acorde.
+        # Espelha o gate da função: I7/IV7 são blues (Chediak XXXIV), não estendidos.
+        pos = analysis._get_interval(analysis.key, chord.root)
+        if ni == 5 and next_chord.is_dominant_seventh and pos not in (0, 5):
+            return chord.symbol
         if ni == 5 and not target_is_tonic:
             return f"V7/{analysis.get_degree(next_chord)}"
 

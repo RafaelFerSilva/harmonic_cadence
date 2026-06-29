@@ -20,7 +20,7 @@ a frente fica **bloqueada por dado** — precisa de corpus curado, não de mais 
 
 ## Status (2026-06-28)
 
-**Feito e no `main`** (~24 changes OpenSpec, 273 testes verdes, `openspec/`
+**Feito e no `main`** (36 changes OpenSpec arquivadas, 334 testes verdes, `openspec/`
 versionado em `openspec/changes/archive/`):
 
 - **Teoria harmônica destilada do Chediak** — parsing de acorde (dialeto `±`,
@@ -73,22 +73,24 @@ versionado em `openspec/changes/archive/`):
   (Dm + D maior detectados). **Não toca** `detect_key`/`TIE_BAND`/`segment_keys`.
 
 **Baseline de detecção de tonalidade** (`uv run python scripts/key_baseline.py`,
-ouro = tom do Cifra Club, com a Fase B v1+v2+v3 + o gate de qualidade do 3b):
-- **Monotonais (n=58):** **modo 86% · tônica exata 69% · relativa-consciente 76% ·
-  coleção (armadura) 97%**. (Antes do gate de qualidade: 67/74; o gate corrigiu Garota
-  de Ipanema — V-como-tônica — sem regredir nada.)
-- **Centro estrutural (Chediak, degree-relative, `chediak-structural-gold`):** **79%**
-  (15/19 verificados por dominante funcional). O buraco restante = 4 casos de
-  V-detectado-como-tônica (A Banda, Aquele Abraço, Apesar de Você, Menino do Rio), onde
-  o sinal de **qualidade** não é limpo o bastante para o gate disparar com segurança.
+ouro = tom do Cifra Club, com a Fase B v1+v2+v3 + o gate de qualidade do 3b
+(v1 `tonal-center-tritone-gate` + v2 `loosen-tritone-gate`)):
+- **Monotonais (n=58):** **modo 86% · tônica exata 74% · relativa-consciente 81% ·
+  coleção (armadura) 97%**. (Antes do gate de qualidade: 67/74; o gate v1 corrigiu Garota
+  de Ipanema e o v2 corrigiu A Banda / Apesar de Você / Menino do Rio — todos
+  V-como-tônica — sem regredir nada.)
+- **Centro estrutural (Chediak, degree-relative, `chediak-structural-gold`):** **95%**
+  (18/19 verificados por dominante funcional). O buraco restante = 1 caso, **Aquele
+  Abraço** (tônica `I7` de funk: a tônica real soa como dominante e o IV parece repouso —
+  caso distinto, change própria).
 - **Leitura da coleção 97%** (`collection-aware-metric`, Incremento 3a): das falhas de
   tônica-exata, só **2** erram a coleção diatônica de fato (Desafinado +10, Começar de
   Novo +3); as demais acertam a armadura e erram só o **centro** dentro dela. Métrica
   **aditiva** — a tônica-exata segue o número honesto de primeira classe.
 - **Modulantes (n=2):** acerto parcial 100% · acerto total 100% (Wave, Chega).
 
-(Progressão: K-S puro 64/46/61 → Fase B v1+v2 83/62/72 → +v3+gate **86/69/76**. Sem gap
-de transposição, a tônica-exata é honesta. O gate de qualidade só corrige o centro quando
+(Progressão: K-S puro 64/46/61 → Fase B v1+v2 83/62/72 → +v3+gate 86/69/76 →
++loosen-gate **86/74/81**. Sem gap de transposição, a tônica-exata é honesta. O gate de qualidade só corrige o centro quando
 o palpite do K-S aparece **exclusivamente como dominante-7** e resolve num acorde de
 repouso — ultraconservador, zero regressão.)
 
@@ -176,6 +178,16 @@ arbitragem modo↔tom nem o gate sintético:
      Rio** (V→I): exata **69→74%**, relativa **76→81%**, **centro 79→95% (18/19)**, modo 86% e
      coleção 97% **idênticos**, **zero regressão**. Resta só **Aquele Abraço** (tônica `I7` de
      funk: a tônica real soa como dominante e o IV parece repouso — caso distinto, change própria).
+   - **dominantes estendidos (XXVIII(a))** — **feito** em `extended-dominants`: Chediak XXVIII
+     (pp.107-108, lida do scan, offset 0). Um dominante que resolve **em OUTRO dominante** por
+     4ªJ ascendente (ciclo de quintas — `A7 D7 G7 C`) pertence à **cadeia, não à tonalidade**:
+     novo código `Dext`, **não leva número romano** (cifra analítica = o próprio acorde, fiel a
+     "o som não está diretamente vinculado à tonalidade") e escala-acorde **mixolídio** (p.339,
+     vence o default posicional lídio b7 do p.113, mas não o dominante alterado). Antes `A7→D7`
+     virava `Dsec V7/II` e `Bb7→Eb7` virava `Daux`. Gate **após** o blues (I7/IV7 seguem SD/T).
+     Sondagem ao vivo estreitou o escopo: o **SubV estendido** (semitom, XXVIII c/d) colide com
+     o blues no par local → change própria (precisa de detecção de cadeia). Camada de função +
+     roman + chord-scale; **baseline idêntico** (não toca `detect_key`); 341 testes (+7).
    - **II cadencial secundário/auxiliar** — **feito** em `ii-cadential-secondary-auxiliary`:
      Chediak XIX (p.100, lida do scan). Um acorde **menor** separado do dominante por 4ªJ
      ascendente (ii→V) é um II cadencial; o tipo vem do **alvo do dominante** (5ª abaixo):

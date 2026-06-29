@@ -17,8 +17,8 @@ from harmonic_analysis.domain.constants import (
 )
 
 FunctionCode = Literal[
-    "T", "SD", "D", "D2", "SubV", "Sub2", "Dsec", "Daux", "Emp", "Modal", "Dim",
-    "Crom", "Outro"
+    "T", "SD", "D", "D2", "SubV", "Sub2", "Dsec", "Daux", "Dext", "Emp", "Modal",
+    "Dim", "Crom", "Outro"
 ]
 
 # Grau cromático (com bemol) por offset de semitons da tônica — para nomear o
@@ -133,6 +133,21 @@ class HarmonicAnalysis:
                     "SD",
                     "Subdominante (IV7 blues)",
                     "7ª sobre a subdominante: função blues, não dominante (Chediak)",
+                )
+            # 0a'. Dominante estendido (Chediak XXVIII(a), pp.107-108): resolve em
+            #      OUTRO dominante por 4ªJ ascendente (ciclo de quintas). Pertence à
+            #      cadeia, não à tonalidade → não leva grau. Precede Daux/Dsec (que
+            #      capturariam o par 4ªJ como V7/x atrelado ao tom). O elo final, que
+            #      resolve num não-dominante, não casa aqui e segue a leitura normal.
+            if (
+                next_chord
+                and next_chord.is_dominant_seventh
+                and self._get_interval(chord.root, next_chord.root) == 5
+            ):
+                return (
+                    "Dext",
+                    self.HARMONIC_FUNCTIONS["Dext"]["name"],
+                    self.HARMONIC_FUNCTIONS["Dext"]["description"],
                 )
             # 0b. Resolução funcional (Chediak XVIII, p.99) — precede bVII7/bVI7 Emp.
             if next_chord:
