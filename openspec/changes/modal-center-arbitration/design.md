@@ -1,168 +1,194 @@
 ## Context
 
-The Fase B center stack (cadential tiebreak v1, parallel-mode correction v2, tuning
-filter v3, 3b tritone quality gate) is mature and all of it is **tonal**: every
-mechanism either trusts or corrects toward a center reached by a **functional dominant**.
-The 3b gate (`_tritone_gate`, [key_detection.py:213](packages/harmonic_analysis/src/harmonic_analysis/domain/key_detection.py#L213))
-is explicit about this — it fires only when the K-S guess appears *exclusively as a
-dominant-7 resolving down a fifth to a resting chord*. A modal piece has **no functional
-dominant by construction**, so none of these mechanisms can find its center, and the
-`center_accuracy` metric runs only over the dominant-`verified` subset
-([key_accuracy.py:207](packages/harmonic_analysis/src/harmonic_analysis/validation/key_accuracy.py#L207)),
-which quarantines every modal piece.
+This change was first designed as **detection** (Caminho 1): a `modal_center.py` domain
+module reading the chords and gating on absence-of-dominant + modal-cadence-to-finalis to
+**recover** the modal center. The zero-regression trava invalidated that premise before any
+code shipped — see [PROBE-FINDINGS.md](./PROBE-FINDINGS.md): Arrastão's finalis (Lá) is
+**unrecoverable** from the Cifra Club chords (`_central_pc`→Mi, the piece ends on `D7+`, Lá
+only ties for 2nd), and Procissão's Dó appears **1×/80**. Per the project's Golden Rule
+([[modal-center-blocked-by-corpus]]), a detection target is implementable only if the raw
+data encodes it — and it does not.
 
-Meanwhile the modal facts already exist as cited authority but are inert:
-`TIER_A_CHEDIAK` in [chediak_structural_gold.py:37](scripts/chediak_structural_gold.py#L37)
-lists Arrastão (A dorian, p.125), Upa Neguinho (D mixolydian, p.126), Procissão (C
-mixolydian, p.126), Pra Não Dizer (E aeolian, p.127) — explicitly "RESERVADO para a change
-2", because their offset cannot be derived by absolute subtraction. The `modal_coloring`
-overlay ([modal_coloring.py](packages/harmonic_analysis/src/harmonic_analysis/domain/modal_coloring.py))
-already reads the borrowings and names a flavor, but is contractually forbidden from
-re-centering. The modal library ([modal.py](packages/harmonic_analysis/src/harmonic_analysis/domain/modal.py))
-has `_central_pc` (bass-centric finalis), `detect_mode` (church-mode classification), and
-`modal_cadences` — but `detect_mode` was deliberately removed from the pipeline
-(`fix-or-remove-church-mode`) because auto-promotion produced 12/60 spurious phrygians.
+This redesign pivots to **Caminho 2 — annotation, not detection**. The modal center for the
+genuinely-divergent pieces is a **curated musicological fact** (Chediak's reading, with page
+citation), injected at **display time**, that never reads the chords for a verdict, never
+touches `detect_key`, and never enters a detection-accuracy metric. It is the exact same
+display-layer pattern as the just-shipped part **(A)** `modal-mode-naming` ([[session-handoff-3b]]):
+(A) **names** what the algorithm detects ("D mixolídio"); (B) **annotates** what the data
+cannot encode but the authority documents ("Chediak p.125: Lá dórico"). Together they are the
+**explicit analytical bifurcation** — the algorithm's truth and the literature's truth, side
+by side.
 
-This change closes the loop: an **overlay** (not a pipeline re-centering) that names the
-modal center under a gate strict enough to avoid the spurious-phrygian trap, plus the
-**degree-relative metric** that finally measures it. Constraints: `detect_key` is
-untouched; the four Cifra-Club metrics and the tonal `center_accuracy` stay byte-identical;
-every recalibration is measured live against the baseline (the rule that already barred two
-bad ships — see [[tritone-gate-quality-lesson]]).
+The unlock the ROADMAP missed: Caminho 2 needs a **curated *fact* corpus** (artist→song→
+center→mode→page→note), which is cheap and copyright-safe — **not** a melodic substrate
+(MIDI/MusicXML), which is the legal/technical quagmire that blocked Caminho 1. The block was
+never "we lack the answer" (Chediak gives it); it was "no mechanism recovers it from chords."
+Annotation sidesteps the mechanism entirely.
 
 ## Goals / Non-Goals
 
 **Goals:**
-- Name a modal center (finalis + church mode) for Arrastão-class pieces, as an additive
-  overlay distinct from the tonal key.
-- Gate it on Chediak's principled criterion (pp. 121-123): absence of a functional
-  dominant + a characteristic modal cadence resolving onto a finalis that differs from
-  the K-S tonic.
-- Reuse existing machinery (`modal._central_pc`, `detect_mode`, `modal_cadences`,
-  `modal_coloring`, `verify_tonal_center`) — no parallel modal subsystem.
-- Add a degree-relative `modal_center_accuracy` metric over the existing `chediak` tier,
-  with curated degree offsets, and report it live in the baseline.
+- Display Chediak's modal center (finalis + church mode) as a cited **curator note**, side by
+  side with the algorithmic tonal reading, for pieces where the two genuinely diverge
+  (Arrastão → Lá dórico; Procissão → Dó mixolídio).
+- Keep a **single curated source of truth** for the modal facts (no duplication of the four
+  facts already inert in `TIER_A_CHEDIAK`).
+- Be **transposition-honest**: never present Chediak's absolute letter as if it shared the CC
+  arrangement's key; express the divergence in a frame that survives transposition.
+- Replace the (now meaningless) detection-accuracy metric with a **coverage + divergence
+  ledger** reported live in the baseline — honest about the fact that *nothing is detected*.
+- Guarantee, by construction, **zero movement** of the four Cifra-Club metrics and the tonal
+  `center_accuracy`.
 
 **Non-Goals:**
-- Modifying `detect_key` or any tonal metric (inviolable: zero regression).
-- Re-centering the tonal analysis or re-introducing auto modal promotion into the
-  pipeline.
-- Solving the 4 remaining tonal V-as-tonic cases (A Banda / Aquele Abraço / Apesar de
-  Você / Menino do Rio) — those stay with the tonal gate frontier.
-- dim7-as-dominant (viio7 = V7b9) — its own future change.
-- Curating a large modal corpus; the metric runs over the ~4 committed `chediak` facts
-  and grows later.
+- Any chord-reading gate, finalis recovery, or `modal_center.py` domain module (Caminho 1 —
+  abandoned).
+- Touching `detect_key`, `detect_coloring`, `segment_keys`, `TIE_BAND`, functions, cadences,
+  or any tonal metric (inviolable).
+- Mode-**name**-only divergences (Upa Neguinho, Pra Não Dizer) — their center is already
+  correct; naming the mode is part **(A)**'s job, not a curated annotation (see D4).
+- A melodic substrate, or a large modal corpus — the annotation grows fact-by-fact as a
+  musician curates, starting from the ~2 genuine center-divergence cases.
 
 ## Decisions
 
-### D1 — Overlay module, not a `detect_key` change
+### D1 — Annotation at the display layer, not a domain detector
 
-Add `packages/harmonic_analysis/src/harmonic_analysis/domain/modal_center.py` exposing
-`arbitrate_modal_center(symbols, tonal_tonic_pc, tonal_mode) -> Optional[ModalCenter]`,
-called as a lazy section in `analysis_service` exactly like `modal_coloring`
-([analysis_service.py:408](packages/harmonic_analysis/src/harmonic_analysis/services/analysis_service.py#L408)).
+Drop `domain/modal_center.py` and `arbitrate_modal_center(symbols, …)` entirely. The modal
+center is **looked up by song identity** (artist + title), not computed from symbols. The
+lookup + render lives in the **presentation layer**, mirroring how part (A) wired
+`modal_mode_name` into the report header ([markdown.py `_generate_header`](packages/harmonic_analysis/src/harmonic_analysis/presentation/reports/markdown.py), [html.py `_generate_html_document`](packages/harmonic_analysis/src/harmonic_analysis/presentation/reports/html.py)).
 
-*Why over extending `detect_key`*: the ROADMAP's "bloqueado" warning is precise — the
-center failure spreads over V/vi/iii/IV with no single safe gate, and any re-centering
-risks the ~41 correct tonal detections. An overlay carries **zero** risk to the tonal
-metrics by construction. *Why over extending `modal_coloring`*: coloring's contract is
-"anchored to the tonal tonic, never re-center"; naming a different finalis is a different
-concern. It *reuses* coloring's evidence helpers but lives separately.
+*Why*: there is no chord-derived verdict to make — the value is a cited fact. A domain gate
+would re-import the invalidated premise (and the spurious-phrygian risk that got
+`detect_mode` removed in `fix-or-remove-church-mode`). Display-only ⇒ **zero** detection-path
+risk by construction.
 
-### D2 — The gate: absence-of-dominant ∧ modal-cadence-to-finalis ∧ finalis≠tonic
+### D2 — One curated source of truth (promote `TIER_A_CHEDIAK`)
 
-Three conjuncts, all from existing code:
-1. **Absence of functional dominant** — `not verify_tonal_center(symbols, tonal_tonic_pc)`
-   **and** `not verify_tonal_center(symbols, finalis_pc)`. Reuses the Tier-B mechanical
-   criterion (true tritone `Category.DOMINANT` resolving in a final cadence,
-   [chediak_structural_gold.py:68](scripts/chediak_structural_gold.py#L68)). This is the
-   single hardest gate — a piece with a real V7→I is tonal, full stop (Chediak p.84/87).
-2. **Modal cadence to the finalis** — the characteristic degree of the candidate mode
-   resolves onto the finalis, computed degree-relative to the **finalis** (reusing the
-   `modal_coloring._cadence_to_tonic` / `modal.modal_cadences` shape). This is what
-   distinguishes a genuine modal close from incidental chromaticism.
-3. **Finalis ≠ tonal tonic** — `_central_pc(symbols) != tonal_tonic_pc`. When they
-   coincide the piece is already centered; only a coloring is warranted, not a
-   re-centering.
+The four facts already exist, inert, in [`scripts/chediak_structural_gold.py::TIER_A_CHEDIAK`](scripts/chediak_structural_gold.py)
+(artist, song, center, mode, page, note — "RESERVADO para a change 2"). Rather than add a
+parallel `curated_gold.json` that duplicates them (violating the project's "uma fonte" law),
+**promote** that list into a single curated dataset that serves **both** the display
+annotation **and** the metric.
 
-*Why this triple and not statistics*: [[tritone-gate-quality-lesson]] — MPB's secondary-
-dominant density defeats collection/statistical discriminators; only the **functional**
-signal (repose vs. tension, dominant resolution) survives. Absence-of-dominant is the
-negative of that same functional signal, so it inherits the robustness.
+Open recommendation (capture the user's call): a **Python module**
+`scripts/curated_modal_centers.py` (or `packages/.../presentation/curated_modal_centers.py` if
+the runtime report needs it without `scripts/` on the path) keeps parity with
+`key_baseline.GOLD` and `TIER_A_CHEDIAK` (typed, test-visible, no JSON parse/validate layer). A
+`curated_gold.json` is viable if non-developer editing is wanted, but then it must be the
+**only** copy and `TIER_A_CHEDIAK` reads from it. Either way: **one** source. Copyright
+boundary unchanged — facts only (no chords, no book text/tables).
 
-### D3 — Church mode from `detect_mode`, finalis-anchored
+Schema per entry (extends the existing tuple with the transposition-safe field from D5):
+```
+artist, song            # identity key (slugified, reuse cifra_core/slug.py)
+curated_center          # Chediak's finalis letter, in CHEDIAK'S edition (e.g. "A")
+curated_mode            # church mode (e.g. "dorian")
+finalis_from_tonal      # D5: semitone interval finalis−(detected tonal center), IN THE
+                        #     CC ARRANGEMENT; curated by reading Chediak's analysis onto
+                        #     the scraped chords — NOT chediak_center_pc − cc_key_pc
+page                    # Chediak Vol. I page
+note                    # the divergence explanation (arrangement transposed/tonalized)
+```
 
-Once the gate passes, classify the mode by calling `detect_mode(symbols)`
-([modal.py:122](packages/harmonic_analysis/src/harmonic_analysis/domain/modal.py#L122)),
-which already derives the church mode from the collection + finalis. We trust it **only
-behind the gate** — the very gate whose absence made `detect_mode` produce 12/60 false
-phrygians when run unconditionally. The conjunction (no dominant + modal cadence + finalis
-shift) is exactly the missing precondition.
+### D3 — Scope is identity-keyed; reuse the slug machinery
 
-### D4 — Metric: curated degree offset over the `chediak` tier, one frame
+Lookup key = `slug(artist) + "|" + slug(song)` via [`cifra_core/slug.py`](packages/cifra_core/src/cifra_core/slug.py),
+the same normalization the provider/baseline already use, so "Arrastao"/"Arrastão" and
+artist-casing variants resolve. A miss ⇒ no curator note (the common case; the report is
+byte-identical to today).
 
-`modal_center_accuracy` reuses `center_ok(detected, cc_key, structural_offset)`
-([key_accuracy.py:73](packages/harmonic_analysis/src/harmonic_analysis/validation/key_accuracy.py#L73))
-unchanged — it already compares `(detected − cc_key) % 12 == offset`. The only new thing is
-**where the gold offset comes from**: a curated degree fact per modal song, not
-`structural_offset(center_note, cc_key_pc)` (the absolute subtraction at
-[chediak_structural_gold.py:56](scripts/chediak_structural_gold.py#L56), which is unsafe
-across transpositions). We extend `TIER_A_CHEDIAK` entries (or a parallel modal map) with a
-hand-curated `degree_offset` taken from Chediak's functional reading, and run
-`evaluate_corpus`'s center branch over the `chediak` provenance using that offset. Both
-operands of `center_ok` come from the Cifra Club arrangement → transposition-invariant.
+### D4 — Curated annotation covers CENTER divergence only; mode-name divergence is part (A)
 
-*Why curated, not derived*: see [[center-eval-degree-relative]] — the metric must compare
-degrees in **one** frame `(detected − cc_key) % 12`; the Chediak note is in a possibly
-different frame, so subtracting it cross-frame is the documented bug (Pra Não Dizer E vs F).
-The degree relationship ("the finalis is the V of the CC key") *is* frame-invariant and is
-the curatable fact.
+The clean partition that fell out of explore:
 
-### D5 — Report & observability
+```
+  offset == 0  (center already correct, only the mode NAME differs)
+      → Upa Neguinho (D mixo), Pra Não Dizer (E aeolian)
+      → handled ALGORITHMICALLY by part (A) modal-mode-naming / coloring
+      → NOT in the curated set
 
-`analysis_service` gets a lazy `modal_center` section via `_safe_section` (visible
-degradation + `result["diagnostics"]`). `scripts/key_baseline.py` gains a
-`modal_center_accuracy` line + per-song modal-hole list, alongside the existing tonal
-center block, measured live. Human text PT-BR ("Centro modal: Lá dórico"); internal model
-canonical English.
+  offset != 0  (the center itself diverges; chords cannot encode the finalis)
+      → Arrastão (Lá dórico vs detected D maj), Procissão (Dó mixo vs detected A maj)
+      → handled by CURATED ANNOTATION (this change, part B)
+```
+
+So the curated dataset holds **only** the genuine center-divergence cases. Pra Não Dizer and
+Upa Neguinho stay out — annotating them would duplicate (A) and imply a divergence that isn't
+there. (Their `cc_key` transposition mismatch is a separate baseline note, not a modal-center
+fact.)
+
+### D5 — Transposition honesty (the crux)
+
+Chediak's "Lá dórico" lives in **Chediak's edition**; the scraped CC arrangement may be in a
+different key (probe: Arrastão Chediak Lá, cc_key Sol, chords detect Ré maior — three frames).
+Two rules:
+
+1. **Never auto-transpose Chediak's absolute letter into the arrangement, then subtract** —
+   `chediak_center_pc − cc_key_pc` is the exact trap that breaks Pra Não Dizer (Mi vs Fá). The
+   metric's offset is **curated**, read from Chediak's functional analysis applied to the
+   scraped chords (the `finalis_from_tonal` interval, anchored to the algorithm's own detected
+   tonal center — the one frame computed from the real data), citing the page.
+2. **Display presents Chediak's reading as the book's, explicitly labeled**, with the
+   divergence stated — it does **not** silently render "Lá dórico" beside "Ré maior" as if
+   commensurable. The note carries the caveat (arrangement adapted/transposed). Optionally the
+   finalis may also be shown transposed into the arrangement via `finalis_from_tonal` ("≈ o
+   modo dórico sobre o 5º grau da leitura tonal"), which IS transposition-safe; the absolute
+   "Lá dórico (Chediak, p.125)" remains the citation.
+
+### D6 — The metric is a divergence ledger + coverage, NOT detection accuracy
+
+Caminho 1 proposed `modal_center_accuracy` over the `chediak` tier. Under Caminho 2 **nothing
+is detected**, so an accuracy would be trivially 100% (we assert the gold) — dishonest. Replace
+it with, in `validation/key_accuracy.py` + the baseline report:
+- **Coverage:** "N songs carry a curated modal-center annotation."
+- **Divergence ledger:** per curated song, `(detected tonal center, curated modal center+mode,
+  finalis_from_tonal interval, page)` — quantifying the gap (e.g. "arranjo lê maior; Chediak
+  concebe dórico uma 5ªJ acima"), which is the pedagogical payload itself.
+This is degree-relative ([[center-eval-degree-relative]]) and transposition-safe by D5.
+
+### D7 — Quarantine integrity (the inviolable gate)
+
+The curated-modal songs are already outside the tonal `center_accuracy` (it runs over the
+`verified` tier only, [key_accuracy.py:207](packages/harmonic_analysis/src/harmonic_analysis/validation/key_accuracy.py#L207))
+and outside the four Cifra-Club metrics (which compare against `cc_key`, untouched). Because
+this change adds only a display lookup + a separate ledger, **every** existing metric is
+byte-identical. The trava re-runs `key_baseline.py` and diffs to prove it — the same gate that
+barred two bad ships ([[tritone-gate-quality-lesson]]).
+
+## Display shape (the bifurcation)
+
+```
+**Tonalidade sugerida:** D (maior)
+**Centro modal:** D mixolídio                              ← (A), algorithmic surface
+
+> **Nota do curador — Chediak, Harmonia & Improvisação Vol. I, p. 125:**
+> Esta composição é concebida em **Lá dórico**. A cifra analisada (Cifra Club) está
+> adaptada — em outra tonalidade e sem o sinal funcional do modo —, então a leitura
+> algorítmica acima reflete o *arranjo*, não a *concepção* original.   ← (B), curated fact
+```
+
+The curator note renders **only** when an entry exists; otherwise the report is unchanged.
 
 ## Risks / Trade-offs
 
-- **[Re-centering leaks into the tonal output]** → The overlay never writes key/mode;
-  enforced by a spec scenario ("Modal center never changes the tonal reading") and a test
-  asserting the four metrics + tonal `center_accuracy` are byte-identical before/after.
-- **[`detect_mode` false-positive resurfacing]** → It runs *only* behind the three-conjunct
-  gate; tests cover the silence cases (eólias Wave/Corcovado/Insensatez must get no modal
-  center; a diatonic major must get none).
-- **[Tiny metric n (~4 chediak facts)]** → Honest and additive; reported with its subset
-  size so coverage is visible. Not a quality gate on its own — it measures the new
-  arbitration, it does not block the four tonal metrics. Grows as the modal corpus grows.
-- **[Curated offset is a manual judgement]** → Each offset cites a Chediak page and records
-  the degree relationship in the justification; it is a fact, not a tuning knob. Copyright
-  wall holds: facts only (song→center→mode→page), never harmonizations (see
-  [[baseline-gold-is-cifraclub]]).
-- **[Aeolian is "just" the relative minor]** → Pra Não Dizer (E aeolian) overlaps the tonal
-  relative-minor reading; the overlay should add value only when the finalis genuinely
-  shifts the center. Guarded by conjunct 3 (finalis ≠ tonic) and validated against the
-  baseline; if it produces noise, scope the first ship to dorian/mixolydian and defer
-  aeolian.
+- **Tiny n (≈2).** Only Arrastão and Procissão are genuine center-divergence facts today. The
+  feature is correct but low-coverage until a musician curates more. `log`/report the count so
+  coverage is never overstated. *(Accepted: the architecture is the deliverable; facts accrue.)*
+- **Arrangement-specific facts.** `finalis_from_tonal` is curated against the *scraped* chords;
+  if CC re-arranges the song, re-curate. Flagged in the entry `note`. *(Accepted.)*
+- **Identity-key brittleness.** Title/artist variants must slug-match; reuse `slug.py` and add a
+  test. A miss degrades to "no note" (safe), never to a wrong note.
+- **Provenance discipline.** Only facts (center/mode/page/note/interval) — never book text,
+  tables, or chords. Same boundary as `key_baseline.GOLD` and `TIER_A_CHEDIAK`.
 
-## Migration Plan
+## Migration / Open Questions
 
-1. Land `modal_center.py` + tests (overlay, no pipeline wiring) — baseline unchanged.
-2. Wire the lazy `analysis_service` section behind `_safe_section`.
-3. Extend the structural gold with curated `degree_offset` + activate the `chediak` tier in
-   the metric; add the baseline line.
-4. Run `uv run python scripts/key_baseline.py` live; confirm the four Cifra-Club metrics
-   and tonal `center_accuracy` are identical; record `modal_center_accuracy` in ROADMAP.
-5. Rollback = drop the overlay call + metric line; `detect_key` was never touched, so the
-   tonal baseline is the rollback target by construction.
-
-## Open Questions
-
-- Does the first ship include **aeolian** (Pra Não Dizer) or scope to dorian/mixolydian
-  until the finalis-shift heuristic is proven not to add relative-minor noise? Lean:
-  measure all four against the baseline; ship only the flavors that gate cleanly.
-- Should `modal_center` and `modal_coloring` ever co-occur on one piece, and if so how is
-  the PT-BR report worded? Lean: allow both (center names the finalis, coloring the
-  borrowings); resolve wording at report time.
+- **D2 format — Python module vs JSON?** Recommend Python module (single source, typed,
+  test-visible). Confirm before implementation.
+- **Where does the curated loader live** so the *runtime report* (not just `scripts/`) can read
+  it — `packages/.../presentation/` or `domain/`? (Leans `presentation/`, since it's a
+  display-only concern.)
+- Whether to also render the transposition-safe relative finalis ("dórico sobre o 5º grau") in
+  addition to the absolute citation (D5.2) — a presentation nicety, decide at build.
