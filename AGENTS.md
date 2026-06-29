@@ -83,13 +83,21 @@ openspec list --specs   # capabilities (specs)
 ## Estado atual
 
 Teoria destilada/implementada/testada (39 changes arquivadas + `modal-mode-naming` +
-`modal-center-arbitration` (Caminho 2) prontas p/ arquivar, **391 testes verdes**). Corpus de
-validação **n=60** (ouro = tom do Cifra Club). Baseline atual: **modo 86% · tônica exata
-76% · relativa 83% · coleção 97% · centro estrutural 100% (19/19)** (ver [ROADMAP.md](ROADMAP.md)).
+`modal-center-arbitration` (Caminho 2) + `chediak-tonal-center-gold` prontas p/ arquivar,
+**395 testes verdes**). Corpus de validação **n=60** (ouro = tom do Cifra Club). Baseline atual:
+**modo 86% · tônica exata 76% · relativa 83% · coleção 97% · centro estrutural verificado 100%
+(19/19)** (ver [ROADMAP.md](ROADMAP.md)).
 A **bifurcação analítica (A)+(B) está completa**: (A) nomeia o modo que o algoritmo detecta
 ("D mixolídio"); (B) anota o centro modal que a cifra não codifica mas Chediak documenta
 (Arrastão → Lá dórico p.125; Procissão → Dó mixolídio p.126), via corpus curado n=2 — zero
 regressão tonal.
+**Centro tonal — tier Chediak citado (`chediak-tonal-center-gold`):** os rótulos "Tom de X"
+da Parte 4 viram âncora de centro NÃO-circular (independe de dominante), reportada à parte do
+tier verificado (que segue 19/19). Offset degree-relative curado (papel da tônica vs cc_key,
+nunca subtração absoluta — Valsinha Lá menor/cc Cm = transposição → 0; Coração Vagabundo
+Dó menor/cc Eb = relativa → 9). Primeiro **buraco do detector** revelado: **Coração Vagabundo**
+— o detector lê **Mi♭ maior** (a relativa), mas Chediak concebe **Dó menor** (alvo de detecção
+futura). Corpus tonal n=5 (3 ativos; 2 já cobertos pelo tier verificado).
 
 A Fase B (centro tonal) está madura: desempate cadencial (v1, confusão relativa), correção
 de modo paralelo (v2), filtro de afinação (v3), e o **gate de qualidade do 3b** — corrige

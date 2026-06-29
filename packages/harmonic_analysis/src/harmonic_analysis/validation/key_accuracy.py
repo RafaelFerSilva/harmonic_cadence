@@ -96,6 +96,9 @@ class KeyEval:
     # (chediak/verified). None = música em quarentena (unverified), fora da métrica.
     center_ok: Optional[bool] = None
     structural_offset: Optional[int] = None
+    # Tier que ligou o centro: "verified" (dominante funcional) ou "chediak" (tom citado
+    # da Parte 4). None quando o centro está fora (quarentena).
+    provenance: Optional[str] = None
 
 
 def evaluate_song(
@@ -103,11 +106,13 @@ def evaluate_song(
     chords: Iterable[str],
     annotated_key: str,
     structural_offset: Optional[int] = None,
+    provenance: Optional[str] = None,
 ) -> Optional[KeyEval]:
     """Avalia uma música; None se faltar anotação ou detecção.
 
-    `structural_offset` (quando dado, p/ músicas de proveniência verificada) liga a
-    métrica de centro estrutural; None deixa o centro fora (quarentena)."""
+    `structural_offset` (quando dado, p/ músicas de proveniência verificada/chediak) liga
+    a métrica de centro estrutural; None deixa o centro fora (quarentena). `provenance`
+    rotula o tier que ligou o centro ("verified"|"chediak")."""
     annotated = parse_key(annotated_key)
     est = detect_key(list(chords))
     if annotated is None or est is None:
@@ -128,6 +133,7 @@ def evaluate_song(
         same_collection=same_collection(annotated, detected),
         center_ok=co,
         structural_offset=structural_offset,
+        provenance=provenance if co is not None else None,
     )
 
 
@@ -200,22 +206,33 @@ def evaluate_corpus(
         name = s[0]
         offset, prov = structural.get(name, (None, "unverified"))
         use_offset = offset if prov in ("chediak", "verified") else None
-        e = evaluate_song(s[0], s[1], s[2], use_offset)
+        use_prov = prov if prov in ("chediak", "verified") else None
+        e = evaluate_song(s[0], s[1], s[2], use_offset, use_prov)
         if e is not None:
             evals.append(e)
     n = len(evals)
     denom = n or 1
-    verified = [e for e in evals if e.center_ok is not None]
-    center_denom = len(verified) or 1
+    # Centro estrutural sobre `verified` ∪ `chediak`-tonal (ambos degree-relative). Os
+    # subconjuntos são reportados à parte para que o valor do tier `verified` (a trava
+    # 19/19) nunca seja silenciosamente misturado com o tier citado de Chediak.
+    centered = [e for e in evals if e.center_ok is not None]
+    verified = [e for e in centered if e.provenance == "verified"]
+    chediak = [e for e in centered if e.provenance == "chediak"]
     return {
         "n": n,
         "mode_accuracy": sum(e.mode_ok for e in evals) / denom,
         "exact_accuracy": sum(e.exact for e in evals) / denom,
         "relative_aware_accuracy": sum(e.exact or e.relative for e in evals) / denom,
         "collection_accuracy": sum(e.same_collection for e in evals) / denom,
-        "center_accuracy": sum(e.center_ok for e in verified) / center_denom,
-        "center_n": len(verified),  # músicas com proveniência verificada (denominador)
-        "unverified_n": n - len(verified),  # em quarentena, fora do center_accuracy
+        "center_accuracy": sum(e.center_ok for e in centered) / (len(centered) or 1),
+        "center_n": len(centered),  # denominador combinado (verified ∪ chediak-tonal)
+        "verified_center_accuracy": sum(e.center_ok for e in verified)
+        / (len(verified) or 1),
+        "verified_n": len(verified),  # tier verificado por dominante (a trava inviolável)
+        "chediak_center_accuracy": sum(e.center_ok for e in chediak)
+        / (len(chediak) or 1),
+        "chediak_tonal_n": len(chediak),  # tier do tom citado de Chediak (cobertura nova)
+        "unverified_n": n - len(centered),  # em quarentena, fora do center_accuracy
         "evals": evals,
     }
 

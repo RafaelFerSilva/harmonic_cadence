@@ -49,6 +49,43 @@ TIER_A_CHEDIAK = [
 ]
 
 
+# --- TIER C: centros TONAIS citados do Chediak (Parte 4, "Tom de X maior/menor") ---
+# (artista, música, tom_Chediak, structural_offset, página, justificativa). Âncora de
+# centro NÃO-circular (independe de dominante), expande o center_accuracy além das 19
+# verificadas e revela buracos onde o detect_key discorda do livro.
+#
+# CRUX (degree-relative, NUNCA `tom_Chediak − cc_key` absoluto): o offset é o PAPEL da
+# tônica de Chediak relativo à anotação do Cifra Club, invariante a transposição —
+#   mesma tônica / mesmo papel (qualquer transposição)        → 0
+#   CC anotou a RELATIVA maior da tônica menor de Chediak       → 9  (= −3)
+#   CC anotou a RELATIVA menor da tônica maior de Chediak       → 3
+# Curado lendo o "Tom de X" do livro + o papel do cc_key, JAMAIS do detect_key (sem
+# circularidade). Só FATOS citados; nunca as harmonizações/cifras da Parte 4. Ver HARVEST.
+TIER_C_TONAL = [
+    ("Joao Bosco", "Papel Marche", "C", 0, 227,
+     "Tom de Dó maior; cc_key C = mesma tônica → Chediak confirma o centro (não-circular)"),
+    ("Milton Nascimento", "Coracao de Estudante", "F", 0, 232,
+     "Tom de Fá maior; cc_key F = mesma tônica"),
+    ("Chico Buarque", "Trocando em Miudos", "C", 0, 234,
+     "Tom de Dó maior (home; modula Dó→Dó menor→Sol→Dó); cc_key C confirma a tônica home"),
+    ("Chico Buarque", "Valsinha", "Am", 0, 250,
+     "Tom de Lá menor; cc_key Cm = a MESMA tônica menor transposta (não a relativa) → "
+     "offset 0 pelo papel, não Am−Cm"),
+    ("Caetano Veloso", "Coracao Vagabundo", "Cm", 9, 263,
+     "Tom de Dó menor; cc_key Eb = a relativa MAIOR → o CC anotou a relativa; centro real "
+     "3 semitons abaixo (offset 9 = −3), invariante a transposição"),
+]
+
+
+def chediak_tonal_offset(song: str) -> Optional[Tuple[int, int]]:
+    """`(structural_offset, página)` do tom citado de Chediak (Tier C) para a música,
+    ou None se não houver fato. Chaveado pelo nome da música (como em `key_baseline`)."""
+    for _artist, s, _tom, offset, page, _just in TIER_C_TONAL:
+        if s == song:
+            return offset, page
+    return None
+
+
 def chediak_center_pc(center_note: str) -> Optional[int]:
     try:
         return Note.parse(center_note).pitch_class

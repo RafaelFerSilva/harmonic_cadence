@@ -33,13 +33,19 @@ from harmonic_analysis.validation import (
 
 # ruff: noqa: E402 — scripts/ não é pacote; ajusta sys.path se rodado direto
 try:
-    from scripts.chediak_structural_gold import verify_tonal_center
+    from scripts.chediak_structural_gold import (
+        chediak_tonal_offset,
+        verify_tonal_center,
+    )
 except ModuleNotFoundError:  # rodado como `python scripts/key_baseline.py`
     import os
     import sys
 
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from scripts.chediak_structural_gold import verify_tonal_center
+    from scripts.chediak_structural_gold import (
+        chediak_tonal_offset,
+        verify_tonal_center,
+    )
 
 # (artista, música, tom-Cifra Club) — anotação da própria fonte (fato público).
 # Curado raspando de fato; só entram as que scrapam com tom anotado. Inclui casos
@@ -190,6 +196,14 @@ def main() -> None:
         ok, _ = verify_tonal_center(chords, ann[0])
         if ok:
             center.append((song, det, ann, 0, "verified"))
+        else:
+            # Tier C (Chediak Parte 4): tom citado como âncora NÃO-circular (independe
+            # de dominante). Só p/ músicas não-verificadas — o tier verificado (19/19,
+            # a trava) fica intocado. Offset CURADO degree-relative (não subtração).
+            fact = chediak_tonal_offset(song)
+            if fact is not None:
+                off, _page = fact
+                center.append((song, det, ann, off, "chediak"))
 
     if not results and not modulating:
         print("Nenhuma música avaliada (rede?).")
@@ -227,17 +241,30 @@ def main() -> None:
     # (offset 0). O centro MODAL fica para a change 2. Esse é o "buraco" que o gate do
     # trítono vai atacar; as 4 métricas Cifra-Club acima ficam idênticas.
     if center:
-        nc = len(center)
-        hits = sum(center_ok(det, cc, off) for _, det, cc, off, _ in center)
-        print(f"\nCentro estrutural TONAL (verificados por dominante funcional, n={nc}):")
-        print(f"  acerto de centro:    {hits / nc:.0%}  ({hits}/{nc})")
-        print("\n  buraco de centro (detector pegou outro grau, ex.: o V):")
-        for song, det, cc, off, _prov in center:
-            if not center_ok(det, cc, off):
-                print(
-                    f"    {song[:27]:<28}cc(tônica real)={_key_str(cc):<9}"
-                    f"det={_key_str(det)}"
-                )
+        verified = [c for c in center if c[4] == "verified"]
+        chediak = [c for c in center if c[4] == "chediak"]
+
+        def _block(rows, titulo):
+            if not rows:
+                return
+            nc = len(rows)
+            hits = sum(center_ok(det, cc, off) for _, det, cc, off, _ in rows)
+            print(f"\n{titulo} (n={nc}):")
+            print(f"  acerto de centro:    {hits / nc:.0%}  ({hits}/{nc})")
+            holes = [r for r in rows if not center_ok(r[1], r[2], r[3])]
+            if holes:
+                print("  buraco de centro (detector pegou outro grau, ex.: o V/relativa):")
+                for song, det, cc, off, _prov in holes:
+                    print(
+                        f"    {song[:27]:<28}cc={_key_str(cc):<9}off={off:<3}"
+                        f"det={_key_str(det)}"
+                    )
+
+        # Tier VERIFICADO (dominante funcional) — a trava inviolável; deve seguir 19/19.
+        _block(verified, "Centro estrutural TONAL — verificado por dominante funcional")
+        # Tier CHEDIAK (tom citado da Parte 4) — cobertura nova, NÃO-circular; reportado
+        # à parte para nunca misturar com a trava verificada.
+        _block(chediak, "Centro estrutural TONAL — Chediak (tom citado, Parte 4)")
 
     # Centro MODAL (Tier A, Chediak) — cobertura + ledger de divergência, NÃO acurácia
     # (Caminho 2: nada é detectado; o centro modal é fato citado). Quantifica o gap

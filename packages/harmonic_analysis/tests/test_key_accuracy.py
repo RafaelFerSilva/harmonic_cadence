@@ -118,6 +118,56 @@ def test_corpus_center_accuracy_only_over_verified_subset():
     assert m["n"] == 3
 
 
+def test_chediak_tonal_tier_counts_separately_from_verified():
+    # O tier `chediak`-tonal (tom citado da Parte 4) alimenta o center_accuracy junto do
+    # `verified`, mas é reportado à parte (a trava verificada nunca se mistura).
+    songs = [
+        ("c", ["C", "F", "G7", "C"], "C"),       # verified offset 0 → hit
+        ("am", ["Am", "Dm", "E7", "Am"], "Am"),  # chediak offset 0 → hit
+    ]
+    structural = {"c": (0, "verified"), "am": (0, "chediak")}
+    m = evaluate_corpus(songs, structural)
+    assert m["verified_n"] == 1 and m["verified_center_accuracy"] == 1.0
+    assert m["chediak_tonal_n"] == 1 and m["chediak_center_accuracy"] == 1.0
+    assert m["center_n"] == 2  # denominador combinado
+
+
+def test_chediak_offset_is_curated_not_absolute_subtraction():
+    # Valsinha-style: Chediak "Lá menor" mas cc_key "Cm" (a MESMA tônica menor transposta).
+    # O offset CURADO pelo papel é 0 — NÃO a subtração absoluta Am(9)−Cm(0)=9. O detector
+    # acha Cm (a tônica do arranjo) → acerto com offset 0; a subtração teria errado.
+    songs = [("cm", ["Cm", "Fm", "G7", "Cm"], "Cm")]
+    m = evaluate_corpus(songs, {"cm": (0, "chediak")})
+    assert m["chediak_tonal_n"] == 1 and m["chediak_center_accuracy"] == 1.0
+    assert center_ok((0, "minor"), (0, "minor"), 0)        # offset curado → acerto
+    assert not center_ok((0, "minor"), (0, "minor"), 9)    # subtração absoluta → erro
+
+
+def test_chediak_tonal_disagreement_is_a_miss():
+    # Coração Vagabundo-style: cc_key Eb, centro real Cm (offset curado 9). Se o detector
+    # pega Eb (a relativa MAIOR), é um buraco: (Eb−Eb)=0 != 9 → miss.
+    songs = [("eb", ["Eb", "Ab", "Bb7", "Eb"], "Eb")]
+    m = evaluate_corpus(songs, {"eb": (9, "chediak")})
+    assert m["chediak_tonal_n"] == 1
+    assert m["chediak_center_accuracy"] == 0.0  # detector na relativa → buraco
+
+
+def test_adding_chediak_tonal_does_not_change_verified_value():
+    # A trava: somar fatos chediak-tonais JAMAIS mexe no valor do tier verificado.
+    songs = [
+        ("c", ["C", "F", "G7", "C"], "C"),        # verified hit
+        ("am", ["Am", "Dm", "E7", "Am"], "Am"),   # chediak hit
+        ("eb", ["Eb", "Ab", "Bb7", "Eb"], "Eb"),  # chediak miss
+    ]
+    base = evaluate_corpus(songs, {"c": (0, "verified")})
+    withch = evaluate_corpus(
+        songs, {"c": (0, "verified"), "am": (0, "chediak"), "eb": (9, "chediak")}
+    )
+    assert base["verified_center_accuracy"] == withch["verified_center_accuracy"] == 1.0
+    assert base["verified_n"] == withch["verified_n"] == 1
+    assert withch["chediak_tonal_n"] == 2  # cobertura nova, sem tocar o verificado
+
+
 def test_corpus_without_structural_has_empty_center():
     m = evaluate_corpus([("c", ["C", "F", "G7", "C"], "C")])
     assert m["center_n"] == 0 and m["unverified_n"] == 1

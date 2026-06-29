@@ -319,6 +319,8 @@ arbitragem modo↔tom nem o gate sintético:
 | ~~3b-cor~~ | ~~Coloração modal (overlay tonal-ortodoxo: mixolídio/frígio)~~ | ~~`modal-coloring-overlay`~~ | ~~M~~ |
 | ~~3b-A~~ | ~~Nomeação de modo no display (bifurcação parte A)~~ | ~~`modal-mode-naming`~~ | ~~M~~ |
 | ~~3b-B~~ | ~~Anotação curada de centro modal (bifurcação parte B, Caminho 2)~~ | ~~`modal-center-arbitration`~~ | ~~M~~ |
+| ~~3c~~ | ~~Centro tonal — tier Chediak citado (Parte 4 "Tom de X"), âncora não-circular~~ | ~~`chediak-tonal-center-gold`~~ | ~~M~~ |
+| 3d | **Corrigir o buraco da relativa** — Coração Vagabundo (detector lê Mi♭ maior, Chediak: Dó menor) | — | M |
 | 3b-det | Detecção de **centro** modal (Caminho 1) — **bloqueado por dado** (corpus modal melódico) | — | L |
 
 _Concluídos: `enharmonic-spelling`, `consolidate-modal-field` (em
