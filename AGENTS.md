@@ -82,10 +82,10 @@ openspec list --specs   # capabilities (specs)
 
 ## Estado atual
 
-Teoria destilada/implementada/testada (38 changes arquivadas + `modal-center-arbitration`
-bloqueada, **349 testes verdes**). Corpus de
+Teoria destilada/implementada/testada (38 changes arquivadas + `i7-funk-anchor-gate` pronta p/
+arquivar + `modal-center-arbitration` bloqueada, **355 testes verdes**). Corpus de
 validação **n=60** (ouro = tom do Cifra Club). Baseline atual: **modo 86% · tônica exata
-74% · relativa 81% · coleção 97% · centro estrutural 95% (18/19)** (ver [ROADMAP.md](ROADMAP.md)).
+76% · relativa 83% · coleção 97% · centro estrutural 100% (19/19)** (ver [ROADMAP.md](ROADMAP.md)).
 
 A Fase B (centro tonal) está madura: desempate cadencial (v1, confusão relativa), correção
 de modo paralelo (v2), filtro de afinação (v3), e o **gate de qualidade do 3b** — corrige
@@ -96,8 +96,9 @@ descritivo** (`modal-coloring`), não eixo concorrente; a detecção de modo aut
 foi removida.
 
 **Já fechados (camada de função + detecção):** `dim7-as-dominant` (viio7 = V7(b9) rootless,
-Chediak p.90), `loosen-tritone-gate` (V-como-tônica residual: exata 69→74, centro 79→95;
-resta só Aquele Abraço = tônica `I7` de funk), `classify-diminished-chords` (diminuto
+Chediak p.90), `loosen-tritone-gate` (V-como-tônica residual: exata 69→74, centro 79→95),
+`i7-funk-anchor-gate` (Aquele Abraço = tônica `I7` de funk: K-S pega o IV, âncora first==last
+corrige p/ a tônica — centro 95→**100% (19/19)**, exata 74→76), `classify-diminished-chords` (diminuto
 descendente/auxiliar deixam de ser `Emp`, Chediak pp.102-104). `modal-center-arbitration`
 está **bloqueado por dado** (as cifras do CC não codificam o centro modal de Chediak).
 
@@ -113,7 +114,10 @@ HMM). A preparação de graus (XVIII-XIX) e os dominantes/SubV estendidos (XXVII
 completos.
 
 **Frentes abertas:** buracos funcionais do Chediak ainda não cobertos — **acordes
-interpolados** (XXIX); e o caso `I7`-funk (Aquele Abraço, único buraco de centro 18/19). **Regra
+interpolados** (XXIX, mas o acorde interpolado já é classificado certo; o gap é "enxergar o
+clichê através da interpolação" — refinaria de rótulo, risco/ganho desfavorável). **Centro
+estrutural agora 19/19** — o `i7-funk-anchor-gate` fechou Aquele Abraço (tônica I7 funk,
+geometria inversa ao gate de trítono: K-S pega o IV; corrige via âncora first==last). **Regra
 de ouro:** toda recalibração de detecção mede contra o baseline ao vivo — zero regressão das
 corretas é inegociável (já barrou ships ruins).
 

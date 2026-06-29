@@ -324,6 +324,54 @@ def _tritone_gate(
     return _anchored_resolution_path(infos, present, ks_pc)
 
 
+def _i7_funk_anchor_path(
+    symbols: Sequence[str],
+    ks_best: Tuple[int, str],
+    ranked: List[Tuple[float, int, str]],
+) -> Optional[Tuple[int, str]]:
+    """Caminho de âncora I7-funk (Chediak XXXIV) — GEOMETRIA INVERSA ao gate de trítono.
+
+    Quando o K-S pega o **IV** de uma tônica funk **I7** que abre E fecha a peça, corrige
+    `Y → X = (Y+7) mod 12` (uma 5ª ACIMA, não abaixo). O sinal recuperador é estrutural
+    (first==last), não funcional: a tônica I7 soa como dominante e não oferece V→I, mas a
+    peça começa e termina "em casa". Ultraconservador — só dispara sob as 5 guardas."""
+    if len(symbols) < 2:
+        return None
+    ks_pc = ks_best[0]
+    try:
+        first_pc = root_pitch_class(symbols[0])
+        last_pc = root_pitch_class(symbols[-1])
+    except Exception:
+        return None
+    # (1) abre e fecha na mesma raiz X.
+    if first_pc is None or first_pc != last_pc:
+        return None
+    X = first_pc
+    # (2) o K-S pegou o IV de X (assinatura do vamp I7-IV7).
+    if X == ks_pc or ks_pc != (X + 5) % 12:
+        return None
+    infos = _chord_infos(symbols)
+    present = [i for i in infos if i is not None]
+    # (3) X soa como dominante (I7 funk) em algum ponto.
+    if not any(r == X and c is Category.DOMINANT for (r, _b, c) in present):
+        return None
+    # (4) X também repousa como TRÍADE MAIOR (tônica de fato, não pedal de V — onde X
+    #     só apareceria como X7). `_x_mode` devolve None se X nunca descansa.
+    mode = _x_mode(present, X)
+    if mode != "major":
+        return None
+    # (5) X está entre as alternativas top-2 do K-S (não é flip selvagem).
+    top_tonics: List[int] = []
+    for _s, t, _m in ranked:
+        if t not in top_tonics:
+            top_tonics.append(t)
+        if len(top_tonics) >= 2:
+            break
+    if X not in top_tonics:
+        return None
+    return (X, mode)
+
+
 def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:
     """Estima a tonalidade correlacionando o perfil com os 24 perfis K-S; no
     quase-empate desempata pela corroboração cadencial (tom), e corrige a confusão
@@ -354,6 +402,17 @@ def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:
     gated = _tritone_gate(symbols, (best_tonic, best_mode))
     if gated is not None and gated != (best_tonic, best_mode):
         best_tonic, best_mode = gated
+        best_score = next(
+            (s for s, t, m in ranked if (t, m) == (best_tonic, best_mode)),
+            best_score,
+        )
+
+    # Âncora I7-funk (Chediak XXXIV): geometria INVERSA ao gate de trítono — quando o
+    # K-S pega o IV de uma tônica funk I7 que abre E fecha a peça, corrige p/ X=(Y+7).
+    # Ultraconservador (5 guardas); disjunto do gate (sobe 5ª, ancorado em first==last).
+    anchored = _i7_funk_anchor_path(symbols, (best_tonic, best_mode), ranked)
+    if anchored is not None and anchored != (best_tonic, best_mode):
+        best_tonic, best_mode = anchored
         best_score = next(
             (s for s, t, m in ranked if (t, m) == (best_tonic, best_mode)),
             best_score,

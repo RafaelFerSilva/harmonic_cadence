@@ -6,7 +6,11 @@ acorde de repouso, o K-S pegou o V. Guard do blues: sem repouso, aborta. As prog
 diatônicas e o desempate relativo (Fase B v1) NÃO podem regredir.
 """
 
-from harmonic_analysis.domain.key_detection import _tritone_gate, detect_key
+from harmonic_analysis.domain.key_detection import (
+    _i7_funk_anchor_path,
+    _tritone_gate,
+    detect_key,
+)
 
 
 # --- o gate de qualidade ------------------------------------------------------
@@ -86,3 +90,50 @@ def test_tonic_appearing_as_maj7_is_kept():
     # Mesmo havendo G7→C, Dó aparece como Cmaj7 (repouso) → não vira "V de Fá".
     est = detect_key(["Cmaj7", "Am7", "Dm7", "G7", "Cmaj7"])
     assert (est.tonic_pc, est.mode) == (0, "major")
+
+
+# --- âncora I7-funk (geometria INVERSA): K-S pega o IV de uma tônica funk I7 -------
+# Chediak XXXIV. Recupera o centro quando a peça abre E fecha numa tônica I7 cujo IV
+# o K-S elege. Sinal estrutural (first==last), não funcional. Ver i7-funk-anchor-gate.
+
+# miniatura calibrada: K-S cru pega A maior (0.904), E é 2º (0.749); abre/fecha em E;
+# E aparece como tríade (repouso) E como E7(9) (dominante I7); A = IV de E.
+_FUNK = ["E", "E7(9)", "A7(13)", "E7(9)", "A7(13)", "A", "A", "A7(13)", "A",
+         "C#m7", "A", "E"]
+
+
+def test_i7_funk_anchor_corrects_iv_to_tonic():
+    # K-S pega Lá (IV); o gate de âncora corrige p/ Mi (tônica funk I7).
+    assert detect_key(_FUNK).name == "E major"
+
+
+def test_i7_funk_helper_fires_on_funk_miniature():
+    # ranked com Lá no topo, Mi em 2º — o helper devolve Mi (pc 4, maior).
+    ranked = [(0.904, 9, "major"), (0.749, 4, "major"), (0.6, 1, "minor")]
+    assert _i7_funk_anchor_path(_FUNK, (9, "major"), ranked) == (4, "major")
+
+
+def test_i7_funk_does_not_fire_without_open_close_anchor():
+    # Sem first==last (começa em A), guarda 1 falha → não dispara.
+    seq = ["A", "E7(9)", "A7(13)", "E7(9)", "A7(13)", "A", "A", "E"]
+    ranked = [(0.9, 9, "major"), (0.75, 4, "major")]
+    assert _i7_funk_anchor_path(seq, (9, "major"), ranked) is None
+
+
+def test_i7_funk_does_not_fire_on_pure_v_pedal():
+    # X (E) só como dominante (E7), nunca tríade de repouso → guarda 4 falha (pedal de V).
+    seq = ["E7", "A7(13)", "E7", "A7(13)", "A", "A", "E7"]
+    ranked = [(0.9, 9, "major"), (0.75, 4, "major")]
+    assert _i7_funk_anchor_path(seq, (9, "major"), ranked) is None
+
+
+def test_i7_funk_does_not_fire_when_guess_is_not_iv():
+    # Y não é o IV de X (X=E, Y=G≠A) → guarda 2 falha.
+    seq = ["E", "E7", "A", "E"]
+    ranked = [(0.9, 7, "major"), (0.7, 4, "major")]
+    assert _i7_funk_anchor_path(seq, (7, "major"), ranked) is None
+
+
+def test_i7_funk_does_not_touch_a_correct_diatonic_song():
+    # ii-V-I em Dó: detecta Dó, o âncora não dispara (não abre/fecha igual + Y≠IV).
+    assert detect_key(["Dm7", "G7", "Cmaj7", "Am7", "Dm7", "G7", "Cmaj7"]).name == "C major"

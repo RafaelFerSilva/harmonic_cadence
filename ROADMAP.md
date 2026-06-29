@@ -75,14 +75,13 @@ versionado em `openspec/changes/archive/`):
 **Baseline de detecção de tonalidade** (`uv run python scripts/key_baseline.py`,
 ouro = tom do Cifra Club, com a Fase B v1+v2+v3 + o gate de qualidade do 3b
 (v1 `tonal-center-tritone-gate` + v2 `loosen-tritone-gate`)):
-- **Monotonais (n=58):** **modo 86% · tônica exata 74% · relativa-consciente 81% ·
-  coleção (armadura) 97%**. (Antes do gate de qualidade: 67/74; o gate v1 corrigiu Garota
-  de Ipanema e o v2 corrigiu A Banda / Apesar de Você / Menino do Rio — todos
-  V-como-tônica — sem regredir nada.)
-- **Centro estrutural (Chediak, degree-relative, `chediak-structural-gold`):** **95%**
-  (18/19 verificados por dominante funcional). O buraco restante = 1 caso, **Aquele
-  Abraço** (tônica `I7` de funk: a tônica real soa como dominante e o IV parece repouso —
-  caso distinto, change própria).
+- **Monotonais (n=58):** **modo 86% · tônica exata 76% · relativa-consciente 83% ·
+  coleção (armadura) 97%**. (Gate de qualidade v1 corrigiu Garota de Ipanema, v2 A Banda /
+  Apesar de Você / Menino do Rio, e o `i7-funk-anchor-gate` Aquele Abraço — exata 74→76,
+  relativa 81→83.)
+- **Centro estrutural (Chediak, degree-relative, `chediak-structural-gold`):** **100%**
+  (19/19 verificados por dominante funcional). O `i7-funk-anchor-gate` fechou **Aquele
+  Abraço** (tônica `I7` de funk) — **nenhum buraco de centro restante**.
 - **Leitura da coleção 97%** (`collection-aware-metric`, Incremento 3a): das falhas de
   tônica-exata, só **2** erram a coleção diatônica de fato (Desafinado +10, Começar de
   Novo +3); as demais acertam a armadura e erram só o **centro** dentro dela. Métrica
@@ -178,6 +177,16 @@ arbitragem modo↔tom nem o gate sintético:
      Rio** (V→I): exata **69→74%**, relativa **76→81%**, **centro 79→95% (18/19)**, modo 86% e
      coleção 97% **idênticos**, **zero regressão**. Resta só **Aquele Abraço** (tônica `I7` de
      funk: a tônica real soa como dominante e o IV parece repouso — caso distinto, change própria).
+   - **gate de âncora I7-funk (XXXIV)** — **feito** em `i7-funk-anchor-gate`: fecha o último
+     buraco de centro (**18/19→19/19**), Aquele Abraço (Gilberto Gil), tônica funk **I7** em
+     Mi lida como Lá. Geometria **inversa** ao gate de trítono: a tônica real é o **V** do
+     palpite K-S (o K-S pega o **IV**, mais frequente e que descansa, no vamp I7-IV7); corrige
+     `Y→X=(Y+7)` (sobe 5ª) por um sinal **estrutural** (abre E fecha em X), não funcional —
+     não há V→I a Mi. Cinco guardas ultraconservadoras (first==last==X; Y=IV de X; X soa como
+     X7; X repousa como tríade — separa de pedal de V; X no top-2 do K-S). Validado por
+     simulação read-only ANTES de codar: o gatilho dispara em **1/60** e ajuda; **zero
+     regressão** e **ganho líquido** (exata 74→76, relativa 81→83). Caveat: ajusta-se a n=1
+     (risco de falso-positivo futuro, mitigado pelas guardas). Não toca K-S/cadência.
    - **SubV's estendidos (XXVIII c/d)** — **feito** em `extended-subv`: Chediak XXVIII c/d
      (pp.107-108). Espelho do `Dext` por 4ªJ, mas por **semitom descendente** — e com
      **detecção de cadeia**: um pré-passe (`subv_extended_indices`) acha runs maximais de
