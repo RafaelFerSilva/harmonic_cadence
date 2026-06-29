@@ -185,10 +185,101 @@ The curator note renders **only** when an entry exists; otherwise the report is 
 
 ## Migration / Open Questions
 
-- **D2 format — Python module vs JSON?** Recommend Python module (single source, typed,
-  test-visible). Confirm before implementation.
-- **Where does the curated loader live** so the *runtime report* (not just `scripts/`) can read
-  it — `packages/.../presentation/` or `domain/`? (Leans `presentation/`, since it's a
-  display-only concern.)
+- **D2 format — Python module vs JSON?** ✅ **Decided: typed Python module** (single source,
+  test-visible, no parse/validate layer). Full typed contract in **Appendix A**.
+- **Where does the curated loader live?** ✅ **Decided: under `packages/` (not `scripts/`)** —
+  proposed `packages/harmonic_analysis/src/harmonic_analysis/corpus/modal_centers.py`. Rationale
+  (Appendix A): `make lint` runs `ruff check packages` only (scripts/ is unlinted) and the
+  runtime report must import it without a `scripts/` path hack. Both validation and presentation
+  import from this one place; `TIER_A_CHEDIAK` is migrated to read from it.
+- **Where is "citation mandatory" actually enforced?** The build has **no type checker in the
+  gate** (`mypy>=1.10` is installed but `make lint` = `ruff check packages` only). So static
+  typing is IDE ergonomics, not CI — the obligation is enforced at **runtime (`__post_init__`)
+  + a pytest corpus invariant** (`make test` is the real gate). See Appendix A.
+- **OPEN — promote mypy to the gate?** Adding `uv run mypy` to `make lint` (and extending
+  ruff/mypy to `scripts/`) would upgrade `Literal[ChurchMode]` + "no-default citation" from
+  IDE-only to static CI enforcement. Orthogonal to this change; decide separately.
 - Whether to also render the transposition-safe relative finalis ("dórico sobre o 5º grau") in
   addition to the absolute citation (D5.2) — a presentation nicety, decide at build.
+
+## Appendix A — D2 typed contract (mandatory citation, fail-fast)
+
+The curated source is a typed Python module under `packages/` (decided above). Citation
+(source + volume + page) is **structurally required**: an entry cannot be constructed without
+it, and a malformed one fails at import. Defense in depth — the build goes red only when, and
+exactly when, someone adds an uncited or malformed fact; valid additions stay green.
+
+```python
+# packages/harmonic_analysis/src/harmonic_analysis/corpus/modal_centers.py
+from dataclasses import dataclass
+from typing import Literal
+
+ChurchMode = Literal["dorian", "phrygian", "lydian", "mixolydian", "aeolian", "locrian"]
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class Citation:
+    """Citação obrigatória — sem ela o fato não existe (muro de copyright = fatos citados)."""
+    source: str          # "Almir Chediak, Harmonia & Improvisação"
+    volume: int          # 1
+    page: int            # 125
+
+    def __post_init__(self) -> None:
+        if not self.source.strip():
+            raise ValueError("Citation.source vazio: todo fato modal exige a obra.")
+        if self.volume < 1:
+            raise ValueError(f"Citation.volume inválido: {self.volume!r}")
+        if self.page < 1:
+            raise ValueError(f"Citation.page inválida: {self.page!r}")
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class ModalCenterFact:
+    artist: str
+    song: str
+    curated_center: str          # finalis na edição de Chediak (ex. "A")
+    curated_mode: ChurchMode
+    finalis_from_tonal: int      # D5: intervalo (semitons) finalis − centro tonal detectado
+    citation: Citation           # ← obrigatória, SEM default
+    note: str = ""               # divergência de arranjo (pode ser vazia)
+
+    def __post_init__(self) -> None:
+        if not (0 <= self.finalis_from_tonal < 12):
+            raise ValueError(f"finalis_from_tonal fora de 0..11: {self.finalis_from_tonal!r}")
+
+
+CORPUS: tuple[ModalCenterFact, ...] = (
+    ModalCenterFact(
+        artist="Edu Lobo", song="Arrastao",
+        curated_center="A", curated_mode="dorian", finalis_from_tonal=7,
+        citation=Citation(source="Almir Chediak, Harmonia & Improvisação", volume=1, page=125),
+        note="O arranjo do Cifra Club transpõe e omite o sinal funcional do dórico.",
+    ),
+    # Procissão (Dó mixolídio, p.126) — adicionar com a citação obrigatória.
+)
+```
+
+**Enforcement layers:**
+
+| Layer | Guarantees | Fires at | Breaks build? |
+|---|---|---|---|
+| `kw_only=True` + `citation` no default | citation cannot be omitted; named args prevent swapping `page`/`finalis_from_tonal` (both `int`) | construction | `TypeError` at import |
+| `Citation.__post_init__` | citation not empty/invalid (source, volume≥1, page≥1) | module import | `ValueError` → pytest collection fails |
+| `Literal[ChurchMode]` | misspelled mode flagged | IDE / mypy (if gated) | only if mypy enters the gate |
+| **corpus invariant test** | the explicit CI gate | `make test` | **yes — the real obligation** |
+
+```python
+# packages/harmonic_analysis/tests/test_modal_corpus.py
+import pytest
+from harmonic_analysis.corpus.modal_centers import CORPUS, Citation, ModalCenterFact
+
+@pytest.mark.parametrize("fact", CORPUS, ids=lambda f: f.song)
+def test_every_fact_has_a_valid_citation(fact):
+    assert isinstance(fact.citation, Citation)
+    assert fact.citation.source.strip() and fact.citation.page >= 1
+
+def test_citation_cannot_be_omitted():
+    with pytest.raises(TypeError):           # sem citation → não constrói
+        ModalCenterFact(artist="x", song="y", curated_center="A",
+                        curated_mode="dorian", finalis_from_tonal=0)
+```

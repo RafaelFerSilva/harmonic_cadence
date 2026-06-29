@@ -9,15 +9,17 @@
 - [x] 1.1 Run `uv run python scripts/key_baseline.py` and record the four Cifra-Club metrics, the tonal `center_accuracy`, and the modulating numbers verbatim (zero-regression reference).
 - [x] 1.2 Probe the four `chediak`-tier songs — **finding: detection premise invalidated** (Arrastão finalis→Mi not Lá; Procissão Dó absent; Upa/Pra-Não-Dizer center already correct, only mode-name diverges → that is part (A)). Recorded in PROBE-FINDINGS.md.
 
-## 2. Decide the curated-source format (open question, D2)
+## 2. Curated-source format & location — DECIDED (D2, Appendix A)
 
-- [ ] 2.1 Confirm Python module vs JSON for the single curated source (design recommends a typed Python module: `scripts/curated_modal_centers.py` or `packages/.../presentation/curated_modal_centers.py`). Decide the location so the **runtime report** can read it, not only `scripts/`.
+- [x] 2.1 **Decided:** a typed Python module at `packages/harmonic_analysis/src/harmonic_analysis/corpus/modal_centers.py` (single source, test-visible, importable by both validation and presentation; `scripts/` is unlinted and needs a path hack). Typed contract in design.md Appendix A.
+- [ ] 2.2 **OPEN (separate decision):** promote mypy to the gate? Adding `uv run mypy` to `make lint` (+ extend ruff/mypy to `scripts/`) would make `Literal[ChurchMode]` + no-default citation static-CI-enforced, not IDE-only. Orthogonal to this change.
 
 ## 3. Single curated modal-center dataset (promote TIER_A_CHEDIAK)
 
-- [ ] 3.1 Create the single curated dataset; **migrate** `scripts/chediak_structural_gold.py::TIER_A_CHEDIAK` to read from it (no duplicate copy of the facts — honor "uma fonte").
+- [ ] 3.1 Create the typed module per Appendix A: `Citation` (frozen, kw_only, `__post_init__` validates source/volume/page) + `ModalCenterFact` (frozen, kw_only, `citation` required no default, `curated_mode: Literal[ChurchMode]`, `finalis_from_tonal` range-checked) + `CORPUS` tuple. **Migrate** `scripts/chediak_structural_gold.py::TIER_A_CHEDIAK` to read from it (no duplicate copy — honor "uma fonte").
 - [ ] 3.2 Populate **center-divergence cases only** (offset ≠ 0): Arrastão (Lá dórico, p.125), Procissão (Dó mixolídio, p.126). EXCLUDE Upa Neguinho / Pra Não Dizer (center already correct → part (A)).
-- [ ] 3.3 Each entry carries `artist, song, curated_center, curated_mode, finalis_from_tonal, page, note`. `finalis_from_tonal` is the curated interval finalis−(detected tonal center) read onto the scraped chords (D5) — NEVER `chediak_center_pc − cc_key_pc`; cite the page + record the reasoning. Facts only (no chords, no book text).
+- [ ] 3.3 Each entry's `finalis_from_tonal` is the curated interval finalis−(detected tonal center) read onto the scraped chords (D5) — NEVER `chediak_center_pc − cc_key_pc`; cite the page + record the reasoning in `note`. Facts only (no chords, no book text).
+- [ ] 3.4 Add the **corpus invariant test** (`tests/test_modal_corpus.py`, Appendix A): every fact has a valid `Citation`; constructing a `ModalCenterFact` without `citation` raises `TypeError`. This is the build gate that makes the citation structurally mandatory.
 
 ## 4. Identity-keyed lookup (presentation)
 
