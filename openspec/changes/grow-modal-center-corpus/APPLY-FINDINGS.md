@@ -81,3 +81,28 @@ The `modal_centers` corpus is genuinely **data-gated at n=2**: Chediak's named m
 with a scrapable CC chord chart are exhausted (Gravidade, the one remaining, has no CC chords).
 Growing it further needs new DATA (a chord substrate for Gravidade, or modal pieces Chediak
 names that we haven't found), not more mining of the tonal Parte 4.
+
+## UPDATE (2026-06-29) — Gravidade resolved with real chords: it is NOT a center divergence
+
+The last open candidate is now **closed with data, not assumption**. A trustworthy chord chart
+for Gravidade was supplied (a curated source, not the chord-less Cifra Club page) and analyzed
+live through the new `local-chord-input` path:
+
+- The arrangement is in **Si (B)** (Chediak's "Dó lídio b7" transposed down a semitone); the
+  piece begins AND ends on `B7(9)` and gravitates entirely around Si.
+- `detect_key` → **Si maior**. Chediak's finalis (Si in this arrangement) **coincides** with the
+  detected center → `structural_offset = 0`.
+
+So Gravidade is a **mode-name-only** case (center already correct, only the mode label "lydian
+b7" differs) — the same partition as Upa Neguinho and Pra Não Dizer — and is **correctly
+excluded** from `modal_centers` by D4. (Aside: this arrangement leans **mixolydian** anyway —
+the natural 4th `E` dominates, 13×, not the lydian `#4` — so Chediak's conception and the
+arrangement diverge on the *mode*, not the center.)
+
+**Consequence:** Chediak Vol. I §XXXVI.4 yields **exactly 2** center-divergence facts (Arrastão,
+Procissão); the other four are tonal-ionian (Cravo e Canela) or mode-name-only (Upa Neguinho,
+Pra Não Dizer, Gravidade). The Vol. I modal source is **definitively exhausted**. Reaching n≥3
+requires a **new cited authority** naming a divergent modal center (Chediak Vol. II, academic
+literature) — not more chords. Gravidade instead becomes a candidate for **part (A)** (naming
+"lydian dominant" at display), a separate frontier that needs `detect_coloring` to recognize the
+lydian-dominant signature.

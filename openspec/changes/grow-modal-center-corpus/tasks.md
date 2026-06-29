@@ -2,12 +2,14 @@
 
 > **STATUS: PARKED (2026-06-29) — data-gated at n=2.** Apply ran the admission protocol live
 > and found Chediak's named modal pieces with a scrapable Cifra Club chord chart are exhausted:
-> the modal-example section (§XXXVI.4) yields only Gravidade as a new center divergence, and
-> Gravidade has **no chord chart on CC** (lyrics-only). Parte 4 (user-requested) is **tonal**
-> ("Tom de X maior/menor" per song), so it cannot grow the modal corpus. Re-scoped to a tonal-
-> center harvest in a separate change (`chediak-tonal-center-gold`). The machinery from
-> `modal-center-arbitration` is correct and untouched. See [APPLY-FINDINGS.md](./APPLY-FINDINGS.md).
-> Reopen when a chord substrate for a Chediak-named modal piece exists.
+> the modal-example section (§XXXVI.4) yields only Gravidade as a possible new center divergence.
+> Parte 4 (user-requested) is **tonal** ("Tom de X maior/menor" per song), so it cannot grow the
+> modal corpus. Re-scoped to a tonal-center harvest in a separate change (`chediak-tonal-center-gold`).
+> The machinery from `modal-center-arbitration` is correct and untouched.
+> **UPDATE (2026-06-29):** Gravidade was later analyzed with a trustworthy chord chart (via the new
+> `local-chord-input`) and found to be **mode-name-only** (center = Si, offset 0), NOT a divergence —
+> so Vol. I §XXXVI.4 is **definitively exhausted at n=2**. Reaching n≥3 needs a NEW cited authority
+> (Chediak Vol. II / literature), not more chords. See [APPLY-FINDINGS.md](./APPLY-FINDINGS.md).
 
 > Pure curation/data front. Reuses all `modal-center-arbitration` machinery — no detection,
 > render, ledger, or metric code changes. Each new fact is gated by the admission protocol
