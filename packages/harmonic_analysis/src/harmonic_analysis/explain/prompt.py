@@ -9,7 +9,11 @@ from __future__ import annotations
 
 from typing import Dict, List, Tuple
 
-from harmonic_analysis.presentation.labels import church_mode_pt, mode_pt
+from harmonic_analysis.presentation.labels import (
+    church_mode_pt,
+    modal_mode_name,
+    mode_pt,
+)
 
 
 def _unique(items: List[str]) -> List[str]:
@@ -80,9 +84,11 @@ def render_summary(facts: Dict[str, object]) -> List[str]:
     coloring = facts.get("coloring")
     if coloring:
         ev = "; ".join(coloring.get("evidence") or [])
+        named = modal_mode_name(key, coloring["flavor"]) if key else None
+        center = f" — o centro pode ser lido como {named}" if named and named != key else ""
         lines.append(
             f"A peça é tonal, com coloração {church_mode_pt(coloring['flavor'])}"
-            f"{f' ({ev})' if ev else ''} — uma cor modal sobre a leitura tonal."
+            f"{f' ({ev})' if ev else ''}{center} — uma cor modal sobre a leitura tonal."
         )
 
     if facts.get("authentic"):

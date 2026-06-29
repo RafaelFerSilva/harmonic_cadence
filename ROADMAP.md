@@ -273,6 +273,20 @@ arbitragem modo↔tom nem o gate sintético:
      mediante de mixolídio (resolução de dominante funcional, pp. 121-123) sobre acordes
      reais. A coloração (3b-cor) entrega o **sabor** modal hoje; o **centro** fica para cá.
 
+   - **(A) nomeação de modo no display** — **feito** em `modal-mode-naming`: a bifurcação
+     analítica decidida em explore, parte (A). Promove o `modal_coloring.flavor` (mixolídio/
+     frígio, já detectado) a um **nome de modo** fundido ao centro do `detect_key` — "D
+     mixolídio" / "D frígio" — numa linha "Centro modal" ao lado da leitura tonal (markdown +
+     html + explain). Pura camada de apresentação: nova função `modal_mode_name` em
+     `labels.py`, render nos três alvos, **nenhuma detecção nova**. Eólio fica silencioso
+     (menor natural, sem traço) e dórico fora (compartilha coleção → curadoria, não algoritmo).
+     Validado ao vivo: Upa Neguinho→"D mixolídio", Canto de Ossanha→"D frígio", Wave (eólio)
+     silencia, Arrastão segue "D maior"+superfície mixolídia (o dórico de Chediak é a parte
+     (B)). Baseline **idêntico** por construção (86·76·83·97 · centro 100% · modulantes 100%);
+     364 testes (+9). A parte **(B)** — anotação curada de Chediak para centro divergente
+     (Arrastão dórico, Procissão mixolídio) — é o Caminho 2 (anotar, não detectar) em
+     `modal-center-arbitration`, ainda bloqueada por dado.
+
 ## Trilha paralela (contida, encaixa a qualquer momento)
 
 - ~~**Spelling enarmônico**~~ — **feito** em `finish-note-spelling` (Tensão #2

@@ -56,6 +56,23 @@ def church_mode_pt(mode: str) -> str:
     return _CHURCH_MODE_PT.get(mode, mode)
 
 
+# Flavors de coloração que viram NOME de modo no display. Só mixolídio/frígio têm
+# assinatura mecânica que o `detect_coloring` emite; eólio é menor natural (sem
+# rótulo) e dórico depende de detecção de centro modal (curadoria, não algoritmo).
+_NAMEABLE_FLAVORS = ("mixolydian", "phrygian")
+
+
+def modal_mode_name(key_note: str, flavor: str) -> str:
+    """Funde a tônica tonal com o modo grego do flavor de coloração.
+
+    Promoção de DISPLAY de um campo já computado (`modal_coloring.flavor`): não
+    re-estima centro. `("D", "mixolydian") -> "D mixolídio"`. Flavor ausente,
+    desconhecido ou não-nomeável → só a tônica tonal (sem inventar modo)."""
+    if flavor in _NAMEABLE_FLAVORS:
+        return f"{key_note} {_CHURCH_MODE_PT[flavor]}"
+    return key_note
+
+
 def quality_pt(quality: str) -> str:
     """Qualidade do acorde: dominant→dominante, diminished→diminuto, ..."""
     return _QUALITY_PT.get(quality, quality)

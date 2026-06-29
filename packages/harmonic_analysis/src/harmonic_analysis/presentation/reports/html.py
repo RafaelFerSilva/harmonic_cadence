@@ -5,6 +5,7 @@ from typing import Any, Dict
 
 from harmonic_analysis.presentation.labels import (
     church_mode_pt,
+    modal_mode_name,
     mode_pt,
     quality_pt,
     scale_pt,
@@ -58,6 +59,17 @@ class HTMLReportGenerator(ReportGenerator):
     ):
         cifra_content = analysis.get("cifra_html", "")
         cifra_content = clean_whitespace(cifra_content)
+
+        # Centro nomeado pelo modo grego quando há coloração (mixolídio/frígio):
+        # promoção de display ao lado da leitura tonal, sem substituí-la.
+        modal_center_html = ""
+        coloring = analysis.get("modal_coloring")
+        if coloring:
+            name = modal_mode_name(analysis["key"], coloring["flavor"])
+            if name != analysis["key"]:
+                modal_center_html = (
+                    f"<p><strong>Centro modal:</strong> {name}</p>"
+                )
 
         return f"""
 <!DOCTYPE html>
@@ -146,6 +158,7 @@ class HTMLReportGenerator(ReportGenerator):
                 <p><strong>Artista:</strong> {analysis['artist']}</p>
                 <p><strong>Música:</strong> {analysis['name']}</p>
                 <p><strong>Tonalidade sugerida:</strong> {analysis['key']} ({mode_pt(analysis['mode'])})</p>
+                {modal_center_html}
                 <a href="{yt_link}" target="_blank" class="btn btn-primary">
                     🔊 Ouvir no YouTube
                 </a>

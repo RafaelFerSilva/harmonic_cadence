@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 from harmonic_analysis.presentation.labels import (
     church_mode_pt,
+    modal_mode_name,
     mode_pt,
     quality_pt,
     scale_pt,
@@ -213,11 +214,21 @@ class MarkdownReportGenerator(ReportGenerator):
         return "\n".join(lines) + "\n\n"
 
     def _generate_header(self, analysis: Dict[str, Any], yt_link: str) -> str:
+        # Centro nomeado pelo modo grego quando há coloração modal (mixolídio/frígio):
+        # promoção de display do flavor já computado, ao LADO da leitura tonal (não a
+        # substitui). Sem coloração, o cabeçalho fica idêntico ao comportamento anterior.
+        modal_line = ""
+        coloring = analysis.get("modal_coloring")
+        if self._present(coloring):
+            name = modal_mode_name(analysis["key"], coloring["flavor"])
+            if name != analysis["key"]:
+                modal_line = f"**Centro modal:** {name}\n\n"
         return (
             f"# Análise Harmônica\n\n"
             f"**Artista:** {analysis['artist']}\n\n"
             f"**Música:** {analysis['name']}\n\n"
             f"**Tonalidade sugerida:** {analysis['key']} ({mode_pt(analysis['mode'])})\n\n"
+            f"{modal_line}"
             f"[🔊 Ouvir no YouTube]({yt_link})\n\n"
         )
 
