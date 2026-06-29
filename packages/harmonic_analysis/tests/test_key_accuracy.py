@@ -1,7 +1,6 @@
 """Harness de acurácia de tonalidade."""
 
 from harmonic_analysis.validation import (
-    center_ok,
     evaluate_corpus,
     evaluate_modulating_song,
     evaluate_song,
@@ -76,102 +75,10 @@ def test_metric_nesting_invariant():
     assert m["relative_aware_accuracy"] <= m["collection_accuracy"]
 
 
-def test_center_ok_offset_zero_and_override():
-    C = (0, "major")
-    # offset 0: o centro detectado = tom do Cifra Club
-    assert center_ok((0, "major"), C, 0)
-    assert center_ok((0, "minor"), C, 0)        # foco na tônica, não no modo
-    # mediante detectada (E = iii de C, offset 4) com gold de centro 0 → miss
-    assert not center_ok((4, "minor"), C, 0)
-    # override modal: gold offset 7 (Arrastão: cc=Ré, centro=Lá) → acerta em Lá
-    D = (2, "major")
-    assert center_ok((9, "minor"), D, 7)        # (9-2)%12 = 7
-    assert not center_ok((2, "major"), D, 7)    # ficou no eixo tonal Ré → miss
-
-
-def test_center_ok_invariant_to_transposition():
-    # Transpor acordes+cc_key pelo mesmo T não muda o verdict de centro.
-    for t in range(12):
-        cc = ((0 + t) % 12, "major")
-        det_iii = ((4 + t) % 12, "minor")   # a mediante, transposta
-        det_I = ((0 + t) % 12, "major")     # a tônica, transposta
-        assert not center_ok(det_iii, cc, 0)
-        assert center_ok(det_I, cc, 0)
-
-
-def test_corpus_center_accuracy_only_over_verified_subset():
-    songs = [
-        ("c", ["C", "F", "G7", "C"], "C"),      # detecta C; verified offset 0 → hit
-        ("g", ["G", "C", "D7", "G"], "G"),      # detecta G; unverified → fora
-        ("am", ["Am", "Dm", "E7", "Am"], "Am"),  # chediak offset 0 → hit
-    ]
-    structural = {
-        "c": (0, "verified"),
-        "am": (0, "chediak"),
-        # "g" ausente → unverified, em quarentena
-    }
-    m = evaluate_corpus(songs, structural)
-    assert m["center_n"] == 2          # só c e am entram no denominador
-    assert m["unverified_n"] == 1      # g em quarentena
-    assert 0.0 <= m["center_accuracy"] <= 1.0
-    # as métricas Cifra-Club seguem sobre todos
-    assert m["n"] == 3
-
-
-def test_chediak_tonal_tier_counts_separately_from_verified():
-    # O tier `chediak`-tonal (tom citado da Parte 4) alimenta o center_accuracy junto do
-    # `verified`, mas é reportado à parte (a trava verificada nunca se mistura).
-    songs = [
-        ("c", ["C", "F", "G7", "C"], "C"),       # verified offset 0 → hit
-        ("am", ["Am", "Dm", "E7", "Am"], "Am"),  # chediak offset 0 → hit
-    ]
-    structural = {"c": (0, "verified"), "am": (0, "chediak")}
-    m = evaluate_corpus(songs, structural)
-    assert m["verified_n"] == 1 and m["verified_center_accuracy"] == 1.0
-    assert m["chediak_tonal_n"] == 1 and m["chediak_center_accuracy"] == 1.0
-    assert m["center_n"] == 2  # denominador combinado
-
-
-def test_chediak_offset_is_curated_not_absolute_subtraction():
-    # Valsinha-style: Chediak "Lá menor" mas cc_key "Cm" (a MESMA tônica menor transposta).
-    # O offset CURADO pelo papel é 0 — NÃO a subtração absoluta Am(9)−Cm(0)=9. O detector
-    # acha Cm (a tônica do arranjo) → acerto com offset 0; a subtração teria errado.
-    songs = [("cm", ["Cm", "Fm", "G7", "Cm"], "Cm")]
-    m = evaluate_corpus(songs, {"cm": (0, "chediak")})
-    assert m["chediak_tonal_n"] == 1 and m["chediak_center_accuracy"] == 1.0
-    assert center_ok((0, "minor"), (0, "minor"), 0)        # offset curado → acerto
-    assert not center_ok((0, "minor"), (0, "minor"), 9)    # subtração absoluta → erro
-
-
-def test_chediak_tonal_disagreement_is_a_miss():
-    # Coração Vagabundo-style: cc_key Eb, centro real Cm (offset curado 9). Se o detector
-    # pega Eb (a relativa MAIOR), é um buraco: (Eb−Eb)=0 != 9 → miss.
-    songs = [("eb", ["Eb", "Ab", "Bb7", "Eb"], "Eb")]
-    m = evaluate_corpus(songs, {"eb": (9, "chediak")})
-    assert m["chediak_tonal_n"] == 1
-    assert m["chediak_center_accuracy"] == 0.0  # detector na relativa → buraco
-
-
-def test_adding_chediak_tonal_does_not_change_verified_value():
-    # A trava: somar fatos chediak-tonais JAMAIS mexe no valor do tier verificado.
-    songs = [
-        ("c", ["C", "F", "G7", "C"], "C"),        # verified hit
-        ("am", ["Am", "Dm", "E7", "Am"], "Am"),   # chediak hit
-        ("eb", ["Eb", "Ab", "Bb7", "Eb"], "Eb"),  # chediak miss
-    ]
-    base = evaluate_corpus(songs, {"c": (0, "verified")})
-    withch = evaluate_corpus(
-        songs, {"c": (0, "verified"), "am": (0, "chediak"), "eb": (9, "chediak")}
-    )
-    assert base["verified_center_accuracy"] == withch["verified_center_accuracy"] == 1.0
-    assert base["verified_n"] == withch["verified_n"] == 1
-    assert withch["chediak_tonal_n"] == 2  # cobertura nova, sem tocar o verificado
-
-
-def test_corpus_without_structural_has_empty_center():
-    m = evaluate_corpus([("c", ["C", "F", "G7", "C"], "C")])
-    assert m["center_n"] == 0 and m["unverified_n"] == 1
-    assert "center_accuracy" in m
+# NOTA: os testes do tier de centro ancorado no `cc_key` (`center_ok`, `verified`/`chediak`
+# offsets, `center_accuracy`) foram REMOVIDOS — o Cifra Club foi aposentado como ouro. O
+# centro tonal agora é validado pelo critério FUNCIONAL do Chediak no
+# `scripts/songbook_baseline.py` (ver `test_functional_center.py`).
 
 
 def test_evaluate_clear_major_is_exact():

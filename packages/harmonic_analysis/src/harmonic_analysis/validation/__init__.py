@@ -1,10 +1,10 @@
-"""Validação: harness de acurácia da detecção de tonalidade."""
+"""Validação: harness de análise funcional (base = Chediak, não o Cifra Club)."""
 
+from harmonic_analysis.validation.functional_center import chediak_functional_center
 from harmonic_analysis.validation.key_accuracy import (
     KeyEval,
     ModalCenterLedgerRow,
     MultiKeyEval,
-    center_ok,
     evaluate_corpus,
     evaluate_modulating_song,
     evaluate_song,
@@ -17,9 +17,9 @@ from harmonic_analysis.validation.key_accuracy import (
 
 __all__ = [
     "KeyEval",
+    "chediak_functional_center",
     "ModalCenterLedgerRow",
     "MultiKeyEval",
-    "center_ok",
     "evaluate_corpus",
     "evaluate_modulating_song",
     "evaluate_song",

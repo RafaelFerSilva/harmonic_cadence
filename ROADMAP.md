@@ -72,13 +72,17 @@ versionado em `openspec/changes/archive/`):
   regiões). Wave e Chega saem do denominador monotonal e viram **acerto total**
   (Dm + D maior detectados). **Não toca** `detect_key`/`TIE_BAND`/`segment_keys`.
 
-**Baseline de detecção de tonalidade** (`uv run python scripts/key_baseline.py`,
-ouro = tom do Cifra Club, com a Fase B v1+v2+v3 + o gate de qualidade do 3b
-(v1 `tonal-center-tritone-gate` + v2 `loosen-tritone-gate`)):
-- **Monotonais (n=58):** **modo 86% · tônica exata 76% · relativa-consciente 83% ·
-  coleção (armadura) 97%**. (Gate de qualidade v1 corrigiu Garota de Ipanema, v2 A Banda /
-  Apesar de Você / Menino do Rio, e o `i7-funk-anchor-gate` Aquele Abraço — exata 74→76,
-  relativa 81→83.)
+**Baseline FUNCIONAL** (reformulado em `songbook-chediak-baseline`):
+`uv run python scripts/songbook_baseline.py`. O **Cifra Club é só fonte de cifra** (base de
+nada); o **Chediak é a base de validação**; o **songbook** (`cifras/*.md`, local) é o corpus.
+As 4 métricas ancoradas no `cc_key` foram **aposentadas**. Mede agora:
+- **Invariante funcional** (transposição-invariante): trítono real ⇒ dominante — **62/62**.
+- **Centro por CORROBORAÇÃO** (`detect_key` × centro funcional do Chediak, sem anotação):
+  cobertura **58/62**, concordam **41/58 (71%)**; divergências = worklist de curadoria.
+
+_(Histórico aposentado, ouro = tom do Cifra Club: modo 86 · exata 76 · relativa 83 · coleção
+97 · centro verificado 19/19. Media fidelidade ao CC, não à teoria — por isso saiu.)_
+
 - **Centro estrutural (Chediak, degree-relative, `chediak-structural-gold`):** **100%**
   (19/19 verificados por dominante funcional). O `i7-funk-anchor-gate` fechou **Aquele
   Abraço** (tônica `I7` de funk) — **nenhum buraco de centro restante**.

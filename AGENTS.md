@@ -60,7 +60,7 @@ uv run harmonic analyze "Djavan" "Sina"  # CLI (in-process, sem servidor)
 uv run harmonic analyze-file prog.txt    # analisa um .txt de acordes local (sem rede)
 make test                                # uv run pytest (toda a suíte)
 make lint                                # uv run ruff check packages
-uv run python scripts/key_baseline.py    # baseline de tonalidade (precisa de rede)
+uv run python scripts/songbook_baseline.py  # baseline funcional (Chediak, corpus local cifras/)
 make scraper                             # sobe o Flask em :3000 (só p/ --provider http)
 ```
 
@@ -89,24 +89,27 @@ openspec list --specs   # capabilities (specs)
 
 ## Estado atual
 
-Teoria destilada/implementada/testada (39 changes arquivadas + `modal-mode-naming` +
-`modal-center-arbitration` (Caminho 2) + `chediak-tonal-center-gold` prontas p/ arquivar,
-**395 testes verdes**). Corpus de validação **n=60** (ouro = tom do Cifra Club). Baseline atual:
-**modo 86% · tônica exata 76% · relativa 83% · coleção 97% · centro estrutural verificado 100%
-(19/19)** (ver [ROADMAP.md](ROADMAP.md)).
+Teoria destilada/implementada/testada (42 changes arquivadas + `songbook-chediak-baseline`
+pronta p/ arquivar, **405 testes verdes**).
+
+**Fundação de validação (reformulada em `songbook-chediak-baseline`):** o **Cifra Club é só
+fonte de cifra — base de nada**. O **Chediak é a base de validação** (regras funcionais
+rigorosas) e o **songbook** (`cifras/*.md`, local/gitignored) é o corpus baseline. As 4 métricas
+ancoradas no `cc_key` (modo/exata/relativa/coleção) e o tier de centro ancorado no `cc_key` foram
+**aposentados**. O baseline roda em `scripts/songbook_baseline.py` (corpus local via
+`cifra_from_text`, sem scraping) e mede:
+- **Invariante funcional** (a base rochosa, transposição-invariante): todo trítono real ⇒
+  dominante. Atual: **62/62 sem defeito**.
+- **Centro tonal por CORROBORAÇÃO** (não acurácia): `detect_key` × `chediak_functional_center`
+  (acha a tônica pela resolução do dominante funcional, pp.84/87, sem anotação). Cobertura
+  **58/62** (4 em quarentena modal/estática); **concordam 41/58 (71%)** = centros de alta
+  confiança; as divergências viram **worklist de curadoria** (o Chediak adjudica), nunca placar
+  do detector. **Princípio:** a tonalidade absoluta é só quadro de exibição — a análise funcional
+  é invariante a transposição; tudo nasce da música + Chediak, nada do CC.
+
 A **bifurcação analítica (A)+(B) está completa**: (A) nomeia o modo que o algoritmo detecta
 ("D mixolídio"); (B) anota o centro modal que a cifra não codifica mas Chediak documenta
-(Arrastão → Lá dórico p.125; Procissão → Dó mixolídio p.126), via corpus curado n=2 — zero
-regressão tonal.
-**Centro tonal — tier Chediak citado (`chediak-tonal-center-gold`):** os rótulos "Tom de X"
-da Parte 4 viram âncora de centro NÃO-circular (independe de dominante), reportada à parte do
-tier verificado (que segue 19/19). Offset degree-relative curado (papel da tônica vs cc_key,
-nunca subtração absoluta — Valsinha Lá menor/cc Cm = transposição → 0). Corpus tonal n=4, todos
-offset 0 (2 ativos; 2 já cobertos pelo tier verificado), 100%. **Lição (Regra de Ouro de novo):**
-o fato offset-9 de Coração Vagabundo foi **removido** — a sonda mostrou que o arranjo do CC
-repousa em **Mi♭ maior** (começa/termina em Eb7M, sem Cm); o detector está CERTO, e a concepção
-Dó menor de Chediak é de outro arranjo que estas cifras não codificam. Sempre confirmar o centro
-REAL do arranjo antes de cravar offset ≠ 0.
+(Arrastão → Lá dórico p.125; Procissão → Dó mixolídio p.126), via corpus curado n=2.
 
 A Fase B (centro tonal) está madura: desempate cadencial (v1, confusão relativa), correção
 de modo paralelo (v2), filtro de afinação (v3), e o **gate de qualidade do 3b** — corrige

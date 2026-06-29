@@ -71,18 +71,6 @@ def same_collection(gold: Key, detected: Key) -> bool:
     return (detected[0] - gold[0]) % 12 in offsets
 
 
-def center_ok(detected: Key, cc_key: Key, structural_offset: int) -> bool:
-    """True se o centro detectado bate com o centro ESTRUTURAL verdadeiro.
-
-    Mede por **offset** relativo ao tom do Cifra Club (a âncora de transposição do
-    arranjo), não por altura absoluta: ``(detected_pc - cc_key_pc) % 12 ==
-    structural_offset``. Invariante a transposição (ambos deslocam junto). Foco na
-    tônica/centro; o modo já tem `mode_ok`. `structural_offset` 0 = o centro
-    verdadeiro é o próprio tom do Cifra Club; ≠ 0 = divergência (ex.: Arrastão, +7).
-    """
-    return (detected[0] - cc_key[0]) % 12 == structural_offset
-
-
 @dataclass(frozen=True)
 class KeyEval:
     name: str
@@ -92,37 +80,23 @@ class KeyEval:
     exact: bool
     relative: bool
     same_collection: bool
-    # Centro estrutural (Chediak): só preenchido quando a proveniência é verificada
-    # (chediak/verified). None = música em quarentena (unverified), fora da métrica.
-    center_ok: Optional[bool] = None
-    structural_offset: Optional[int] = None
-    # Tier que ligou o centro: "verified" (dominante funcional) ou "chediak" (tom citado
-    # da Parte 4). None quando o centro está fora (quarentena).
-    provenance: Optional[str] = None
 
 
 def evaluate_song(
     name: str,
     chords: Iterable[str],
     annotated_key: str,
-    structural_offset: Optional[int] = None,
-    provenance: Optional[str] = None,
 ) -> Optional[KeyEval]:
-    """Avalia uma música; None se faltar anotação ou detecção.
+    """Avalia uma música contra um tom anotado; None se faltar anotação ou detecção.
 
-    `structural_offset` (quando dado, p/ músicas de proveniência verificada/chediak) liga
-    a métrica de centro estrutural; None deixa o centro fora (quarentena). `provenance`
-    rotula o tier que ligou o centro ("verified"|"chediak")."""
+    Utilitário de comparação detectado×anotado (modo/exata/relativa/coleção). NÃO usa o
+    Cifra Club como ouro de centro — o centro tonal é validado pelo critério FUNCIONAL do
+    Chediak (`chediak_functional_center`) no baseline do songbook, não aqui."""
     annotated = parse_key(annotated_key)
     est = detect_key(list(chords))
     if annotated is None or est is None:
         return None
     detected: Key = (est.tonic_pc, est.mode)
-    co = (
-        center_ok(detected, annotated, structural_offset)
-        if structural_offset is not None
-        else None
-    )
     return KeyEval(
         name=name,
         annotated=annotated,
@@ -131,9 +105,6 @@ def evaluate_song(
         exact=annotated == detected,
         relative=is_relative(annotated, detected),
         same_collection=same_collection(annotated, detected),
-        center_ok=co,
-        structural_offset=structural_offset,
-        provenance=provenance if co is not None else None,
     )
 
 
@@ -191,48 +162,26 @@ def evaluate_modulating_song(
 
 def evaluate_corpus(
     songs: Iterable[Tuple[str, Iterable[str], str]],
-    structural: Optional[dict] = None,
 ) -> dict:
-    """Métricas agregadas sobre `(nome, acordes, tom_anotado)`.
+    """Métricas agregadas detectado×anotado sobre `(nome, acordes, tom_anotado)`.
 
-    `structural` (opcional): `nome → (structural_offset, provenance)` com
-    `provenance ∈ {"chediak","verified","unverified"}`. A métrica de **centro**
-    (`center_accuracy`) roda SÓ sobre o subconjunto `chediak`+`verified`; músicas
-    ausentes do mapa ou marcadas `unverified` ficam em quarentena (contadas à parte).
-    """
-    structural = structural or {}
+    Utilitário de comparação (modo/exata/relativa/coleção) contra um tom anotado
+    qualquer. NÃO é o baseline do projeto: o Cifra Club foi aposentado como ouro; a
+    validação roda no `songbook_baseline` (centro funcional do Chediak + invariantes
+    funcionais), invariante a transposição."""
     evals: List[KeyEval] = []
     for s in songs:
-        name = s[0]
-        offset, prov = structural.get(name, (None, "unverified"))
-        use_offset = offset if prov in ("chediak", "verified") else None
-        use_prov = prov if prov in ("chediak", "verified") else None
-        e = evaluate_song(s[0], s[1], s[2], use_offset, use_prov)
+        e = evaluate_song(s[0], s[1], s[2])
         if e is not None:
             evals.append(e)
     n = len(evals)
     denom = n or 1
-    # Centro estrutural sobre `verified` ∪ `chediak`-tonal (ambos degree-relative). Os
-    # subconjuntos são reportados à parte para que o valor do tier `verified` (a trava
-    # 19/19) nunca seja silenciosamente misturado com o tier citado de Chediak.
-    centered = [e for e in evals if e.center_ok is not None]
-    verified = [e for e in centered if e.provenance == "verified"]
-    chediak = [e for e in centered if e.provenance == "chediak"]
     return {
         "n": n,
         "mode_accuracy": sum(e.mode_ok for e in evals) / denom,
         "exact_accuracy": sum(e.exact for e in evals) / denom,
         "relative_aware_accuracy": sum(e.exact or e.relative for e in evals) / denom,
         "collection_accuracy": sum(e.same_collection for e in evals) / denom,
-        "center_accuracy": sum(e.center_ok for e in centered) / (len(centered) or 1),
-        "center_n": len(centered),  # denominador combinado (verified ∪ chediak-tonal)
-        "verified_center_accuracy": sum(e.center_ok for e in verified)
-        / (len(verified) or 1),
-        "verified_n": len(verified),  # tier verificado por dominante (a trava inviolável)
-        "chediak_center_accuracy": sum(e.center_ok for e in chediak)
-        / (len(chediak) or 1),
-        "chediak_tonal_n": len(chediak),  # tier do tom citado de Chediak (cobertura nova)
-        "unverified_n": n - len(centered),  # em quarentena, fora do center_accuracy
         "evals": evals,
     }
 
