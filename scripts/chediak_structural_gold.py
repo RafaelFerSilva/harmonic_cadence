@@ -71,9 +71,12 @@ TIER_C_TONAL = [
     ("Chico Buarque", "Valsinha", "Am", 0, 250,
      "Tom de Lá menor; cc_key Cm = a MESMA tônica menor transposta (não a relativa) → "
      "offset 0 pelo papel, não Am−Cm"),
-    ("Caetano Veloso", "Coracao Vagabundo", "Cm", 9, 263,
-     "Tom de Dó menor; cc_key Eb = a relativa MAIOR → o CC anotou a relativa; centro real "
-     "3 semitons abaixo (offset 9 = −3), invariante a transposição"),
+    # NOTA: Coração Vagabundo (Chediak Dó menor, p.263) foi REMOVIDO. A sonda ao vivo
+    # mostrou que o arranjo do Cifra Club começa e TERMINA em Eb7M (sem nenhum Cm): ele
+    # genuinamente repousa em Mi♭ MAIOR, não na relativa menor de Chediak. O detector está
+    # CERTO p/ este arranjo; a concepção Dó menor de Chediak é de outro arranjo, que estas
+    # cifras NÃO codificam (Regra de Ouro). Lição: confirmar o centro REAL do arranjo
+    # (primeiro/último/repouso) antes de cravar um offset ≠ 0 — não inferir da relativa.
 ]
 
 

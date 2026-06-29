@@ -42,3 +42,18 @@ reopen by inspecting the scraped chords (Eu sei, Atrás da Porta) or reading the
 5 committed `chediak`-tonal facts (4 offset-0 + 1 offset-9), 3 deferred with reasons. All 5
 already scrape (they are GOLD corpus entries seen live in the baseline). Coverage grows
 fact-by-fact; the remaining ~50 corpus songs Chediak does not analyze in Vol. I (no fact).
+
+## CORREÇÃO (pós-archive, 2026-06-29) — Coração Vagabundo removido
+
+Ao "atacar o 3d" (o suposto buraco do detector), a sonda ao vivo das CIFRAS derrubou a
+curadoria do offset 9: o arranjo do Cifra Club de **Coração Vagabundo começa em Eb e TERMINA
+em Eb7M/G, sem nenhum acorde Cm** — repousa em **Mi♭ MAIOR**, não na relativa menor de Chediak.
+O detector está **certo** para este arranjo; a concepção "Dó menor" de Chediak é de outro
+arranjo que estas cifras **não codificam** (a Regra de Ouro de novo).
+
+Logo o fato offset-9 era **mis-curado** (inferi "Eb = relativa de Cm" sem confirmar o centro
+real do arranjo, que o protocolo D3 exigia). **Removido** de `TIER_C_TONAL`. O tier fica n=4,
+todos offset 0 (2 ativos, 100%, sem buraco). O 3d foi invalidado no ROADMAP.
+
+**Lição:** para offset ≠ 0, confirmar o centro REAL do arranjo (primeiro/último/repouso nas
+cifras raspadas) — nunca inferi-lo da relação relativa entre o tom de Chediak e o cc_key.

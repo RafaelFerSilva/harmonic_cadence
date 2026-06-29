@@ -94,10 +94,12 @@ regressão tonal.
 **Centro tonal — tier Chediak citado (`chediak-tonal-center-gold`):** os rótulos "Tom de X"
 da Parte 4 viram âncora de centro NÃO-circular (independe de dominante), reportada à parte do
 tier verificado (que segue 19/19). Offset degree-relative curado (papel da tônica vs cc_key,
-nunca subtração absoluta — Valsinha Lá menor/cc Cm = transposição → 0; Coração Vagabundo
-Dó menor/cc Eb = relativa → 9). Primeiro **buraco do detector** revelado: **Coração Vagabundo**
-— o detector lê **Mi♭ maior** (a relativa), mas Chediak concebe **Dó menor** (alvo de detecção
-futura). Corpus tonal n=5 (3 ativos; 2 já cobertos pelo tier verificado).
+nunca subtração absoluta — Valsinha Lá menor/cc Cm = transposição → 0). Corpus tonal n=4, todos
+offset 0 (2 ativos; 2 já cobertos pelo tier verificado), 100%. **Lição (Regra de Ouro de novo):**
+o fato offset-9 de Coração Vagabundo foi **removido** — a sonda mostrou que o arranjo do CC
+repousa em **Mi♭ maior** (começa/termina em Eb7M, sem Cm); o detector está CERTO, e a concepção
+Dó menor de Chediak é de outro arranjo que estas cifras não codificam. Sempre confirmar o centro
+REAL do arranjo antes de cravar offset ≠ 0.
 
 A Fase B (centro tonal) está madura: desempate cadencial (v1, confusão relativa), correção
 de modo paralelo (v2), filtro de afinação (v3), e o **gate de qualidade do 3b** — corrige
