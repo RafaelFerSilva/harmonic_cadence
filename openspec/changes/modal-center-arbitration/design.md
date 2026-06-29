@@ -283,3 +283,69 @@ def test_citation_cannot_be_omitted():
         ModalCenterFact(artist="x", song="y", curated_center="A",
                         curated_mode="dorian", finalis_from_tonal=0)
 ```
+
+## Appendix B — render strategy (where the citation physically appears)
+
+The curator note (B) renders in the **header region, immediately below "Centro modal" (A)** —
+the bifurcation reads top-to-bottom (tonal reading → modal name → curator note), the two truths
+adjacent. The citation (source · volume · page) is **first-class header content**, not a footer:
+in (B) the legitimacy *is* the citation — without "p. 125" the note is a sourceless claim.
+
+```
+   Tonalidade sugerida:  D (maior)         ← detect_key (algorithm)
+   Centro modal:         D mixolídio        ← (A) promoted flavor
+   ┌─────────────────────────────────────────────────────────┐
+   │ 📖 Nota do curador                                       │ ← (B) curated fact
+   │ Concebida em Lá dórico. A cifra do Cifra Club está       │
+   │ adaptada — reflete o arranjo, não a concepção original.  │
+   │ — Almir Chediak, Harmonia & Improvisação, Vol. I, p. 125 │ ← the CITATION
+   └─────────────────────────────────────────────────────────┘
+```
+
+**Markdown** — blockquote with attribution (`>` = "from an external source", `—` = attribution):
+```markdown
+**Centro modal:** D mixolídio
+
+> 📖 **Nota do curador.** Esta composição é concebida em **Lá dórico**. A cifra
+> analisada (Cifra Club) está adaptada — em outra tonalidade e sem o sinal funcional
+> do modo —, então a leitura acima reflete o *arranjo*, não a *concepção* original.
+>
+> — *Almir Chediak, Harmonia & Improvisação*, **Vol. I**, p. 125
+```
+
+**HTML** — Bootstrap (5.1.3, already loaded) callout with the semantic `<cite>` element:
+```html
+<div class="alert border-start border-4 border-secondary bg-light" role="note">
+  <p class="mb-1">📖 <strong>Nota do curador.</strong>
+     Esta composição é concebida em <strong>Lá dórico</strong>. A cifra do Cifra
+     Club está adaptada — reflete o <em>arranjo</em>, não a <em>concepção</em>.</p>
+  <footer class="blockquote-footer mb-0">
+     <cite title="Harmonia &amp; Improvisação">Almir Chediak, Harmonia &amp;
+     Improvisação</cite>, Vol. I, p.&nbsp;125
+  </footer>
+</div>
+```
+
+**One citation formatter** so MD and HTML never diverge — in `presentation/labels.py`, beside
+`modal_mode_name`, consuming the typed `Citation` from Appendix A:
+```python
+_ROMAN = {1: "I", 2: "II", 3: "III"}  # Chediak volumes
+
+def format_citation(c) -> str:
+    """Citation → 'Almir Chediak, Harmonia & Improvisação, Vol. I, p. 125'."""
+    vol = _ROMAN.get(c.volume, str(c.volume))
+    return f"{c.source}, Vol. {vol}, p. {c.page}"
+```
+MD interpolates the plain string; HTML wraps `c.source` in `<cite>` and the rest as attribution
+— but the **content** (Roman volume, "p. N") comes from this one place.
+
+**Presentation decisions:**
+
+| Question | Decision | Why |
+|---|---|---|
+| Physical location | Header, right below "Centro modal" (A) | The bifurcation only lands with both truths adjacent; a footer dissociates them |
+| Visual treatment | MD blockquote · HTML `alert` + `<cite>` | "External source" semantics + standard attribution |
+| Citation position | Last line of the block (`—` / `blockquote-footer`) | Epigraph convention; book·vol·page always visible |
+| Format | single `format_citation()` in `labels.py` | MD and HTML never diverge |
+| JSON | carries structured `citation` (`source/volume/page`) | machine consumers get the fields, not the assembled string |
+| Absence | no curated entry → block omitted, report byte-identical | display-only, D7 (zero regression) |

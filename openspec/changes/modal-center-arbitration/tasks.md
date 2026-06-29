@@ -26,12 +26,13 @@
 - [ ] 4.1 Add a lookup keyed by `slug(artist)|slug(song)` reusing [`cifra_core/slug.py`](packages/cifra_core/src/cifra_core/slug.py); a miss returns None (no note).
 - [ ] 4.2 Unit-test identity matching: "Arrastao"/"Arrastão", artist casing variants resolve; an unknown song misses cleanly.
 
-## 5. Curator-note render (markdown + html), display-only
+## 5. Curator-note render (markdown + html), display-only — see Appendix B
 
-- [ ] 5.1 In `presentation/reports/markdown.py`: when a curated entry matches, render a "Nota do curador" block (cited: Chediak + page) beside the tonal reading, stating Chediak's modal center and the arrangement-divergence caveat (D5.2). Omit entirely on a miss (report byte-identical to today).
-- [ ] 5.2 In `presentation/reports/html.py`: parity.
+- [ ] 5.0 Add `format_citation(citation)` to `presentation/labels.py` (single source of the citation string: "Almir Chediak, Harmonia & Improvisação, Vol. I, p. 125"; Roman volume) so MD and HTML never diverge. Unit-test it.
+- [ ] 5.1 In `presentation/reports/markdown.py` `_generate_header`: when a curated entry matches, render the "Nota do curador" **blockquote immediately below "Centro modal"** (Appendix B) — Chediak's modal center + arrangement-divergence caveat (D5.2) + the citation as the attribution last line. Omit entirely on a miss (report byte-identical to today).
+- [ ] 5.2 In `presentation/reports/html.py` `_generate_html_document`: parity — a Bootstrap `alert` callout with the semantic `<cite>` element + `blockquote-footer` citation (Appendix B), placed right after the "Centro modal" `<p>`.
 - [ ] 5.3 (Optional, D5.2) also show the transposition-safe relative finalis ("dórico sobre o Nº grau da leitura tonal") via `finalis_from_tonal`.
-- [ ] 5.4 Purity: the render reads only the curated dataset + analysis identity; it never touches `detect_key`/`detect_coloring` nor mutates the analysis JSON.
+- [ ] 5.4 Purity: the render reads only the curated dataset + analysis identity; it never touches `detect_key`/`detect_coloring` nor mutates the analysis JSON. JSON report carries the structured `citation` (source/volume/page), not the assembled string.
 
 ## 6. Coverage + divergence ledger (NOT detection accuracy, D6)
 
