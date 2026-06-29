@@ -325,7 +325,19 @@ arbitragem modo↔tom nem o gate sintético:
 | ~~3b-B~~ | ~~Anotação curada de centro modal (bifurcação parte B, Caminho 2)~~ | ~~`modal-center-arbitration`~~ | ~~M~~ |
 | ~~3c~~ | ~~Centro tonal — tier Chediak citado (Parte 4 "Tom de X"), âncora não-circular~~ | ~~`chediak-tonal-center-gold`~~ | ~~M~~ |
 | ~~3d~~ | ~~"Buraco da relativa" de Coração Vagabundo — **invalidado**: o arranjo do CC repousa em Mi♭ maior (detector certo); fato mis-curado removido~~ | — | — |
+| ~~4~~ | ~~Adaptador de entrada local (.txt de acordes, CC = só fonte)~~ | ~~`local-chord-input`~~ | ~~S~~ |
+| ~~5~~ | ~~Reformular o baseline: CC só fonte, Chediak a base, songbook o corpus~~ | ~~`songbook-chediak-baseline`~~ | ~~M~~ |
+| 6 | **Crescer os invariantes funcionais** (diminutos-por-tipo XXI-XXII, ii-V XIX, taxonomia das 5 cadências XXXII) sobre o songbook — vira gate de regressão funcional | — | M |
+| 7 | **Trabalhar a worklist de corroboração** (≈17 divergências `detect_key` × centro funcional) — adjudicar com Chediak, melhorar detecção sem amarrar no CC | — | M |
+| 8 | Ampliar o corpus do songbook (`cifras/*.md`) — o ouro é a regra, não o gênero | — | S |
 | 3b-det | Detecção de **centro** modal (Caminho 1) — **bloqueado por dado** (corpus modal melódico) | — | L |
+
+> **Handoff (próxima sessão):** a frente de maior valor é a **#6** — hoje o baseline funcional
+> só checa "trítono ⇒ dominante" (62/62); somar os invariantes do Chediak (diminutos, ii-V,
+> cadências) transforma `scripts/songbook_baseline.py` num gate de regressão que protege a
+> teoria destilada. A **#7** (worklist) é o caminho honesto para evoluir a detecção. Ambas usam
+> `cifras/*.md` (local, gitignored) e o `chediak_functional_center` (em
+> `validation/functional_center.py`). Rodar: `uv run python scripts/songbook_baseline.py`.
 
 _Concluídos: `enharmonic-spelling`, `consolidate-modal-field` (em
 `finish-note-spelling`), `widen-key-corpus` + leva 2 (n=60), `tonal-center-detection`
