@@ -26,6 +26,7 @@ from harmonic_analysis.validation import (
     center_ok,
     evaluate_modulating_song,
     is_relative,
+    modal_center_ledger,
     parse_key,
     same_collection,
 )
@@ -124,6 +125,38 @@ def _key_str(k) -> str:
     return f"{_PC[k[0]]} {k[1][:3]}"
 
 
+def _print_modal_center_ledger(provider) -> None:
+    """Cobertura + ledger de centro modal sobre o corpus curado (Caminho 2).
+
+    Scrapa cada peça curada e roda `detect_key` só para mostrar o eixo TONAL do
+    arranjo ao lado do centro modal de Chediak — NÃO é métrica de detecção."""
+    from harmonic_analysis.corpus import CORPUS
+
+    detected = {}
+    for fact in CORPUS:
+        try:
+            cifra = provider.get_song(fact.artist, fact.song)
+            est = detect_key(_chords(cifra.cifra))
+        except Exception:  # noqa: BLE001 — scraping pode falhar (404, rede)
+            est = None
+        if est is not None:
+            detected[fact.key] = est.tonic_pc
+
+    rows = modal_center_ledger(detected)
+    cov = sum(r.detected_tonal_center is not None for r in rows)
+    print(
+        f"\nCentro MODAL (Chediak, Caminho 2 — fato citado, NÃO detectado) "
+        f"(n curado={len(rows)}, com eixo tonal={cov}):"
+    )
+    print(f"  {'música':<26}{'eixo tonal':<12}{'Chediak':<14}{'divergência'}")
+    print("  " + "-" * 70)
+    for r in rows:
+        tonal = _PC[r.detected_tonal_center] if r.detected_tonal_center is not None else "?"
+        chediak = f"{r.curated_center} {r.curated_mode[:5]}"
+        diverg = f"finalis +{r.finalis_from_tonal} (p.{r.page})"
+        print(f"  {r.song[:25]:<26}{tonal:<12}{chediak:<14}{diverg}")
+
+
 def main() -> None:
     provider = InProcessSongProvider()
     results = []          # músicas monotonais: (música, anotado, detectado)
@@ -205,6 +238,12 @@ def main() -> None:
                     f"    {song[:27]:<28}cc(tônica real)={_key_str(cc):<9}"
                     f"det={_key_str(det)}"
                 )
+
+    # Centro MODAL (Tier A, Chediak) — cobertura + ledger de divergência, NÃO acurácia
+    # (Caminho 2: nada é detectado; o centro modal é fato citado). Quantifica o gap
+    # entre a leitura tonal do arranjo e a concepção de Chediak. Transposição-seguro:
+    # usa o intervalo CURADO (`finalis_from_tonal`), não subtração absoluta.
+    _print_modal_center_ledger(provider)
 
     # Músicas modulantes (Chediak p. 118) — medidas à parte: NÃO entram nas
     # métricas agregadas acima, para não distorcer o baseline monotonal.

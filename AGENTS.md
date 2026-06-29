@@ -82,10 +82,14 @@ openspec list --specs   # capabilities (specs)
 
 ## Estado atual
 
-Teoria destilada/implementada/testada (39 changes arquivadas + `modal-mode-naming` pronta p/
-arquivar + `modal-center-arbitration` bloqueada, **364 testes verdes**). Corpus de
+Teoria destilada/implementada/testada (39 changes arquivadas + `modal-mode-naming` +
+`modal-center-arbitration` (Caminho 2) prontas p/ arquivar, **391 testes verdes**). Corpus de
 validação **n=60** (ouro = tom do Cifra Club). Baseline atual: **modo 86% · tônica exata
 76% · relativa 83% · coleção 97% · centro estrutural 100% (19/19)** (ver [ROADMAP.md](ROADMAP.md)).
+A **bifurcação analítica (A)+(B) está completa**: (A) nomeia o modo que o algoritmo detecta
+("D mixolídio"); (B) anota o centro modal que a cifra não codifica mas Chediak documenta
+(Arrastão → Lá dórico p.125; Procissão → Dó mixolídio p.126), via corpus curado n=2 — zero
+regressão tonal.
 
 A Fase B (centro tonal) está madura: desempate cadencial (v1, confusão relativa), correção
 de modo paralelo (v2), filtro de afinação (v3), e o **gate de qualidade do 3b** — corrige
@@ -102,9 +106,12 @@ corrige p/ a tônica — centro 95→**100% (19/19)**, exata 74→76), `classify
 descendente/auxiliar deixam de ser `Emp`, Chediak pp.102-104), `modal-mode-naming` (parte
 **(A)** da bifurcação analítica: promove o `modal_coloring.flavor` a nome de modo no display
 — "D mixolídio"/"D frígio" ao lado da leitura tonal; pura apresentação, baseline idêntico).
-`modal-center-arbitration` (parte **(B)**: anotação curada de Chediak para centro divergente,
-o Caminho 2 = anotar, não detectar) segue **bloqueado por dado** (as cifras do CC não
-codificam o centro modal de Chediak).
+`modal-center-arbitration` (parte **(B)**, **fechada via Caminho 2 = anotar, não detectar**):
+corpus tipado `harmonic_analysis.corpus.modal_centers` (citação obrigatória — `__post_init__`
++ teste-invariante = gate), nota do curador no display (MD blockquote + HTML `alert`/`<cite>` +
+JSON com citação estruturada), e **ledger de cobertura/divergência** (não acurácia: nada é
+detectado), transposição-seguro pelo intervalo curado `finalis_from_tonal`. O *bloqueio por
+dado* da detecção (Caminho 1) continua válido e está documentado em PROBE-FINDINGS.md.
 
 Também fechados: `dominant-auxiliary-and-secondary-subv` (Chediak XVIII p.99 — dominante
 auxiliar = alvo de empréstimo modal; SubV7 secundário; código `Daux`),

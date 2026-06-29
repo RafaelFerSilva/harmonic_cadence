@@ -17,6 +17,7 @@ from typing import Iterable, List, Optional, Tuple
 from cifra_core import ChordPattern
 from cifra_core.theory import Note
 
+from harmonic_analysis.corpus import CORPUS, ModalCenterFact
 from harmonic_analysis.domain.key_detection import (
     detect_key,
     dominant_regions,
@@ -217,6 +218,62 @@ def evaluate_corpus(
         "unverified_n": n - len(verified),  # em quarentena, fora do center_accuracy
         "evals": evals,
     }
+
+
+@dataclass(frozen=True)
+class ModalCenterLedgerRow:
+    """Uma linha do ledger de centro modal (NÃO é acurácia — nada é detectado).
+
+    `detected_tonal_center` é o centro TONAL do `detect_key` sobre as cifras
+    raspadas (pc, ou None se a detecção falhar). O finalis modal é dado pelo
+    intervalo CURADO (`finalis_from_tonal`) — `implied_finalis_pc` é derivado
+    SOMANDO esse intervalo ao centro detectado (anda junto com a transposição do
+    arranjo), NUNCA por subtração absoluta cross-fonte."""
+
+    artist: str
+    song: str
+    detected_tonal_center: Optional[int]
+    curated_center: str
+    curated_mode: str
+    finalis_from_tonal: int
+    page: int
+
+    @property
+    def implied_finalis_pc(self) -> Optional[int]:
+        """Finalis no espaço de altura do ARRANJO (transposição-seguro): centro
+        tonal detectado + intervalo curado. None se a detecção falhou."""
+        if self.detected_tonal_center is None:
+            return None
+        return (self.detected_tonal_center + self.finalis_from_tonal) % 12
+
+
+def modal_center_ledger(
+    detected_centers: dict, corpus: Iterable[ModalCenterFact] = CORPUS
+) -> List[ModalCenterLedgerRow]:
+    """Cobertura + ledger de divergência sobre o conjunto curado (D6).
+
+    NÃO é uma acurácia: nada é detectado — o centro modal é um fato citado. Cada
+    linha quantifica o gap entre a leitura tonal (do arranjo) e a concepção de
+    Chediak. `detected_centers` mapeia `fact.key` → centro tonal detectado (pc);
+    uma chave ausente vira `None` (cobertura honesta, nunca superestimada).
+
+    Transposição-seguro por construção: a linha carrega o intervalo CURADO
+    (`finalis_from_tonal`), nunca `chediak_pc − cc_key_pc`.
+    """
+    rows: List[ModalCenterLedgerRow] = []
+    for fact in corpus:
+        rows.append(
+            ModalCenterLedgerRow(
+                artist=fact.artist,
+                song=fact.song,
+                detected_tonal_center=detected_centers.get(fact.key),
+                curated_center=fact.curated_center,
+                curated_mode=fact.curated_mode,
+                finalis_from_tonal=fact.finalis_from_tonal,
+                page=fact.citation.page,
+            )
+        )
+    return rows
 
 
 def load_corpus(directory: str) -> List[Tuple[str, List[str], str]]:

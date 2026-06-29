@@ -20,6 +20,7 @@ from typing import List, Optional, Sequence, Tuple
 
 from cifra_core.theory import Note
 from cifra_core.theory.chord_parse import parse
+from harmonic_analysis.corpus import CORPUS
 
 
 def _category(p) -> str:
@@ -28,19 +29,21 @@ def _category(p) -> str:
 
 
 # --- TIER A: fatos de centro do Chediak (Parte 2, pp.121-127) -----------------
-# (artista, música, centro_Chediak, modo, página, nota). RESERVADO para a change 2
-# (arbitragem modal de centro). NÃO usado na métrica TONAL da change 1: a derivação do
-# offset por subtração absoluta `(centro_Chediak − cc_key)` só vale quando Chediak e o
-# Cifra Club estão na MESMA transposição — falso em "Pra Não Dizer" (Chediak Mi, CC Fá)
-# e suspeito em "Procissão". A change 2 trata a transposição modal direito (offset pelo
-# grau do final na coleção, não por altura absoluta). Aqui ficam só como fatos citados.
+# (artista, música, centro_Chediak, modo, página, nota). Fatos citados, RESERVADOS.
+# As entradas de **divergência de centro** (offset ≠ 0: Arrastão, Procissão) são a
+# ÚNICA FONTE no corpus curado `harmonic_analysis.corpus.modal_centers.CORPUS` — não
+# duplicamos aqui (honra "uma fonte"). As de **nome de modo só** (Upa, Pra Não Dizer:
+# centro já correto) ficam com a parte (A) (`modal-mode-naming`), fora do CORPUS (D4),
+# então seguem literais. A derivação de offset por subtração absoluta
+# `(centro_Chediak − cc_key)` só vale na MESMA transposição — falsa em "Pra Não Dizer"
+# (Chediak Mi, CC Fá): o CORPUS usa `finalis_from_tonal` (intervalo curado), não altura.
 TIER_A_CHEDIAK = [
-    ("Edu Lobo", "Arrastao", "A", "dorian", 125,
-     "Lá dórico; o final dórico diverge do eixo tonal que o CC/K-S leem"),
+    *(
+        (f.artist, f.song, f.curated_center, f.curated_mode, f.citation.page, f.note)
+        for f in CORPUS
+    ),
     ("Edu Lobo", "Upa Neguinho", "D", "mixolydian", 126,
      "Ré mixolídio (centro = Ré; só o modo diverge do tonal)"),
-    ("Gilberto Gil", "Procissao", "C", "mixolydian", 126,
-     "Dó mixolídio (centro = Dó)"),
     ("Geraldo Vandre", "Pra Nao Dizer Que Nao Falei das Flores", "E", "aeolian", 127,
      "Mi eólio = menor natural; centro = Mi"),
 ]
