@@ -73,6 +73,40 @@ def modal_mode_name(key_note: str, flavor: str) -> str:
     return key_note
 
 
+# Volumes do Chediak em algarismo romano (a citação sempre mostra "Vol. I").
+_ROMAN = {1: "I", 2: "II", 3: "III"}
+
+# Intervalo (semitons) → nome em PT-BR, p/ exibir o finalis modal de forma
+# transposição-segura ("o modo dórico sobre a 5ª justa acima da tônica tonal").
+_INTERVAL_PT = {
+    1: "2ª menor",
+    2: "2ª maior",
+    3: "3ª menor",
+    4: "3ª maior",
+    5: "4ª justa",
+    6: "trítono",
+    7: "5ª justa",
+    8: "6ª menor",
+    9: "6ª maior",
+    10: "7ª menor",
+    11: "7ª maior",
+}
+
+
+def interval_pt(semitones: int) -> str:
+    """Nome do intervalo (0..11 semitons) em PT-BR; `7` → '5ª justa'."""
+    return _INTERVAL_PT.get(semitones % 12, "uníssono")
+
+
+def format_citation(citation) -> str:
+    """`Citation` → 'Almir Chediak, Harmonia & Improvisação, Vol. I, p. 125'.
+
+    Fonte ÚNICA da string de citação (volume em romano), para que Markdown e HTML
+    nunca divirjam. Consome o `Citation` tipado do corpus (`source/volume/page`)."""
+    vol = _ROMAN.get(citation.volume, str(citation.volume))
+    return f"{citation.source}, Vol. {vol}, p. {citation.page}"
+
+
 def quality_pt(quality: str) -> str:
     """Qualidade do acorde: dominant→dominante, diminished→diminuto, ..."""
     return _QUALITY_PT.get(quality, quality)

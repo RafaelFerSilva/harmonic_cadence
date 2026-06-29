@@ -1,10 +1,14 @@
 import os
 import re
 from datetime import datetime
+from html import escape
 from typing import Any, Dict
 
+from harmonic_analysis.corpus import lookup_modal_center
 from harmonic_analysis.presentation.labels import (
     church_mode_pt,
+    format_citation,
+    interval_pt,
     modal_mode_name,
     mode_pt,
     quality_pt,
@@ -70,6 +74,8 @@ class HTMLReportGenerator(ReportGenerator):
                 modal_center_html = (
                     f"<p><strong>Centro modal:</strong> {name}</p>"
                 )
+
+        curator_note_html = self._generate_curator_note_html(analysis)
 
         return f"""
 <!DOCTYPE html>
@@ -159,6 +165,7 @@ class HTMLReportGenerator(ReportGenerator):
                 <p><strong>Música:</strong> {analysis['name']}</p>
                 <p><strong>Tonalidade sugerida:</strong> {analysis['key']} ({mode_pt(analysis['mode'])})</p>
                 {modal_center_html}
+                {curator_note_html}
                 <a href="{yt_link}" target="_blank" class="btn btn-primary">
                     🔊 Ouvir no YouTube
                 </a>
@@ -252,6 +259,38 @@ class HTMLReportGenerator(ReportGenerator):
             f"<p><strong>Cadências modais:</strong> {cad}</p>"
         )
         return self._section("Análise modal", body)
+
+    def _generate_curator_note_html(self, analysis: Dict[str, Any]) -> str:
+        """Nota do curador (B) — paridade com o Markdown: callout Bootstrap com o
+        `<cite>` semântico + `blockquote-footer`, logo após o "Centro modal".
+
+        Só lê o dataset curado + a identidade da análise; não toca detecção nem muta
+        o JSON. Sem entrada curada → string vazia (relatório byte-idêntico ao de hoje).
+        """
+        fact = lookup_modal_center(
+            analysis.get("artist", ""), analysis.get("name", "")
+        )
+        if fact is None:
+            return ""
+        center = escape(f"{fact.curated_center} {church_mode_pt(fact.curated_mode)}")
+        relative = escape(
+            f"o modo {church_mode_pt(fact.curated_mode)} sobre a "
+            f"{interval_pt(fact.finalis_from_tonal)} acima da tônica da leitura tonal"
+        )
+        note = escape(fact.note)
+        source = escape(fact.citation.source)
+        citation = escape(format_citation(fact.citation))
+        return (
+            '<div class="alert border-start border-4 border-secondary bg-light" '
+            'role="note">'
+            f'<p class="mb-1">📖 <strong>Nota do curador — centro modal.</strong> '
+            f"{note}</p>"
+            f'<p class="mb-1">Centro de Chediak: <strong>{center}</strong> '
+            f"(≈ {relative}).</p>"
+            f'<footer class="blockquote-footer mb-0">'
+            f'<cite title="{source}">{citation}</cite></footer>'
+            "</div>"
+        )
 
     def _generate_modal_coloring_html(self, analysis: Dict[str, Any]) -> str:
         coloring = analysis.get("modal_coloring")

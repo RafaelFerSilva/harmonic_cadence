@@ -2,8 +2,11 @@ import os
 from datetime import datetime
 from typing import Any, Dict
 
+from harmonic_analysis.corpus import lookup_modal_center
 from harmonic_analysis.presentation.labels import (
     church_mode_pt,
+    format_citation,
+    interval_pt,
     modal_mode_name,
     mode_pt,
     quality_pt,
@@ -229,7 +232,31 @@ class MarkdownReportGenerator(ReportGenerator):
             f"**Música:** {analysis['name']}\n\n"
             f"**Tonalidade sugerida:** {analysis['key']} ({mode_pt(analysis['mode'])})\n\n"
             f"{modal_line}"
+            f"{self._generate_curator_note(analysis)}"
             f"[🔊 Ouvir no YouTube]({yt_link})\n\n"
+        )
+
+    def _generate_curator_note(self, analysis: Dict[str, Any]) -> str:
+        """Nota do curador (B): centro modal de Chediak para peças cujo centro
+        diverge — fato curado, anotado na exibição, NUNCA detectado das cifras.
+
+        Só lê o dataset curado + a identidade da análise; não toca `detect_key` /
+        `detect_coloring` nem muta o JSON. Sem entrada curada → string vazia (o
+        relatório fica byte-idêntico ao de hoje)."""
+        fact = lookup_modal_center(analysis.get("artist", ""), analysis.get("name", ""))
+        if fact is None:
+            return ""
+        center = f"{fact.curated_center} {church_mode_pt(fact.curated_mode)}"
+        relative = (
+            f"o modo {church_mode_pt(fact.curated_mode)} sobre a "
+            f"{interval_pt(fact.finalis_from_tonal)} acima da tônica da leitura tonal"
+        )
+        return (
+            f"> 📖 **Nota do curador — centro modal.** {fact.note}\n"
+            f">\n"
+            f"> Centro de Chediak: **{center}** (≈ {relative}).\n"
+            f">\n"
+            f"> — *{format_citation(fact.citation)}*\n\n"
         )
 
     def _generate_statistics(

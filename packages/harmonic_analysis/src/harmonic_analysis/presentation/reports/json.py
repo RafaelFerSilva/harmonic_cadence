@@ -3,6 +3,8 @@ import os
 from datetime import datetime
 from typing import Any, Dict
 
+from harmonic_analysis.corpus import lookup_modal_center
+
 from .base import ReportGenerator
 
 
@@ -43,6 +45,12 @@ class JSONReportGenerator(ReportGenerator):
             "key_analysis": {
                 "suggested_key": analysis["key"],
                 "mode": analysis["mode"],
+                # Centro modal curado (B): fato musicológico citado, anotado por
+                # identidade — NUNCA detectado das cifras, nunca re-centra a leitura
+                # tonal. Consumidores de máquina recebem a citação ESTRUTURADA
+                # (source/volume/page), não a string montada. Ausente quando não há
+                # entrada curada (relatório idêntico ao de hoje).
+                **self._modal_center_block(analysis),
             },
             "statistics": {
                 "total_chords": total_chords,
@@ -113,6 +121,30 @@ class JSONReportGenerator(ReportGenerator):
             json.dump(report, f, ensure_ascii=False, indent=2)
 
         return full_path
+
+    def _modal_center_block(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Bloco `modal_center` para o JSON (vazio se não houver fato curado).
+
+        Lê só o dataset curado + a identidade da análise; não muta `analysis`. A
+        citação vai ESTRUTURADA (source/volume/page), não como string montada."""
+        fact = lookup_modal_center(
+            analysis.get("artist", ""), analysis.get("name", "")
+        )
+        if fact is None:
+            return {}
+        return {
+            "modal_center": {
+                "center": fact.curated_center,
+                "mode": fact.curated_mode,
+                "finalis_from_tonal": fact.finalis_from_tonal,
+                "note": fact.note,
+                "citation": {
+                    "source": fact.citation.source,
+                    "volume": fact.citation.volume,
+                    "page": fact.citation.page,
+                },
+            }
+        }
 
     def _maybe_add(self, target: Dict[str, Any], key: str, value: Any) -> None:
         """Inclui a seção apenas se presente (omissão graciosa)."""

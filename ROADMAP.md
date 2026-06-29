@@ -283,9 +283,20 @@ arbitragem modo↔tom nem o gate sintético:
      Validado ao vivo: Upa Neguinho→"D mixolídio", Canto de Ossanha→"D frígio", Wave (eólio)
      silencia, Arrastão segue "D maior"+superfície mixolídia (o dórico de Chediak é a parte
      (B)). Baseline **idêntico** por construção (86·76·83·97 · centro 100% · modulantes 100%);
-     364 testes (+9). A parte **(B)** — anotação curada de Chediak para centro divergente
-     (Arrastão dórico, Procissão mixolídio) — é o Caminho 2 (anotar, não detectar) em
-     `modal-center-arbitration`, ainda bloqueada por dado.
+     364 testes (+9).
+
+   - **(B) anotação curada de centro modal** — **feito** em `modal-center-arbitration` via
+     **Caminho 2 = anotar, não detectar** (a detecção, Caminho 1, segue bloqueada por dado —
+     PROBE-FINDINGS.md). O centro modal divergente é um **fato musicológico citado**, injetado
+     no display: corpus tipado `harmonic_analysis.corpus.modal_centers` com **citação
+     obrigatória** (`__post_init__` + teste-invariante = gate de build), busca por identidade
+     (`slug(artista)|slug(música)`), **nota do curador** no cabeçalho (MD blockquote · HTML
+     `alert`+`<cite>` · JSON com citação estruturada), e um **ledger de cobertura/divergência**
+     (NÃO acurácia — nada é detectado), transposição-seguro pelo intervalo curado
+     `finalis_from_tonal` (não subtração absoluta). Corpus n=2: Arrastão (eixo Ré → Lá dórico,
+     +7, p.125), Procissão (eixo Lá → Dó mixolídio, +3, p.126). `TIER_A_CHEDIAK` migrado p/
+     ler do corpus (uma fonte). **Zero regressão tonal** provada ao vivo (86·76·83·97 · centro
+     100% · modulantes 100%); 391 testes. A **bifurcação (A)+(B) está completa**.
 
 ## Trilha paralela (contida, encaixa a qualquer momento)
 
@@ -306,7 +317,9 @@ arbitragem modo↔tom nem o gate sintético:
 | ~~3a~~ | ~~Métrica coleção-consciente (armadura)~~ | ~~`collection-aware-metric`~~ | ~~S~~ |
 | ~~3b-pré~~ | ~~Aposentar o `detect_mode` falso (preserva biblioteca)~~ | ~~`fix-or-remove-church-mode`~~ | ~~S~~ |
 | ~~3b-cor~~ | ~~Coloração modal (overlay tonal-ortodoxo: mixolídio/frígio)~~ | ~~`modal-coloring-overlay`~~ | ~~M~~ |
-| 3b | Arbitragem modal↔tonal de **centro** (corpus modal + discriminador) | — (bloqueado) | L |
+| ~~3b-A~~ | ~~Nomeação de modo no display (bifurcação parte A)~~ | ~~`modal-mode-naming`~~ | ~~M~~ |
+| ~~3b-B~~ | ~~Anotação curada de centro modal (bifurcação parte B, Caminho 2)~~ | ~~`modal-center-arbitration`~~ | ~~M~~ |
+| 3b-det | Detecção de **centro** modal (Caminho 1) — **bloqueado por dado** (corpus modal melódico) | — | L |
 
 _Concluídos: `enharmonic-spelling`, `consolidate-modal-field` (em
 `finish-note-spelling`), `widen-key-corpus` + leva 2 (n=60), `tonal-center-detection`
