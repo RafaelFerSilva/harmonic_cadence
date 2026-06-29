@@ -1,11 +1,12 @@
 import argparse
+import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Optional
 
 from tqdm import tqdm
 
-from cifra_core import CachePolicy
+from cifra_core import CachePolicy, cifra_from_text
 
 from harmonic_analysis.config import ProviderConfig, build_song_provider
 from harmonic_analysis.infra.cifra_api import (
@@ -105,6 +106,28 @@ class HarmonicCLI:
         )
         # Explicação do relatório: template offline (padrão) ou LLM opt-in.
         self._add_llm_flags(analyze_parser)
+
+        # Comando: analyze-file — analisa um arquivo de acordes local (sem Cifra Club).
+        # A tonalidade é detectada dos acordes (sem "Tom:" da fonte); não toca a rede.
+        file_parser = subparsers.add_parser(
+            "analyze-file",
+            help="Analisa um arquivo .txt de acordes local (sem scraping)",
+        )
+        file_parser.add_argument("path", help="Caminho do arquivo de acordes (.txt)")
+        file_parser.add_argument(
+            "--artist", "-a", default="", help="Artista (opcional; metadado)"
+        )
+        file_parser.add_argument(
+            "--title", "-t", default="", help="Título (opcional; default: nome do arquivo)"
+        )
+        file_parser.add_argument(
+            "--format",
+            "-f",
+            choices=["html", "json", "markdown"],
+            default="json",
+            help="Formato do relatório (default: json)",
+        )
+        self._add_llm_flags(file_parser)
 
         # Comando: cache
         cache_parser = subparsers.add_parser(
@@ -230,6 +253,8 @@ class HarmonicCLI:
         try:
             if parsed_args.command == "analyze":
                 self._handle_analyze(parsed_args)
+            elif parsed_args.command == "analyze-file":
+                self._handle_analyze_file(parsed_args)
             elif parsed_args.command == "cache":
                 self._handle_cache(parsed_args)
             elif parsed_args.command == "list":
@@ -269,6 +294,34 @@ class HarmonicCLI:
                 print(f"\nRelatório gerado com sucesso: {filename}")
             except Exception as e:
                 print(f"Erro ao analisar música: {str(e)}")
+
+    def _handle_analyze_file(self, args: argparse.Namespace) -> None:
+        """Analisa um arquivo de acordes local — adaptador de entrada NÃO-Cifra-Club.
+
+        Lê o texto, ingere via `cifra_from_text` (mesma normalização do provider) e roda
+        o MESMO motor por `analyze_song_data_structured`, sem construir provider de rede.
+        Degrada visível: arquivo ausente/vazio/sem acordes → erro claro + saída ≠ 0."""
+        try:
+            with open(args.path, encoding="utf-8", errors="replace") as f:
+                text = f.read()
+        except OSError as e:
+            print(f"Erro ao ler o arquivo: {e}")
+            sys.exit(1)
+
+        title = args.title or os.path.splitext(os.path.basename(args.path))[0]
+        cifra = cifra_from_text(text, artist=args.artist, title=title)
+
+        service = AnalysisService()  # sem provider: caminho local não acessa a rede
+        result = service.analyze_song_data_structured(cifra.to_dict())
+        if not result or result.get("success") is False or "error" in result:
+            msg = (result or {}).get("error", "cifra inválida")
+            print(f"Erro ao analisar o arquivo: {msg}")
+            sys.exit(1)
+
+        self._apply_explanation_engine(result, args)
+        generator = ReportFactory.create(args.format)
+        filename = generator.generate(result)
+        print(f"\nRelatório gerado com sucesso: {filename}")
 
     def _handle_analyze_all(self, args: argparse.Namespace) -> None:
         """Analisa todas as músicas de um artista com paralelização."""

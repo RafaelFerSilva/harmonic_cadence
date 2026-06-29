@@ -21,6 +21,7 @@ from cifra_core.exceptions import (
     SongProviderError,
     UpstreamError,
 )
+from cifra_core.ingest import cifra_from_text
 from cifra_core.lines import clean_cifra_lines, clean_text, decode_unicode_escape
 from cifra_core.models import Cifra, SongRef
 from cifra_core.provider import SongProvider
@@ -44,6 +45,7 @@ __all__ = [
     "SongRef",
     "UpstreamError",
     "cache_key",
+    "cifra_from_text",
     "clean_cifra_lines",
     "clean_text",
     "decode_unicode_escape",

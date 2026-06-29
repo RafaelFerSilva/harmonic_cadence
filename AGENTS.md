@@ -42,15 +42,22 @@ packages/
 └── harmonic_analysis/  # domínio musical + CLI `harmonic` + relatórios
 ```
 
-A análise obtém cifras **só** pela porta `SongProvider`. Dois adaptadores:
-**in-process** (padrão, raspa sem subir servidor) e **HTTP** (fala com o Flask).
-Cache via `CachePolicy` (`NETWORK_FIRST`/`CACHE_FIRST`/`CACHE_ONLY`/`REFRESH`).
+A análise obtém cifras de fontes **navegáveis** (catálogo) pela porta `SongProvider`:
+dois adaptadores — **in-process** (padrão, raspa sem subir servidor) e **HTTP** (fala com
+o Flask). Cache via `CachePolicy` (`NETWORK_FIRST`/`CACHE_FIRST`/`CACHE_ONLY`/`REFRESH`).
+O Cifra Club é **um adaptador de entrada substituível, não o núcleo**: há também uma
+ingestão **local** `cifra_core.cifra_from_text` (texto/`.txt` → `Cifra`, `key=""`) que cai
+no MESMO motor (`analyze_song_data_structured`), via `harmonic analyze-file`, sem rede.
+Note que o motor **já detecta a tonalidade só dos acordes** (`detect_key`) — o `Tom:` do
+CC nunca é muleta de detecção (é só metadado de relatório + ouro de validação). Entrada
+local é metadata-free e não entra no baseline (sem ouro do CC).
 
 ## Comandos
 
 ```bash
 uv sync                                  # instala todo o workspace
 uv run harmonic analyze "Djavan" "Sina"  # CLI (in-process, sem servidor)
+uv run harmonic analyze-file prog.txt    # analisa um .txt de acordes local (sem rede)
 make test                                # uv run pytest (toda a suíte)
 make lint                                # uv run ruff check packages
 uv run python scripts/key_baseline.py    # baseline de tonalidade (precisa de rede)

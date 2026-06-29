@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Any, Counter, Dict, List
+from typing import Any, Counter, Dict, List, Optional
 
 from cifra_core import ChordPattern, SongProvider, SongProviderError, fix_encoding
 
@@ -49,7 +49,10 @@ class AnalysisService:
     Serviço principal que coordena a análise harmônica completa.
     """
 
-    def __init__(self, provider: SongProvider):
+    def __init__(self, provider: Optional[SongProvider] = None):
+        # provider é None no caminho de entrada local (analyze-file): a análise roda
+        # por `analyze_song_data_structured`, que não usa o provider. Só
+        # `analyze_song_from_api` (caminho de scrape) o exige.
         self.provider = provider
         self.formatter = AnalysisFormatter()
 

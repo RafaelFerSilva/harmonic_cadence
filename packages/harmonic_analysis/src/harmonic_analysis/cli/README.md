@@ -38,6 +38,21 @@ uv run harmonic analyze "Djavan" --all --format markdown
 ```
 
 
+## 1b. analyze-file - Análise de um arquivo de acordes local (sem Cifra Club)
+
+Analisa um `.txt` de acordes do seu disco — uma progressão autoral, um esboço — pelo
+**mesmo motor**, sem scraping e sem rede. O Cifra Club é só um adaptador de entrada;
+este é outro. A tonalidade é **detectada dos acordes** (não há "Tom:" da fonte), então o
+motor exerce 100% da análise. Entrada local não entra no baseline (não há ouro do CC).
+
+```bash
+uv run harmonic analyze-file caminho/progressao.txt
+uv run harmonic analyze-file prog.txt --title "Minha Prog" --artist "Eu" --format html
+```
+
+Degrada visível: arquivo ausente / vazio / sem acordes válidos → erro claro e saída ≠ 0.
+
+
 ## 2. cache - Gerenciamento de cache
 Baixa e armazena músicas localmente para uso offline.
 
