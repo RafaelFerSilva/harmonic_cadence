@@ -67,7 +67,16 @@ def chediak_functional_center(
         dom = (cand + 7) % 12
         subv = (cand + 1) % 12
         for i in range(n - 1):
-            if is_dom[i] and roots[i] in (dom, subv) and basses[i + 1] == cand:
+            # O alvo da resolução só ESTABELECE tônica se for um REPOUSO (Chediak pp.84-85):
+            #   • não-dominante (sem trítono real) — senão é elo de cadeia V/V→V, não chegada;
+            #   • raiz == baixo — a tônica repousa na própria raiz; rejeita inversão (Fm/C).
+            if (
+                is_dom[i]
+                and roots[i] in (dom, subv)
+                and basses[i + 1] == cand
+                and not is_dom[i + 1]
+                and roots[i + 1] == basses[i + 1]
+            ):
                 mode = "minor" if qual[i + 1] == "minor" else "major"
                 return cand, mode
     return None

@@ -71,6 +71,7 @@ class AnalysisFormatter:
 
         # Analisamos apenas acordes únicos para não repetir informações
         subv_members = analysis.subv_extended_indices(chords)
+        ii_members = analysis.ii_cadential_indices(chords)
         unique_chords = {}
         for i, chord in enumerate(chords):
             if chord.symbol not in unique_chords:
@@ -78,7 +79,8 @@ class AnalysisFormatter:
                 next_chord = chords[i + 1] if i < len(chords) - 1 else None
 
                 func_code, func_name, func_desc = analysis.analyze_function(
-                    chord, prev_chord, next_chord, i in subv_members
+                    chord, prev_chord, next_chord,
+                    i in subv_members, i in ii_members,
                 )
 
                 borrowing_source = "-"

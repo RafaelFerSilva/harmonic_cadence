@@ -327,17 +327,27 @@ arbitragem modo↔tom nem o gate sintético:
 | ~~3d~~ | ~~"Buraco da relativa" de Coração Vagabundo — **invalidado**: o arranjo do CC repousa em Mi♭ maior (detector certo); fato mis-curado removido~~ | — | — |
 | ~~4~~ | ~~Adaptador de entrada local (.txt de acordes, CC = só fonte)~~ | ~~`local-chord-input`~~ | ~~S~~ |
 | ~~5~~ | ~~Reformular o baseline: CC só fonte, Chediak a base, songbook o corpus~~ | ~~`songbook-chediak-baseline`~~ | ~~M~~ |
-| 6 | **Crescer os invariantes funcionais** (diminutos-por-tipo XXI-XXII, ii-V XIX, taxonomia das 5 cadências XXXII) sobre o songbook — vira gate de regressão funcional | — | M |
-| 7 | **Trabalhar a worklist de corroboração** (≈17 divergências `detect_key` × centro funcional) — adjudicar com Chediak, melhorar detecção sem amarrar no CC | — | M |
+| ~~5.5~~ | ~~Higienizar a extração (classificador de linha por densidade + whitelist por manifesto): fantasmas de letra 14%→0,5%, concordância de centro 71%→80%, invariante 62/62 mantido~~ | ~~`sanitize-chord-extraction`~~ | ~~M~~ |
+| ~~6a~~ | ~~Crescer o gate funcional com o invariante VERDE de diminuto (XXI-XXII) + formalizar o de trítono~~ | ~~`grow-functional-invariants`~~ | ~~S~~ |
+| 6 | **Crescer os invariantes funcionais** — restam ii-V (XIX) e cadências (XXXII). O probe (n=62) mostrou que NÃO estão verdes: viram fixes (abaixo), não gate direto | — | M |
+| ~~fix-d2~~ | ~~**`fix-d2-over-attribution`**: o `D2` agora exige que o dominante RESOLVA no seu alvo (teste intervalar, pré-passe `ii_cadential_indices`). `D2` 363→199 (164 over-attributions zerados, 199 legítimos mantidos); invariantes 62/62. Pronto p/ gatear o invariante "todo `D2` resolve"~~ | ~~`fix-d2-over-attribution`~~ | ~~M~~ |
+| fix-cad | **`fix-cadence-function-coherence`**: cadência×função discordam — 10 Perfeitas (9 `D→D2`, 1 `D→Dim`) onde o "I" não é codado `T`. Alinhar detector de cadência com o coder de função; só então gatear | — | S |
+| 7 | **Trabalhar a worklist de corroboração** — adjudicar com Chediak, melhorar detecção sem amarrar no CC. *Parcial:* `harden-functional-center` fechou as guardas de repouso do achador funcional (dominante/inversão-como-tônica); concordância 80%→83%, worklist 12→10. Restam ~10 divergências genuínas (modo paralelo, V/relativa-como-tônica do `detect_key`) | `harden-functional-center` | M |
 | 8 | Ampliar o corpus do songbook (`cifras/*.md`) — o ouro é a regra, não o gênero | — | S |
 | 3b-det | Detecção de **centro** modal (Caminho 1) — **bloqueado por dado** (corpus modal melódico) | — | L |
 
-> **Handoff (próxima sessão):** a frente de maior valor é a **#6** — hoje o baseline funcional
-> só checa "trítono ⇒ dominante" (62/62); somar os invariantes do Chediak (diminutos, ii-V,
-> cadências) transforma `scripts/songbook_baseline.py` num gate de regressão que protege a
-> teoria destilada. A **#7** (worklist) é o caminho honesto para evoluir a detecção. Ambas usam
-> `cifras/*.md` (local, gitignored) e o `chediak_functional_center` (em
-> `validation/functional_center.py`). Rodar: `uv run python scripts/songbook_baseline.py`.
+> **Handoff (próxima sessão, pós-2026-06-30 — 4 changes fechadas):** o baseline funcional já gateia
+> DOIS invariantes duros (trítono 62/62 + diminuto 62/62). Próximos passos, em ordem:
+> 1. **Gatear o invariante "todo `D2` resolve no alvo"** no `songbook_baseline.py` — já VERDE
+>    (0/199 violações pós-`fix-d2`), adição trivial; fecha a parte ii-V do **#6**.
+> 2. **`fix-cadence-function-coherence`** — 5 incoerências `D→D2`/`D→Dim` (caiu de 10 pós-fix-d2)
+>    em ah-se-eu-pudesse, ate-parece, avarandado, enquanto-a-tristeza-nao-vem, so-tinha-de-ser-com-voce;
+>    o detector de cadência rotula `V→I` onde o coder chama o "I" de D2/Dim. Depois, gatear a
+>    coerência de cadência fecha o **#6** inteiro.
+> 3. **#7 worklist** (~10 divergências genuínas, agora erros prováveis do `detect_key`) e **#8**
+>    (ampliar corpus). Ferramentas: `scripts/songbook_baseline.py` + `scripts/worklist_adjudication.py`
+>    (READ-ONLY, clusteriza divergências). Medir SEMPRE ao vivo; nunca `cc_key`. **Git: tudo na
+>    `main` NÃO-COMMITADO** — considerar commitar antes de seguir.
 
 _Concluídos: `enharmonic-spelling`, `consolidate-modal-field` (em
 `finish-note-spelling`), `widen-key-corpus` + leva 2 (n=60), `tonal-center-detection`

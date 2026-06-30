@@ -101,6 +101,7 @@ class HarmonicAnalysis:
         prev_chord: Optional[Chord] = None,
         next_chord: Optional[Chord] = None,
         subv_extended: bool = False,
+        ii_cadential: bool = False,
     ) -> Tuple[FunctionCode, str, str]:
         """
         Analisa a função harmônica do acorde no contexto.
@@ -109,6 +110,10 @@ class HarmonicAnalysis:
         `subv_extended`: verdadeiro quando o acorde é membro de uma cadeia de SubV's
         estendidos (Chediak XXVIII c/d) — determinado pelo pré-passe
         `subv_extended_indices` sobre a progressão inteira (par local é ambíguo).
+
+        `ii_cadential`: verdadeiro quando o acorde é um II cadencial VÁLIDO (Chediak XIX)
+        — o dominante seguinte resolve no seu alvo — determinado pelo pré-passe
+        `ii_cadential_indices` (a resolução precisa do next-next, fora do escopo local).
         """
 
         # Validação do acorde
@@ -291,7 +296,8 @@ class HarmonicAnalysis:
         #     empréstimo modal→auxiliar. Sem metro nas cifras, usa-se a relação
         #     harmônica (não o tempo forte). Precede a leitura SD/Emp/T desses iim7.
         if (
-            chord.is_minor
+            ii_cadential
+            and chord.is_minor
             and next_chord is not None
             and next_chord.is_dominant_seventh
             and self._get_interval(chord.root, next_chord.root) == 5
@@ -462,6 +468,38 @@ class HarmonicAnalysis:
             if run_len >= 3:
                 members.update(range(i, j))  # todos menos o último (j)
             i = j + 1 if j > i else i + 1
+        return members
+
+    @classmethod
+    def ii_cadential_indices(cls, chords: Sequence[Chord]) -> set:
+        """Índices de acordes que são II cadencial VÁLIDO (Chediak XIX, p.100).
+
+        Um ii cadencial prepara um dominante, e um dominante só FUNCIONA quando RESOLVE
+        por 4ªJ descendente no seu alvo. Marca `i` sse: `chords[i]` é menor, `chords[i+1]`
+        é dominante-7 a 4ªJ acima (intervalo 5), e `chords[i+2]` RESOLVE no alvo do V —
+        raiz OU baixo a `(Vroot+5)%12` (5ªJ abaixo da raiz do V = 4ªJ acima, mód 12).
+
+        Teste puramente intervalar (transposição-invariante): NÃO depende do tom nem do
+        código do V. Isso evita a armadilha do ramo de blues (que coda I7/IV7 como T/SD
+        ANTES de considerar resolução, mascarando um `Cm7 F7→Bb` auxiliar legítimo). Sem
+        `chords[i+2]` não há evidência de resolução → não é II cadencial (conservador).
+        """
+        members: set = set()
+        for i in range(len(chords) - 2):
+            cur, dom, tgt = chords[i], chords[i + 1], chords[i + 2]
+            if not (cur.is_minor and dom.is_dominant_seventh):
+                continue
+            try:
+                if cls._get_interval(cur.root, dom.root) != 5:
+                    continue
+                resolves = cls._get_interval(dom.root, tgt.root) == 5 or (
+                    tgt.bass is not None
+                    and cls._get_interval(dom.root, tgt.bass) == 5
+                )
+            except Exception:
+                continue
+            if resolves:
+                members.add(i)
         return members
 
     @staticmethod

@@ -31,6 +31,26 @@ def test_static_modal_vamp_is_quarantined():
     assert cfc(["Dm7", "G7", "Dm7", "G7"]) is None
 
 
+def test_dominant_target_does_not_establish_tonic():
+    # A7(b9)→D7(13): o alvo D7 é DOMINANTE (trítono) — elo de cadeia V/V→V, não tônica.
+    # Sem repouso num extremo, retorna None (quarentena honesta). (harden-functional-center)
+    assert cfc(["Dm7(9)", "G7(13)", "A7(b9)", "D7(13)", "A7M"]) is None
+
+
+def test_inverted_target_does_not_establish_tonic():
+    # G7(#5)→Fm/C: o alvo é Fá menor invertido (raiz F ≠ baixo C) — é o iv, não a tônica.
+    # Não pode virar "C minor"; o centro real (C major) vem de G7(9)→C (repouso, raiz==baixo).
+    seq = ["G7(#5)", "Fm/C", "C7M", "Dm7", "G7(9)", "C"]
+    r = cfc(seq)
+    assert r != (0, "minor")  # nunca cunha Dó menor de um Fá menor
+    assert r == (0, "major")  # acha o repouso real em C
+
+
+def test_minor_repose_target_still_works():
+    # V→i menor legítimo: D7(9)→Gm7 (alvo de repouso menor, raiz==baixo) → G minor.
+    assert cfc(["Cm7", "D7(9)", "Gm7"]) == (7, "minor")
+
+
 def test_invariant_to_transposition():
     base = ["Dm7", "G7", "C7M"]
     for t in range(12):

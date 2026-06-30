@@ -7,19 +7,34 @@ TBD - created by archiving change songbook-chediak-baseline. Update Purpose afte
 
 The harness SHALL establish a piece's tonal center by Chediak's **functional-dominant criterion**
 (Vol. I pp.84/87): a real-tritone dominant (a `Category.DOMINANT` V7 or SubV7) resolving by bass
-to a repose chord in a structural/final position makes that chord the tonic. This SHALL be
-computed **from the chord symbols alone**, with NO source key annotation as input. The function
-SHALL return the Chediak-functional center (its pitch class and major/minor quality, taken from
-the resolved tonic chord) or `None` when no such functional resolution exists. The Cifra Club
-`key` annotation SHALL NOT be consulted.
+to a **repose chord** in a structural/final position makes that chord the tonic. A **repose
+chord** SHALL be precise: it MUST NOT itself be a real-tritone dominant (`Category` other than
+`DOMINANT`), because the tonic reposes while the dominant is tension (Vol. I pp.84-85) — a V
+resolving to another dominant is a secondary-dominant chain link (V/V→V), not a tonic arrival;
+and its root MUST equal its bass, because the tonic reposes on its own root — an inverted chord
+(e.g. `Fm/C`) is a non-tonic function, not the center. This SHALL be computed **from the chord
+symbols alone**, with NO source key annotation as input. The function SHALL return the
+Chediak-functional center (its pitch class and major/minor quality, taken from the resolved
+repose chord) or `None` when no such functional resolution to a repose chord exists. The Cifra
+Club `key` annotation SHALL NOT be consulted.
 
-#### Scenario: The center is found from a functional-dominant resolution
-- **WHEN** a progression contains a real-tritone V7/SubV7 resolving by bass to a repose chord in a structural/final position
-- **THEN** the harness returns that chord's pitch class and quality as the Chediak-functional center
+#### Scenario: The center is found from a functional-dominant resolution to a repose chord
+- **WHEN** a progression contains a real-tritone V7/SubV7 resolving by bass to a repose chord (non-dominant, root == bass) in a structural/final position
+- **THEN** the harness returns that repose chord's pitch class and quality as the Chediak-functional center
 - **AND** it does so without reading any source key annotation
 
+#### Scenario: A dominant-quality target does not establish a tonic
+- **WHEN** a real-tritone dominant resolves by bass to a chord that is itself a real-tritone dominant (e.g. `A7(b9)→D7(13)`)
+- **THEN** that target does NOT establish the tonic (it is a secondary-dominant chain link, not a repose)
+- **AND** the criterion continues searching, returning `None` if no repose target anchors a structural extreme
+
+#### Scenario: An inverted target does not establish a tonic
+- **WHEN** a dominant resolves by bass to an inverted chord whose root differs from its bass (e.g. `G7(#5)→Fm/C`)
+- **THEN** that target does NOT establish the tonic (the tonic reposes on its own root)
+- **AND** the mode is never taken from a chord whose root differs from the candidate bass
+
 #### Scenario: No functional resolution yields no center
-- **WHEN** a progression has no real-tritone dominant resolving to a structural repose chord (e.g. a static modal vamp)
+- **WHEN** a progression has no real-tritone dominant resolving to a structural repose chord (e.g. a static modal vamp, or only resolutions to dominant/inverted targets)
 - **THEN** the Chediak-functional center is `None`
 - **AND** the song is quarantined from the center metric (its coverage is reported separately)
 
@@ -64,22 +79,43 @@ invariant to each arrangement's transposition.
 
 ### Requirement: The baseline asserts Chediak functional invariants, invariant to transposition
 
-The harness SHALL validate, per song, that the functional reading obeys Chediak's
-classification rules — independent of the center and invariant to transposition:
-a real-tritone dominant is classified as a dominant by its target (primary `V7→I`, secondary
-`V7/x`, `SubV7`, auxiliary, extended; Vol. I XVIII-XIX, XXVIII); diminished chords are classified
-by type (XXI-XXII) and `vii°7` reads as a dominant (p.90), never as modal interchange; ii-V
-motion is recognized (XIX); cadences are tagged within the five-cadence taxonomy (XXXII).
-Violations SHALL be reported as functional-analysis defects. These checks SHALL hold in any
-transposition because they are degree- and quality-relative.
+The harness SHALL validate, per song, a set of **hard functional invariants** — defects that
+must not occur — independent of the center and invariant to transposition. The hard invariants
+gated as defects are: (a) a real-tritone `Category.DOMINANT` chord SHALL be read with a dominant
+function code (primary `V7`, secondary `Dsec`, `Daux`, extended `Dext`, or `SubV`), never as
+modal interchange or a plain subdominant; and (b) a `Category.DIMINISHED` chord SHALL be
+classified only as a dominant (`D`/`Dsec` — `vii°7` is a rootless `V7(b9)`, p.90) or as a
+non-dominant diminished (`Dim` — auxiliary/descending/passing, XXI-XXII), **never** as modal
+interchange (`Emp`), subdominant (`SD`), tonic (`T`), or modal function. Violations of (a) or (b)
+SHALL be reported as functional-analysis defects, per song, like the existing tritone check.
+
+The engine SHALL continue to **recognize** ii-V motion (emitting the `D2` ii-cadential code,
+XIX) and to **tag** cadences within the five-cadence taxonomy (XXXII); the baseline reports these
+as produced. However, the **coherence** between those subsystems and the function coder — that a
+`D2` is followed by a chord whose FUNCTION is dominant, and that a cadence tagged `V→I` has a
+dominant-function V and a tonic-function I — is a KNOWN, MEASURED incoherence (the `D2` code keys
+off the next chord's quality, not its function; cadence tagging keys off degree, not function
+code) and SHALL NOT yet be gated as a defect. These coherence invariants are deferred to separate
+fix changes so the baseline gate stays green.
 
 #### Scenario: A real tritone is always read as a dominant
 - **WHEN** a chord is a real-tritone `Category.DOMINANT`
 - **THEN** the analysis classifies it as a dominant by its resolution target (primary/secondary/SubV/auxiliary/extended), never as modal interchange or a plain subdominant
 - **AND** a violation is reported as a functional defect
 
+#### Scenario: A diminished chord is never read as modal interchange, subdominant, or tonic
+- **WHEN** a chord is a `Category.DIMINISHED`
+- **THEN** its function code is one of `D`/`Dsec` (dominant, rootless `V7(b9)`) or `Dim` (auxiliary/descending/passing)
+- **AND** it is never `Emp`, `SD`, `T`, or a modal function
+- **AND** a violation is reported as a functional defect
+
+#### Scenario: ii-V recognition and cadence tagging are produced but coherence is not yet gated
+- **WHEN** the baseline runs over the songbook
+- **THEN** the engine still emits `D2` for ii-cadential motion and populates the five-cadence taxonomy
+- **AND** the baseline does NOT report a defect when a `D2`'s target or a cadence's target carries a non-dominant/non-tonic function code (these incoherences are measured and deferred to fix changes)
+
 #### Scenario: Invariants hold under transposition
 - **WHEN** a song is analyzed in two transpositions
-- **THEN** the functional-invariant verdicts (dominant classification, diminished type, ii-V, cadence taxonomy) are identical
+- **THEN** the hard functional-invariant verdicts (dominant classification, diminished classification) are identical
 - **AND** the absolute key does not change any functional verdict
 

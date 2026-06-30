@@ -22,7 +22,7 @@ import glob
 import os
 import re
 
-from cifra_core import ChordPattern, cifra_from_text
+from cifra_core import cifra_from_text, extract_chords_from_lines
 
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.key_detection import detect_key
@@ -31,15 +31,23 @@ from harmonic_analysis.validation import chediak_functional_center
 
 _PC = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 _CODE = re.compile(r"```(.*?)```", re.S)
+_MANIFEST = re.compile(r"\*\*Acordes Utilizados:\*\*\s*(.+)")
+_TICK = re.compile(r"`([^`]+)`")
+
+
+def _manifest(text: str) -> frozenset[str]:
+    """Vocabulário do header `Acordes Utilizados:` (whitelist que confirma token ambíguo)."""
+    m = _MANIFEST.search(text)
+    return frozenset(_TICK.findall(m.group(1))) if m else frozenset()
 
 
 def _chords_from_md(path: str) -> list[str]:
-    """Extrai os símbolos de acorde do bloco de cifra do .md (via local-chord-input)."""
+    """Extrai acordes do .md pelo caminho único (linha CHORD + whitelist do manifesto)."""
     text = open(path, encoding="utf-8").read()
     blocks = _CODE.findall(text)
     body = "\n".join(blocks) if blocks else text
     cifra = cifra_from_text(body)
-    return [s for line in cifra.cifra for s in ChordPattern.find_all(line) if s]
+    return extract_chords_from_lines(cifra.cifra, known_chords=_manifest(text))
 
 
 def _dominant_invariant(chords: list[str], analysis: dict) -> list[str]:
@@ -59,6 +67,28 @@ def _dominant_invariant(chords: list[str], analysis: dict) -> list[str]:
     return violations
 
 
+# Função de repouso/diminuto aceitáveis p/ um acorde Category.DIMINISHED (Chediak XXI-XXII, p.90):
+#   D/Dsec = vii°7 dominante (V7b9 rootless);  Dim = auxiliar/descendente/passagem.
+_DIM_OK = {"D", "Dsec", "Dim"}
+
+
+def _diminished_invariant(chords: list[str], analysis: dict) -> list[str]:
+    """Defeitos: diminuto (Category.DIMINISHED) lido como Emp/SD/T/Modal (nunca, Chediak XXI-XXII).
+
+    Disjunto do invariante de trítono: este só olha `category=="diminished"`; aquele só
+    `category=="dominant"`. Transposição-invariante (grau/qualidade-relativo)."""
+    items = analysis.get("harmonic_analysis") or []
+    violations = []
+    for item, sym in zip(items, chords):
+        try:
+            is_dim = Chord(sym).get_category().value == "diminished"
+        except Exception:
+            continue
+        if is_dim and (item.get("function_code") or "") not in _DIM_OK:
+            violations.append(f"{sym}→{item.get('function_code')}")
+    return violations
+
+
 def main() -> None:
     paths = sorted(glob.glob("cifras/*.md"))
     if not paths:
@@ -69,6 +99,7 @@ def main() -> None:
     agree = disagree = quarantine = 0
     worklist: list[str] = []
     defects: list[str] = []
+    dim_defects: list[str] = []
     n = 0
     for path in paths:
         name = os.path.basename(path)[:-3]
@@ -101,6 +132,9 @@ def main() -> None:
             v = _dominant_invariant(chords, result)
             if v:
                 defects.append(f"  {name[:26]:<27} {', '.join(v[:4])}")
+            dv = _diminished_invariant(chords, result)
+            if dv:
+                dim_defects.append(f"  {name[:26]:<27} {', '.join(dv[:4])}")
 
     print(f"\nBaseline FUNCIONAL sobre o songbook (corpus local, n={n}) — base = Chediak\n")
     print("INVARIANTE funcional (a base: trítono real ⇒ dominante; transposição-invariante):")
@@ -108,6 +142,11 @@ def main() -> None:
     if defects:
         print("  defeitos (trítono não lido como dominante):")
         print("\n".join(defects))
+    print("\nINVARIANTE diminuto (Chediak XXI-XXII / p.90; nunca Emp/SD/T/Modal):")
+    print(f"  músicas sem defeito: {n - len(dim_defects)}/{n}")
+    if dim_defects:
+        print("  defeitos (diminuto lido como Emp/SD/T/Modal):")
+        print("\n".join(dim_defects))
 
     covered = agree + disagree
     print("\nCentro tonal — CORROBORAÇÃO (detect_key × critério funcional do Chediak), NÃO acurácia:")

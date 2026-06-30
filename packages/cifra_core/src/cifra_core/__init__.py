@@ -22,7 +22,15 @@ from cifra_core.exceptions import (
     UpstreamError,
 )
 from cifra_core.ingest import cifra_from_text
-from cifra_core.lines import clean_cifra_lines, clean_text, decode_unicode_escape
+from cifra_core.lines import (
+    LineKind,
+    classify_line,
+    clean_cifra_lines,
+    clean_text,
+    decode_unicode_escape,
+    extract_chords_from_lines,
+    is_chord_token,
+)
 from cifra_core.models import Cifra, SongRef
 from cifra_core.provider import SongProvider
 from cifra_core.slug import slugify
@@ -37,6 +45,10 @@ __all__ = [
     "ChordPattern",
     "Cifra",
     "EmptyCifra",
+    "LineKind",
+    "classify_line",
+    "extract_chords_from_lines",
+    "is_chord_token",
     "JsonFileCacheStore",
     "ProviderUnavailable",
     "SongNotFound",

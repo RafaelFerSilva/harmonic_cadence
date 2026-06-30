@@ -2,7 +2,12 @@ import logging
 import re
 from typing import Any, Counter, Dict, List, Optional
 
-from cifra_core import ChordPattern, SongProvider, SongProviderError, fix_encoding
+from cifra_core import (
+    SongProvider,
+    SongProviderError,
+    extract_chords_from_lines,
+    fix_encoding,
+)
 
 from harmonic_analysis.domain import chord_scale, voice_leading
 from harmonic_analysis.domain.cadence import analyze_cadences
@@ -78,14 +83,15 @@ class AnalysisService:
         clean = re.sub(r'<[^>]+>', '', text)
         return clean
 
-    def _extract_chords(self, cifra_lines: List[str]) -> List[Chord]:
-        all_chords = []
-        for line in cifra_lines:
-            clean_line = self.remove_html_tags(line)
-            matches = ChordPattern.find_all(clean_line)
-            if matches:
-                all_chords.extend([Chord(m) for m in matches])
-        return all_chords
+    def _extract_chords(
+        self, cifra_lines: List[str], known_chords=None
+    ) -> List[Chord]:
+        # Caminho ÚNICO de extração: lê só linhas classificadas CHORD (a prosa não
+        # contribui token) e confirma token ambíguo (raiz nua A-G) contra a whitelist
+        # opcional. HTML é removido antes (linhas do scraper podem ter tags).
+        clean_lines = [self.remove_html_tags(line) for line in cifra_lines]
+        symbols = extract_chords_from_lines(clean_lines, known_chords=known_chords)
+        return [Chord(s) for s in symbols]
 
     def _validate_input_data(self, data: Dict[str, Any]) -> Dict[str, Any] | None:
         if not data:
@@ -160,6 +166,7 @@ class AnalysisService:
         # Cadeias de SubV's estendidos (Chediak XXVIII c/d) — pré-passe sobre a
         # progressão inteira; o par local é ambíguo, só a cadeia conta.
         subv_members = HarmonicAnalysis.subv_extended_indices(all_chords)
+        ii_members = HarmonicAnalysis.ii_cadential_indices(all_chords)
         try:
             for i, chord in enumerate(all_chords):
                 try:
@@ -190,7 +197,8 @@ class AnalysisService:
 
                     if analysis:
                         function_result = analysis.analyze_function(
-                            chord, prev_chord, next_chord, i in subv_members
+                            chord, prev_chord, next_chord,
+                            i in subv_members, i in ii_members,
                         )
                         chord_analysis.update(
                             {
@@ -283,9 +291,11 @@ class AnalysisService:
                     "error": "Cifra não contém linhas válidas.",
                 }
 
-            # Extrai acordes
+            # Extrai acordes (whitelist opcional de vocabulário, p/ confirmar token ambíguo)
             try:
-                all_chords = self._extract_chords(cifra_lines)
+                all_chords = self._extract_chords(
+                    cifra_lines, known_chords=data.get("known_chords")
+                )
                 if not all_chords:
                     return {
                         "success": False,

@@ -61,7 +61,7 @@ The `cifra-core` package SHALL own cifra line cleaning/filtering (tablature, sec
 
 ### Requirement: Canonical chord-detection pattern
 
-The `cifra-core` package SHALL provide the one chord-detection regex used across packages for recognizing and extracting chord symbols. It MUST capture the full symbol — root, quality, parenthesized tensions in both the `#`/`b` and the `+`/`-` dialect, power chords, and a slash bass — and MUST distinguish a slash followed by a note (an inverted bass) from a slash followed by a digit (an added-tone group).
+The `cifra-core` package SHALL provide the one chord-detection regex used across packages for recognizing and extracting chord symbols. It MUST capture the full symbol — root, quality, parenthesized tensions in both the `#`/`b` and the `+`/`-` dialect, power chords, and a slash bass — and MUST distinguish a slash followed by a note (an inverted bass) from a slash followed by a digit (an added-tone group). A bare single-letter root (`A–G` with no quality and no bass) is INHERENTLY AMBIGUOUS with capitalized prose words; the regex MAY match it, but the extraction pipeline SHALL resolve that ambiguity by line context (only from a line classified CHORD) and/or an optional vocabulary whitelist, rather than admitting every single-letter match unconditionally.
 
 #### Scenario: Chord detection has one definition
 - **WHEN** any package needs to detect or extract chord symbols from a line
@@ -86,8 +86,13 @@ The `cifra-core` package SHALL provide the one chord-detection regex used across
 - **AND** when a line contains `C/Bb`, the symbol is extracted with `Bb` as the bass
 
 #### Scenario: Plain words are not matched as chords
-- **WHEN** a line contains lyric words that are not chords
+- **WHEN** a line of lyric prose contains capitalized words whose initial is a note letter (e.g. `Brasil`, `Com`, `Desse`, `Feio`)
 - **THEN** no chord symbol is extracted from those words
+- **AND** in particular no bare single-letter chord (`B`, `C`, `D`, `F`) is harvested from prose
+
+#### Scenario: A standalone triad on a chord line is still extracted
+- **WHEN** a line classified CHORD contains a legitimate bare triad (e.g. `A`, `D`, `E`) confirmed by line context or whitelist
+- **THEN** that bare chord symbol is extracted normally
 
 ### Requirement: Typed Cifra and SongRef models
 
