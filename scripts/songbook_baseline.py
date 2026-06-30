@@ -25,6 +25,7 @@ import re
 from cifra_core import cifra_from_text, extract_chords_from_lines
 
 from harmonic_analysis.domain.chord import Chord
+from harmonic_analysis.domain.harmony import HarmonicAnalysis
 from harmonic_analysis.domain.key_detection import detect_key
 from harmonic_analysis.services.analysis_service import AnalysisService
 from harmonic_analysis.validation import chediak_functional_center
@@ -89,6 +90,39 @@ def _diminished_invariant(chords: list[str], analysis: dict) -> list[str]:
     return violations
 
 
+def _d2_resolution_invariant(chords: list[str], analysis: dict) -> list[str]:
+    """Defeitos: acorde codificado `D2` cujo dominante NÃO resolve no alvo (Chediak XIX, p.100).
+
+    Um II cadencial só é legítimo quando o dominante que ele prepara RESOLVE por 4ªJ
+    descendente. O motor já gateia isso pelo pré-passe `ii_cadential_indices`; este invariante
+    RE-DERIVA a resolução de forma INDEPENDENTE sobre a SAÍDA (verifica o motor, não confia
+    nele): para todo `i` com `function_code == "D2"`, exige `chords[i]` menor, `chords[i+1]`
+    dominante-7 a 4ªJ acima, e `chords[i+2]` resolvendo no alvo do V — raiz OU baixo a
+    `(Vroot+5)%12`. Puramente intervalar ⇒ transposição-invariante; não depende do tom."""
+    items = analysis.get("harmonic_analysis") or []
+    iv = HarmonicAnalysis._get_interval
+    violations = []
+    for i, item in enumerate(items):
+        if (item.get("function_code") or "") != "D2":
+            continue
+        try:
+            cur, dom, tgt = Chord(chords[i]), Chord(chords[i + 1]), Chord(chords[i + 2])
+            resolves = (
+                cur.is_minor
+                and dom.is_dominant_seventh
+                and iv(cur.root, dom.root) == 5
+                and (
+                    iv(dom.root, tgt.root) == 5
+                    or (tgt.bass is not None and iv(dom.root, tgt.bass) == 5)
+                )
+            )
+        except Exception:
+            resolves = False
+        if not resolves:
+            violations.append(f"{chords[i]}→D2 (sem resolução)")
+    return violations
+
+
 def main() -> None:
     paths = sorted(glob.glob("cifras/*.md"))
     if not paths:
@@ -100,6 +134,7 @@ def main() -> None:
     worklist: list[str] = []
     defects: list[str] = []
     dim_defects: list[str] = []
+    d2_defects: list[str] = []
     n = 0
     for path in paths:
         name = os.path.basename(path)[:-3]
@@ -135,6 +170,9 @@ def main() -> None:
             dv = _diminished_invariant(chords, result)
             if dv:
                 dim_defects.append(f"  {name[:26]:<27} {', '.join(dv[:4])}")
+            d2v = _d2_resolution_invariant(chords, result)
+            if d2v:
+                d2_defects.append(f"  {name[:26]:<27} {', '.join(d2v[:4])}")
 
     print(f"\nBaseline FUNCIONAL sobre o songbook (corpus local, n={n}) — base = Chediak\n")
     print("INVARIANTE funcional (a base: trítono real ⇒ dominante; transposição-invariante):")
@@ -147,6 +185,12 @@ def main() -> None:
     if dim_defects:
         print("  defeitos (diminuto lido como Emp/SD/T/Modal):")
         print("\n".join(dim_defects))
+
+    print("\nINVARIANTE D2 (Chediak XIX / p.100; todo II cadencial resolve no alvo):")
+    print(f"  músicas sem defeito: {n - len(d2_defects)}/{n}")
+    if d2_defects:
+        print("  defeitos (D2 cujo dominante não resolve no alvo):")
+        print("\n".join(d2_defects))
 
     covered = agree + disagree
     print("\nCentro tonal — CORROBORAÇÃO (detect_key × critério funcional do Chediak), NÃO acurácia:")

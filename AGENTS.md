@@ -99,8 +99,10 @@ transposição-invariante) só valida o `D2` se o dominante **resolver no seu al
 `i+2` baixa em `(Vroot+5)%12`) — teste que NÃO depende do tom nem do código (evita a armadilha do
 blues-pos, que coda I7/IV7 como T/SD antes da resolução). **Resultado:** `D2` 363→**199** (164
 over-attributions zerados, 199 legítimos mantidos, incl. `Em7 A7→D7` secundário); invariantes
-trítono/diminuto **62/62**. O invariante "todo `D2` resolve no alvo" fica pronto p/ ser gateado no
-baseline (fecha o #6).
+trítono/diminuto **62/62**. O invariante "todo `D2` resolve no alvo" **agora é gate** no
+`songbook_baseline.py` (`_d2_resolution_invariant`, re-deriva a resolução intervalar sobre a SAÍDA,
+independente do pré-passe) — nasce **VERDE 62/62** sobre **199 D2 reais** validados; fecha a parte
+ii-V do #6.
 
 **Gate de regressão funcional crescido (`grow-functional-invariants`, frente #6 parcial):** o
 `songbook_baseline.py` agora gateia **DOIS** invariantes duros, ambos transposição-invariantes e
@@ -187,9 +189,8 @@ HMM). A preparação de graus (XVIII-XIX) e os dominantes/SubV estendidos (XXVII
 completos.
 
 **Frentes abertas (handoff pós-2026-06-30 — ver ROADMAP "Sequência sugerida" + nota de Handoff):**
-- **Gatear o invariante "todo `D2` resolve no alvo"** no `songbook_baseline.py` — VERDE (0/199
-  pós-`fix-d2`), adição trivial; fecha a parte ii-V do #6. *(próximo passo de menor esforço/maior
-  trava)*.
+- ✅ **Gateado o invariante "todo `D2` resolve no alvo"** no `songbook_baseline.py`
+  (`_d2_resolution_invariant`) — VERDE 62/62 sobre 199 D2 reais; parte ii-V do #6 fechada. *(feito)*
 - **`fix-cadence-function-coherence`** *(fecha o #6)*: 5 incoerências `D→D2`/`D→Dim` (caiu de 10
   pós-fix-d2) — o detector de cadência rotula `V→I` onde o coder chama o "I" de D2/Dim. Depois,
   gatear a coerência de cadência no baseline. *(A 3ª família do #6, taxonomia das 5 cadências, é
