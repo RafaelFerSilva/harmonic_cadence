@@ -13,6 +13,7 @@ from cifra_core import (
     clean_cifra_lines,
     extract_chords_from_lines,
     is_chord_token,
+    malformed_chord_token,
 )
 
 
@@ -79,6 +80,53 @@ def test_ambiguous_bare_token_gated_by_whitelist():
     assert extract_chords_from_lines(line, known_chords={"D", "E"}) == ["D", "E"]
     # token NÃO-ambíguo (com extensão) passa independentemente da whitelist
     assert extract_chords_from_lines(["A7 / D7M /"], known_chords=set()) == ["A7", "D7M"]
+
+
+# --- Notação malformada (report-unidentified-notations) ---
+
+
+@pytest.mark.parametrize("tok", ["D9/S", "C9/S", "Db9/S", "C7(b13"])
+def test_malformed_chord_token_true(tok):
+    # prefixo de acorde válido + resto '/'/'(' inválido + resíduo com lixo
+    assert malformed_chord_token(tok) is True
+
+
+@pytest.mark.parametrize(
+    "tok",
+    [
+        "Am7/",                    # acorde + barra de compasso final (só decoração)
+        "A7(b9)/",                 # idem com tensão
+        "Bb7(9)///",               # múltiplas barras
+        "B°/A/",                   # baixo válido + barra
+        "Gm7(11)///Gb7(#11)///",   # DOIS acordes colados por barra (resíduo vazio)
+        "Brasil",                  # palavra de letra (resto não começa com '/'/'(' )
+        "Em",                      # acorde completo
+        "A7(b9)",                  # acorde completo
+    ],
+)
+def test_malformed_chord_token_false(tok):
+    assert malformed_chord_token(tok) is False
+
+
+def test_malformed_line_stays_chord_and_recovers_valid_chords():
+    # A linha dominada por 'D9/S' NÃO some (vira CHORD); os acordes válidos são recuperados.
+    line = "D9/S / E/D / D9/S / D7(9) / D9/S"
+    assert classify_line(line) is LineKind.CHORD
+    unident: list[str] = []
+    syms = extract_chords_from_lines([line], unidentified=unident)
+    assert "E/D" in syms and "D7(9)" in syms       # válidos recuperados
+    assert "D9" not in syms                          # o prefixo do malformado NÃO é chutado
+    assert unident.count("D9/S") == 3                # cada malformado coletado
+
+
+def test_glued_chords_by_bar_separator_are_both_extracted():
+    # dois acordes colados por barra, numa linha CHORD (contexto de densidade real)
+    unident: list[str] = []
+    line = "C7(9) / Gm7(11)///Gb7(#11)/// F7M /"
+    assert classify_line(line) is LineKind.CHORD
+    syms = extract_chords_from_lines([line], unidentified=unident)
+    assert "Gm7(11)" in syms and "Gb7(#11)" in syms  # ambos extraídos
+    assert unident == []                              # nenhum reportado como malformado
 
 
 def test_classification_does_not_mutate_line_stream():

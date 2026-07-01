@@ -38,6 +38,33 @@ def is_chord_token(token: str) -> bool:
     return bool(token) and ChordPattern.CHORD.fullmatch(token) is not None
 
 
+# Caracteres de decoração (separador de compasso, hífen de alinhamento) — ignorados no resíduo.
+_RESIDUE_DECOR = re.compile(r"[\s/|%\-—·]")
+
+
+def malformed_chord_token(token: str) -> bool:
+    """True sse o token é um acorde MALFORMADO — claramente pretendido como acorde, mas não parseável.
+
+    Um acorde malformado (ex.: `D9/S`, baixo `/S` inválido) deve ser REPORTADO como notação não
+    identificada, nunca descartado em silêncio nem chutado (não emitir o prefixo `D9`). Condições
+    (todas): (a) NÃO é acorde completo (`is_chord_token` falso); (b) tem **prefixo de acorde
+    válido** (o regex casa no início); (c) o **resto começa com `/` ou `(`** — uma tentativa de
+    baixo/tensão (escopo que poupa palavra de letra: `Brasil` → resto `rasil`); (d) sobra **lixo**
+    após remover TODOS os acordes válidos e a decoração (poupa acordes colados por barra:
+    `Gm7(11)///Gb7(#11)///` → resíduo vazio → NÃO malformado).
+    """
+    if is_chord_token(token):
+        return False
+    m = ChordPattern.CHORD.match(token)
+    if not m or m.end() == 0:
+        return False
+    rest = token[m.end():]
+    if not rest or rest[0] not in "/(":
+        return False
+    residue = _RESIDUE_DECOR.sub("", ChordPattern.CHORD.sub(" ", token))
+    return residue != ""
+
+
 def classify_line(line: str, *, threshold: float = 0.6) -> LineKind:
     """Classifica a linha por DENSIDADE de acordes válidos (fonte única de desambiguação).
 
@@ -54,7 +81,9 @@ def classify_line(line: str, *, threshold: float = 0.6) -> LineKind:
     tokens = [t for t in body.split() if t not in _DECOR]
     if not tokens:
         return LineKind.SECTION if had_label else LineKind.LYRIC
-    chords = sum(1 for t in tokens if is_chord_token(t))
+    # Posição-de-acorde = acorde válido OU malformado (`D9/S`): conta o malformado para a
+    # linha não sumir (senão a densidade cai e os acordes válidos dela são descartados).
+    chords = sum(1 for t in tokens if is_chord_token(t) or malformed_chord_token(t))
     return LineKind.CHORD if chords / len(tokens) >= threshold else LineKind.LYRIC
 
 
@@ -66,26 +95,39 @@ def extract_chords_from_lines(
     lines: List[str],
     *,
     known_chords: "frozenset[str] | set[str] | None" = None,
+    unidentified: "list[str] | None" = None,
     threshold: float = 0.6,
 ) -> List[str]:
     """Extrai os símbolos de acorde lendo SÓ linhas de cifra (caminho único de extração).
 
-    Linhas LYRIC/SECTION não contribuem token nenhum. Um token AMBÍGUO — raiz nua de uma
-    letra (`A`-`G`), que colide com palavra de letra — só é admitido se houver `known_chords`
-    e ele estiver no vocabulário; sem `known_chords`, basta estar numa linha CHORD (a
-    classificação já barrou a prosa). Tokens não-ambíguos (com qualidade/extensão/baixo)
-    passam direto das linhas CHORD.
+    Linhas LYRIC/SECTION não contribuem token nenhum. Itera por TOKEN: um token de acorde
+    MALFORMADO (`D9/S`) é coletado em `unidentified` (se fornecido) e NÃO é extraído — nunca
+    chuta o prefixo `D9` nem descarta em silêncio. Um token AMBÍGUO — raiz nua de uma letra
+    (`A`-`G`), que colide com palavra de letra — só é admitido se houver `known_chords` e ele
+    estiver no vocabulário; sem `known_chords`, basta estar numa linha CHORD. Os demais tokens
+    passam por `find_all` (separador de compasso, baixo invertido e acordes colados intactos).
     """
     out: List[str] = []
     for line in lines:
         if classify_line(line, threshold=threshold) is not LineKind.CHORD:
             continue
-        for sym in ChordPattern.find_all(line):
-            if not sym:
+        for token in line.split():
+            if token in _DECOR:
                 continue
-            if _BARE_RE.fullmatch(sym) and known_chords is not None and sym not in known_chords:
+            if malformed_chord_token(token):
+                if unidentified is not None:
+                    unidentified.append(token)
                 continue
-            out.append(sym)
+            for sym in ChordPattern.find_all(token):
+                if not sym:
+                    continue
+                if (
+                    _BARE_RE.fullmatch(sym)
+                    and known_chords is not None
+                    and sym not in known_chords
+                ):
+                    continue
+                out.append(sym)
     return out
 
 

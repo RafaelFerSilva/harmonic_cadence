@@ -147,6 +147,18 @@ concordância de centro **71%→80% (47/59)**; cobertura 58→59. `cifra_from_te
 whitelist é preocupação de extração, não de ingestão). Fases 2/3 (IR tipado `ParsedCifra`;
 ChordPro) seguem abertas.
 
+**Notação não-identificada é reportada, não descartada (`report-unidentified-notations`):** um
+token em posição de acorde que não parseia (ex.: `D9/S`, baixo `/S` inválido — 61× no corpus) era
+**perdido em silêncio** por dois caminhos: (1) tankava a densidade da linha → LYRIC → a linha sumia
+inteira; (2) `find_all` chutava o prefixo (`D9`) e jogava o resto fora. Agora
+`malformed_chord_token` (híbrido: prefixo de acorde válido + resto começando com `/`/`(` + resíduo
+com lixo após remover TODOS os acordes+decoração) detecta o malformado; a densidade o **conta** (a
+linha não some, recupera os válidos), a extração **coleta** o token em `unidentified` sem **chutar**
+o prefixo, e o motor injeta em `result["diagnostics"]` (degradação VISÍVEL, escolha do usuário:
+coleta, não exceção). Poupa letra (`Brasil`→resto `rasil`, fora do escopo) e acordes colados
+(`Gm7(11)///Gb7(#11)///`→resíduo vazio). Medido n=119: **0 regressão** (só os `X9` chutados de
+`X9/S` somem, agora reportados; upa-neguinho 5→25 acordes válidos), 4 gates **119/119**.
+
 **Fundação de validação (reformulada em `songbook-chediak-baseline`):** o **Cifra Club é só
 fonte de cifra — base de nada**. O **Chediak é a base de validação** (regras funcionais
 rigorosas) e o **songbook** (`cifras/*.md`, local/gitignored) é o corpus baseline. As 4 métricas

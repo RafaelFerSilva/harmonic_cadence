@@ -85,13 +85,18 @@ class AnalysisService:
 
     def _extract_chords(
         self, cifra_lines: List[str], known_chords=None
-    ) -> List[Chord]:
+    ) -> "tuple[List[Chord], List[str]]":
         # Caminho ÚNICO de extração: lê só linhas classificadas CHORD (a prosa não
         # contribui token) e confirma token ambíguo (raiz nua A-G) contra a whitelist
-        # opcional. HTML é removido antes (linhas do scraper podem ter tags).
+        # opcional. HTML é removido antes (linhas do scraper podem ter tags). Notações
+        # malformadas (`D9/S`) são coletadas em `unidentified` (degradação VISÍVEL), não
+        # descartadas em silêncio nem chutadas.
         clean_lines = [self.remove_html_tags(line) for line in cifra_lines]
-        symbols = extract_chords_from_lines(clean_lines, known_chords=known_chords)
-        return [Chord(s) for s in symbols]
+        unidentified: List[str] = []
+        symbols = extract_chords_from_lines(
+            clean_lines, known_chords=known_chords, unidentified=unidentified
+        )
+        return [Chord(s) for s in symbols], unidentified
 
     def _validate_input_data(self, data: Dict[str, Any]) -> Dict[str, Any] | None:
         if not data:
@@ -293,7 +298,7 @@ class AnalysisService:
 
             # Extrai acordes (whitelist opcional de vocabulário, p/ confirmar token ambíguo)
             try:
-                all_chords = self._extract_chords(
+                all_chords, unidentified_notations = self._extract_chords(
                     cifra_lines, known_chords=data.get("known_chords")
                 )
                 if not all_chords:
@@ -392,6 +397,19 @@ class AnalysisService:
                 function_stats,
                 cadences,
             )
+            # Notações não-identificadas (posição de acorde, ex.: `D9/S`) — degradação
+            # VISÍVEL: reporta em `diagnostics` (agregado por token×contagem), nunca em
+            # silêncio nem chutado. A música é analisada com os acordes válidos.
+            if unidentified_notations:
+                counts = Counter(unidentified_notations)
+                for token, n in counts.items():
+                    result.setdefault("diagnostics", []).append(
+                        {
+                            "section": "chord_extraction",
+                            "error": f"Notação não identificada (ignorada, posição "
+                            f"de acorde): {token} ×{n}",
+                        }
+                    )
             # Regiões tonais (detecção de modulação) — reusa as já computadas, mas
             # expõe as DOMINANTES (pós-processadas): funde fragmentos pequenos para
             # 2-4 regiões legíveis em vez de dezenas de janelas brutas. As regiões

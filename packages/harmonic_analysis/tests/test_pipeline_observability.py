@@ -14,6 +14,19 @@ def test_clean_run_has_empty_diagnostics():
     assert res["diagnostics"] == []
 
 
+def test_unidentified_notation_is_reported_in_diagnostics():
+    # 'D9/S' (baixo inválido) é notação não identificada: reportada, não silenciosa nem chutada.
+    data = {"name": "x", "artist": "y", "cifra": ["D9/S / E/D / D9/S / D7(9) / D9/S"]}
+    res = AnalysisService(None).analyze_song_data_structured(data)
+    assert res["success"]  # a música é analisada com os acordes válidos
+    errors = [
+        d["error"] for d in res["diagnostics"] if d["section"] == "chord_extraction"
+    ]
+    assert any("D9/S" in e for e in errors)  # a notação é nomeada
+    # o prefixo 'D9' NÃO foi chutado como acorde
+    assert all(c["chord"] != "D9" for c in res["harmonic_analysis"])
+
+
 def test_section_error_is_recorded_logged_not_swallowed(monkeypatch, caplog):
     def boom(*_a, **_k):
         raise ValueError("falha proposital")

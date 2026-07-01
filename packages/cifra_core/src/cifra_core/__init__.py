@@ -30,6 +30,7 @@ from cifra_core.lines import (
     decode_unicode_escape,
     extract_chords_from_lines,
     is_chord_token,
+    malformed_chord_token,
 )
 from cifra_core.models import Cifra, SongRef
 from cifra_core.provider import SongProvider
@@ -47,6 +48,7 @@ __all__ = [
     "EmptyCifra",
     "LineKind",
     "classify_line",
+    "malformed_chord_token",
     "extract_chords_from_lines",
     "is_chord_token",
     "JsonFileCacheStore",
