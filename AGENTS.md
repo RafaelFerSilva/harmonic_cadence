@@ -89,8 +89,19 @@ openspec list --specs   # capabilities (specs)
 
 ## Estado atual
 
-Teoria destilada/implementada/testada (46 changes arquivadas + `fix-d2-over-attribution`
-pronta p/ arquivar, **424 testes verdes**).
+Teoria destilada/implementada/testada (46 changes arquivadas + `fix-d2-over-attribution` e
+`fix-cadence-function-coherence` prontas p/ arquivar, **429 testes verdes**).
+
+**Coerência cadência×função fechada (`fix-cadence-function-coherence`, fecha o #6):** o detector
+de cadência classificava a família autêntica/plagal por GRAU, ignorando a FUNÇÃO do alvo — rotulava
+`V→I` como cadência mesmo quando o coder chamava o "I" de `D2`/`Dim` (5 músicas). Chediak define a
+cadência pela **combinação D→T** (XXXII p.110); um dominante resolvendo num acorde que é ele mesmo um
+ii é **resolução direta** (XXXIII p.111), não cadência. Agora `analyze_cadences` recebe os
+`function_code`s e **suprime** (não reclassifica como deceptiva) a família autêntica/plagal quando o
+alvo é função não-repouso (começa com `D`/`Sub`). O `songbook_baseline.py` ganhou o **4º gate** —
+coerência cadência×função, robusto à ambiguidade de string (par só é defeito se TODAS as ocorrências
+são tensão) — **VERDE 62/62** sobre **175 cadências reais** validadas (dentes: pega as 5 incoerências
+no comportamento pré-fix). **#6 fechado** (trítono · diminuto · D2 · cadência, todos 62/62).
 
 **`D2` (ii cadencial) deixou de ser super-atribuído (`fix-d2-over-attribution`):** o ramo 0e
 emitia `D2` pela QUALIDADE do próximo acorde (é dominante-7?), sem checar se ele FUNCIONA como
@@ -108,9 +119,10 @@ ii-V do #6.
 `songbook_baseline.py` agora gateia **DOIS** invariantes duros, ambos transposição-invariantes e
 **62/62**: (a) trítono real ⇒ função dominante; (b) **diminuto (XXI-XXII / p.90) nunca é
 Emp/SD/T/Modal** — só `D`/`Dsec` (vii°7 rootless) ou `Dim`. Um probe (n=62) mostrou que as outras
-duas famílias do #6 NÃO estão verdes e viram **fixes enfileirados** (não gate): `fix-d2-over-
-attribution` (~168 incoerências `D2`→não-dominante — o `D2` casa pela QUALIDADE do próximo acorde,
-não pela FUNÇÃO) e `fix-cadence-function-coherence` (10 Perfeitas com cadência×função discordando).
+duas famílias do #6 NÃO estavam verdes e viraram **fixes** primeiro, **gates** depois: `fix-d2-over-
+attribution` (~168 incoerências `D2`→não-dominante — o `D2` casava pela QUALIDADE do próximo acorde,
+não pela FUNÇÃO) e `fix-cadence-function-coherence` (5 Perfeitas com cadência×função discordando).
+**Ambos hoje são gates verdes** (`_d2_resolution_invariant`, `_cadence_coherence_invariant`).
 Princípio: um gate nasce VERDE; invariante já violado é relatório de bug, não gate.
 
 **Endurecimento do achador funcional (`harden-functional-center`, frente #7 parcial):** a
@@ -191,10 +203,9 @@ completos.
 **Frentes abertas (handoff pós-2026-06-30 — ver ROADMAP "Sequência sugerida" + nota de Handoff):**
 - ✅ **Gateado o invariante "todo `D2` resolve no alvo"** no `songbook_baseline.py`
   (`_d2_resolution_invariant`) — VERDE 62/62 sobre 199 D2 reais; parte ii-V do #6 fechada. *(feito)*
-- **`fix-cadence-function-coherence`** *(fecha o #6)*: 5 incoerências `D→D2`/`D→Dim` (caiu de 10
-  pós-fix-d2) — o detector de cadência rotula `V→I` onde o coder chama o "I" de D2/Dim. Depois,
-  gatear a coerência de cadência no baseline. *(A 3ª família do #6, taxonomia das 5 cadências, é
-  recognição já produzida; falta só a coerência.)*
+- ✅ **`fix-cadence-function-coherence` — #6 FECHADO.** `analyze_cadences` consulta a função do alvo
+  e suprime a família autêntica/plagal quando o "I" funciona como tensão (`D`/`Sub`); 4º gate de
+  coerência no baseline (VERDE 62/62, 175 cadências reais). *(feito)*
 - **#7 Worklist de corroboração**: ~10 divergências genuínas restantes (caiu de 17) — agora erros
   prováveis do `detect_key` (V/relativa-como-tônica, mistura modal). Adjudicar com Chediak — **sem**
   reamarrar no CC. Usar `scripts/worklist_adjudication.py` (READ-ONLY).

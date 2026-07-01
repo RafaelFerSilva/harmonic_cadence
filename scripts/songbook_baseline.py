@@ -25,6 +25,7 @@ import re
 from cifra_core import cifra_from_text, extract_chords_from_lines
 
 from harmonic_analysis.domain.chord import Chord
+from harmonic_analysis.domain.harmonic_function import degree_base
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
 from harmonic_analysis.domain.key_detection import detect_key
 from harmonic_analysis.services.analysis_service import AnalysisService
@@ -123,6 +124,57 @@ def _d2_resolution_invariant(chords: list[str], analysis: dict) -> list[str]:
     return violations
 
 
+# Cadências reportadas como par X→I (resolução na tônica) — Autêntica é redundante com Perfeita:
+_CAD_TO_TONIC = ("Perfeita", "Imperfeita", "Plagal")
+_CAD_SRC = ("V", "VII", "IV", "II")  # graus de origem da família autêntica/plagal
+
+
+def _cad_non_repose(code: str) -> bool:
+    """True se a função é tensão (dominante/SubV/diminuto) — começa com `D` ou `Sub`."""
+    return bool(code) and (code.startswith("D") or code.startswith("Sub"))
+
+
+def _cadence_coherence_invariant(analysis: dict) -> list[str]:
+    """Defeitos: cadência da família autêntica/plagal cujo alvo FUNCIONA como não-repouso.
+
+    Chediak XXXII (p.110): a cadência é a combinação das funções `D` e `T` — o alvo precisa
+    funcionar como repouso. Um `V→I`-por-grau cujo "I" é codado dominante/diminuto é resolução
+    direta (XXXIII, p.111), não cadência. RE-DERIVA sobre a SAÍDA, independente do detector.
+
+    Robusto à ambiguidade de string: o MESMO par `X→Y` pode aparecer em índices distintos com
+    alvos de funções diferentes (ex.: `B7→Am7` como `D2` num ponto e `T` noutro) — e o set de
+    cadências guarda só a string. Logo, um par reportado só é DEFEITO se TODAS as suas ocorrências
+    (grau `X→I`) tiverem alvo não-repouso: aí a string só pôde vir de uma ocorrência que a guarda
+    deveria ter suprimido. Se existe ≥1 ocorrência de repouso, a string é legítima (veio dela).
+    Transposição-invariante (grau + função, não tom)."""
+    items = analysis.get("harmonic_analysis") or []
+    cadences = analysis.get("cadences") or {}
+    syms = [it.get("chord") for it in items]
+    degs = [degree_base(it.get("degree") or "") for it in items]
+    fns = [it.get("function_code") or "" for it in items]
+
+    repose_pairs: set[str] = set()  # par X→I com ≥1 alvo de REPOUSO
+    nonrepose: dict[str, str] = {}  # par X→I só-tensão → código do alvo (p/ mensagem)
+    for i in range(len(items) - 1):
+        if degs[i + 1] != "I" or degs[i] not in _CAD_SRC:
+            continue
+        pair = f"{syms[i]} → {syms[i + 1]}"
+        if _cad_non_repose(fns[i + 1]):
+            nonrepose.setdefault(pair, fns[i + 1])
+        else:
+            repose_pairs.add(pair)
+
+    reported: set[str] = set()
+    for cat in _CAD_TO_TONIC:
+        reported |= set(cadences.get(cat) or [])
+
+    return [
+        f"{pair} (alvo {code})"
+        for pair, code in nonrepose.items()
+        if pair in reported and pair not in repose_pairs
+    ]
+
+
 def main() -> None:
     paths = sorted(glob.glob("cifras/*.md"))
     if not paths:
@@ -135,6 +187,7 @@ def main() -> None:
     defects: list[str] = []
     dim_defects: list[str] = []
     d2_defects: list[str] = []
+    cad_defects: list[str] = []
     n = 0
     for path in paths:
         name = os.path.basename(path)[:-3]
@@ -173,6 +226,9 @@ def main() -> None:
             d2v = _d2_resolution_invariant(chords, result)
             if d2v:
                 d2_defects.append(f"  {name[:26]:<27} {', '.join(d2v[:4])}")
+            cv = _cadence_coherence_invariant(result)
+            if cv:
+                cad_defects.append(f"  {name[:26]:<27} {', '.join(cv[:4])}")
 
     print(f"\nBaseline FUNCIONAL sobre o songbook (corpus local, n={n}) — base = Chediak\n")
     print("INVARIANTE funcional (a base: trítono real ⇒ dominante; transposição-invariante):")
@@ -191,6 +247,12 @@ def main() -> None:
     if d2_defects:
         print("  defeitos (D2 cujo dominante não resolve no alvo):")
         print("\n".join(d2_defects))
+
+    print("\nINVARIANTE cadência×função (Chediak XXXII / p.110; cadência = combinação D+T):")
+    print(f"  músicas sem defeito: {n - len(cad_defects)}/{n}")
+    if cad_defects:
+        print("  defeitos (cadência na tônica com alvo de função dominante/diminuta):")
+        print("\n".join(cad_defects))
 
     covered = agree + disagree
     print("\nCentro tonal — CORROBORAÇÃO (detect_key × critério funcional do Chediak), NÃO acurácia:")

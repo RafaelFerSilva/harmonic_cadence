@@ -346,10 +346,19 @@ class AnalysisService:
                 regions = []
             chord_keys = _chord_keys_for_regions(regions, len(all_chords))
 
+            # Análise harmônica detalhada (ANTES da cadência: a cadência consulta os
+            # function_codes para a coerência D→T — Chediak XXXII/XXXIII).
+            harmonic_analysis = self._detailed_harmonic_analysis(analysis, all_chords)
+
             # Analisa cadências
             try:
+                function_codes = [
+                    item.get("function_code") for item in harmonic_analysis
+                ]
                 cadences = (
-                    analyze_cadences(degree_seq, mode, symbols, chord_keys)
+                    analyze_cadences(
+                        degree_seq, mode, symbols, chord_keys, function_codes
+                    )
                     if analysis and degree_seq
                     else {}
                 )
@@ -358,9 +367,6 @@ class AnalysisService:
                     "success": False,
                     "error": f"Erro na análise de cadências: {str(e)}",
                 }
-
-            # Análise harmônica detalhada
-            harmonic_analysis = self._detailed_harmonic_analysis(analysis, all_chords)
 
             # Análise de progressões
             analysis_progression = (

@@ -52,3 +52,46 @@ def test_authentic_is_prepared_perfect_cadence():
     c = cad(["ii", "V", "I"], ["Dm7", "G7", "C"])
     assert "Dm7 → G7 → C" in c["Autêntica"]
     assert "G7 → C" in c["Perfeita"]
+
+
+# --- Coerência cadência×função (Chediak XXXII p.110: cadência = combinação D+T) ---
+
+
+def test_v_i_with_dominant_function_target_is_not_a_cadence():
+    # B7→Em7 é V→I por grau, mas Em7 FUNCIONA como D2 (ii cadencial) — resolução direta
+    # (XXXIII), não cadência: suprimido, e NÃO reclassificado como deceptiva.
+    c = analyze_cadences(
+        ["V", "I"], "major", ["B7", "Em7"], function_codes=["D", "D2"]
+    )
+    assert c["Perfeita"] == set()
+    assert c["Imperfeita"] == set()
+    assert c["Autêntica"] == set()
+    assert "B7 → Em7" not in c["Deceptiva diatônica"]
+    assert "B7 → Em7" not in c["Deceptiva modulante"]
+
+
+def test_v_i_with_diminished_function_target_is_not_a_cadence():
+    c = analyze_cadences(
+        ["V", "I"], "major", ["E7", "A°"], function_codes=["D", "Dim"]
+    )
+    assert c["Perfeita"] == set()
+    assert c["Imperfeita"] == set()
+
+
+def test_plagal_with_dominant_function_target_is_suppressed():
+    c = analyze_cadences(
+        ["II", "I"], "major", ["B7", "Am7"], function_codes=["Outro", "D2"]
+    )
+    assert c["Plagal"] == set()
+
+
+def test_v_i_with_tonic_function_target_is_still_a_cadence():
+    # Regressão: alvo de função T ⇒ cadência normal (a guarda só mira tensão).
+    c = analyze_cadences(["V", "I"], "major", ["G7", "C"], function_codes=["D", "T"])
+    assert "G7 → C" in c["Perfeita"]
+
+
+def test_function_guard_is_opt_in_backward_compatible():
+    # Sem function_codes ⇒ classificação grau-puro idêntica (compat).
+    c = analyze_cadences(["V", "I"], "major", ["B7", "Em7"])
+    assert "B7 → Em7" in c["Perfeita"]

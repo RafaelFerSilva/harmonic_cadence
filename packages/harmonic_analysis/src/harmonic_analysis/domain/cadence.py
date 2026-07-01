@@ -29,15 +29,33 @@ def _modulates(chord_keys: Optional[Sequence[Optional[str]]], i: int) -> bool:
     return a is not None and b is not None and a != b
 
 
+def _non_repose(code: Optional[str]) -> bool:
+    """True se o código de função é uma TENSÃO (não-repouso) — dominante, SubV ou diminuto.
+
+    Uma cadência é a combinação das funções "D" e "T" (Chediak XXXII, p.110); o alvo precisa
+    FUNCIONAR como repouso. As funções de tensão começam com `D` (`D`, `D2`, `Dsec`, `Daux`,
+    `Dext`, `Dim`) ou `Sub` (`SubV`, `Sub2`); nenhuma de repouso começa assim (`T`, `SD`, `Emp`,
+    `Modal`, `Blues`, `Outro`)."""
+    if not code:
+        return False
+    return code.startswith("D") or code.startswith("Sub")
+
+
 def analyze_cadences(
     degree_seq: List[str],
     mode: str,
     all_chords: List[str],
     chord_keys: Optional[Sequence[Optional[str]]] = None,
+    function_codes: Optional[Sequence[Optional[str]]] = None,
 ) -> Dict[str, Set[str]]:
     """Cadências encontradas na sequência (Chediak). `mode` é mantido por
     compatibilidade; a classificação é por posição de grau. `chord_keys` (tom de
-    cada acorde, da região tonal) separa a deceptiva diatônica da modulante."""
+    cada acorde, da região tonal) separa a deceptiva diatônica da modulante.
+
+    `function_codes` (a saída do coder de função, alinhada por índice a `all_chords`) torna a
+    cadência coerente com a função: nos ramos que resolvem na tônica (a família autêntica/plagal),
+    um alvo de função NÃO-REPOUSO (`_non_repose`) é resolução direta (Chediak XXXIII, p.111), não
+    cadência — o par é SUPRIMIDO. Sem `function_codes`, a classificação é grau-puro (compat)."""
     cad: Dict[str, Set[str]] = {
         "Perfeita": set(),
         "Autêntica": set(),
@@ -53,9 +71,18 @@ def analyze_cadences(
         b = degree_base(degree_seq[i + 1])
         pair = f"{all_chords[i]} → {all_chords[i + 1]}"
 
+        # Coerência D→T (Chediak XXXII): uma cadência só resolve na tônica quando o alvo
+        # FUNCIONA como repouso. Se o "I"-por-grau funciona como dominante/diminuto, é
+        # resolução direta (XXXIII), não cadência — suprime a família autêntica/plagal.
+        target_non_repose = function_codes is not None and _non_repose(
+            function_codes[i + 1] if i + 1 < len(function_codes) else None
+        )
+
         if b == "V" and a != "V":  # meia-cadência: descanso no dominante
             cad["Meia-cadência"].add(pair)
         elif a == "V" and b == "I":  # família autêntica (V→I)
+            if target_non_repose:
+                continue  # resolução direta (elo de cadeia), não cadência
             if _inverted(all_chords[i]) or _inverted(all_chords[i + 1]):
                 cad["Imperfeita"].add(pair)
             else:
@@ -65,8 +92,12 @@ def analyze_cadences(
                         f"{all_chords[i - 1]} → {all_chords[i]} → {all_chords[i + 1]}"
                     )
         elif a == "VII" and b == "I":  # VII→I enfraquece → imperfeita
+            if target_non_repose:
+                continue
             cad["Imperfeita"].add(pair)
         elif a in ("IV", "II") and b == "I":  # plagal (IV→I ou IIm→I)
+            if target_non_repose:
+                continue
             cad["Plagal"].add(pair)
         elif a == "V" and b != "I":  # deceptiva: V → não-tônica
             if _modulates(chord_keys, i):
