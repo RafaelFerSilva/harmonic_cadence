@@ -206,9 +206,12 @@ completos.
 - ✅ **`fix-cadence-function-coherence` — #6 FECHADO.** `analyze_cadences` consulta a função do alvo
   e suprime a família autêntica/plagal quando o "I" funciona como tensão (`D`/`Sub`); 4º gate de
   coerência no baseline (VERDE 62/62, 175 cadências reais). *(feito)*
-- **#7 Worklist de corroboração**: ~10 divergências genuínas restantes (caiu de 17) — agora erros
-  prováveis do `detect_key` (V/relativa-como-tônica, mistura modal). Adjudicar com Chediak — **sem**
-  reamarrar no CC. Usar `scripts/worklist_adjudication.py` (READ-ONLY).
+- ✅ **#7 Worklist ADJUDICADA** (2026-07-01, `WORKLIST-ADJUDICATION.md`): as 10 divergências viram
+  fatos musicológicos citados. Achado: **dividem ~meio a meio** — funcional-certo/detect-errou (5:
+  V/IV/secundário-como-tônica) e detect-certo/funcional-errou (3: v/pivô tonicizado no fim) + 2
+  modulantes. **Não há regra-cega segura** (confiar cego no funcional regride os 3 detect-certo) →
+  worklist é curadoria, não placar. Gate futuro do `detect_key` teria de ser cirúrgico (só os
+  V-como-tônica alta-confiança: `atras-da-porta`, `ciume`), sem tocar os 3 detect-certo.
 - **#8 Ampliar o corpus** (`cifras/*.md`): o ouro é a regra, não o gênero.
 - **Legado**: acordes interpolados (XXIX, refinaria de rótulo, risco/ganho ruim); detecção de
   centro modal (Caminho 1, bloqueado por dado).
