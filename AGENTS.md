@@ -239,7 +239,10 @@ completos.
   — hoje **reportado** em `diagnostics` (ver `report-unidentified-notations`); v4 nasceu limpo.
   Seguir ampliando; o ouro é a regra, não o gênero.
 - **Legado**: acordes interpolados (XXIX, refinaria de rótulo, risco/ganho ruim); detecção de
-  centro modal (Caminho 1, bloqueado por dado).
+  centro modal (Caminho 1, bloqueado por dado). **`grow-modal-center-corpus` arquivada-como-parked
+  (2026-07-01)** — data-gated em n=2 (Vol. I §XXXVI.4 exaurido); crescer o corpus modal precisa de
+  NOVA autoridade citada (Chediak Vol. II/academia), não de mais mecanismo. Arquivada com
+  `--skip-specs` (nada entregue). Reabrir/nova change quando surgir a fonte.
 
 **Regra de ouro:** o Cifra Club é só fonte de cifra; o Chediak é a base. Toda mudança no motor
 mede contra o **baseline funcional ao vivo** (`songbook_baseline.py`) — não contra anotação do CC.

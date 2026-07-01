@@ -1,5 +1,13 @@
 # Tasks — grow-modal-center-corpus
 
+> **STATUS: ARCHIVED-AS-PARKED (2026-07-01) — data-gated at n=2, never delivered.** The corpus
+> growth (tasks 4-6) was never done because the data does not exist: Vol. I §XXXVI.4 is exhausted
+> at n=2 and reaching n≥3 needs a NEW cited authority (Chediak Vol. II / literature), not more
+> mechanism. Archived to clear the active-changes list without syncing specs (`--skip-specs`): no
+> code, no data, and no behavior was delivered, so the delta spec (a fact-admission protocol) is
+> preserved here for reference but NOT asserted into the main specs. Re-open (or a fresh change)
+> when a citable modal-center authority appears. See [APPLY-FINDINGS.md](./APPLY-FINDINGS.md).
+
 > **STATUS: PARKED (2026-06-29) — data-gated at n=2.** Apply ran the admission protocol live
 > and found Chediak's named modal pieces with a scrapable Cifra Club chord chart are exhausted:
 > the modal-example section (§XXXVI.4) yields only Gravidade as a possible new center divergence.
