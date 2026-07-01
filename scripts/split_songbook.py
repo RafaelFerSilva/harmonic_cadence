@@ -35,8 +35,18 @@ from cifra_core import cifra_from_text, extract_chords_from_lines, slugify
 OUT_DIR = "cifras"
 
 _SONG = re.compile(r"^### (.+?)\n(.*?)(?=^### |\Z)", re.M | re.S)
-_COMPOSERS = re.compile(r"^_(.+?)_\s*$", re.M)
+_NUM_PREFIX = re.compile(r"^\d+\.\s*")  # heading numerado ("1. À meia-luz")
+# Compositores: itálico (`_...._`, v3) OU negrito (`**...**`, v4), com `(pág. N)` opcional.
+_COMPOSERS = re.compile(r"^(?:_(.+?)_|\*\*(.+?)\*\*)\s*(?:\(.*?\))?\s*$", re.M)
 _FENCE = re.compile(r"```[a-zA-Z]*\n(.*?)```", re.S)
+
+
+def _composers(body: str) -> str:
+    """Extrai a linha de compositores (itálico ou negrito), sem o sufixo `(pág. N)`."""
+    m = _COMPOSERS.search(body)
+    if not m:
+        return ""
+    return (m.group(1) or m.group(2) or "").strip()
 
 
 def _manifest(block: str) -> list[str]:
@@ -61,7 +71,7 @@ def main() -> None:
 
     made = skipped = 0
     for title, body in _SONG.findall(text):
-        title = title.strip()
+        title = _NUM_PREFIX.sub("", title.strip())  # tira "N. " do heading numerado
         mfence = _FENCE.search(body)
         if not mfence:
             continue  # bloco sem cifra (ex.: índice) — não é música
@@ -76,8 +86,7 @@ def main() -> None:
             print(f"  [SKIP já existe] {slug}.md")
             skipped += 1
             continue
-        mcomp = _COMPOSERS.search(body)
-        composers = mcomp.group(1).strip() if mcomp else ""
+        composers = _composers(body)
         manifest_str = ", ".join(f"`{c}`" for c in chords)
         out = (
             f'## <a name="{slug}"></a>🎼 {title}\n\n'
