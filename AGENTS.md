@@ -219,12 +219,13 @@ completos.
 - ✅ **`fix-cadence-function-coherence` — #6 FECHADO.** `analyze_cadences` consulta a função do alvo
   e suprime a família autêntica/plagal quando o "I" funciona como tensão (`D`/`Sub`); 4º gate de
   coerência no baseline (VERDE 62/62, 175 cadências reais). *(feito)*
-- ✅ **#7 Worklist ADJUDICADA** (2026-07-01, `WORKLIST-ADJUDICATION.md`): as 10 divergências viram
-  fatos musicológicos citados. Achado: **dividem ~meio a meio** — funcional-certo/detect-errou (5:
-  V/IV/secundário-como-tônica) e detect-certo/funcional-errou (3: v/pivô tonicizado no fim) + 2
-  modulantes. **Não há regra-cega segura** (confiar cego no funcional regride os 3 detect-certo) →
-  worklist é curadoria, não placar. Gate futuro do `detect_key` teria de ser cirúrgico (só os
-  V-como-tônica alta-confiança: `atras-da-porta`, `ciume`), sem tocar os 3 detect-certo.
+- ✅ **#7 Worklist ADJUDICADA (n=170)** (2026-07-01, `WORKLIST-ADJUDICATION.md`): as **32**
+  divergências viram fatos musicológicos citados. Achado: sem vencedor único — funcional-certo (14:
+  V/IV/ii/iii/relativa-como-tônica), detect-certo (9: v/ii/pivô tonicizado no fim), **NOVO — armadilha
+  do ii-V (3: `bolinha-de-sabao`/`menina`/`rio` — vamp ii-V, detect pega o V, funcional pega o ii,
+  nenhum pega o I)**, e 6 modulantes. **Não há regra-cega segura** → worklist é curadoria, não placar.
+  Gate futuro do `detect_key` teria de ser cirúrgico (V/ii-como-tônica alta-conf com V→I limpo a
+  repouso), sem tocar os detect-certo; a armadilha ii-V pede o achador preferir o ALVO do V (o I) ao ii.
 - 🔄 **#8 Ampliar o corpus** (`cifras/*.md`): **62→119→170** (songbooks Bossa Nova v3 +57 e v4
   +51, separados 1-por-arquivo via `scripts/split_songbook.py` — robusto a formato: heading
   numerado ou não, compositores em itálico ou negrito; manifesto `Acordes Utilizados` gerado por
