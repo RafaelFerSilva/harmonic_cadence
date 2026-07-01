@@ -154,10 +154,11 @@ ancoradas no `cc_key` (modo/exata/relativa/coleção) e o tier de centro ancorad
 **aposentados**. O baseline roda em `scripts/songbook_baseline.py` (corpus local via
 `cifra_from_text`, sem scraping) e mede:
 - **Invariante funcional** (a base rochosa, transposição-invariante): todo trítono real ⇒
-  dominante. Atual: **62/62 sem defeito**.
+  dominante. Atual: **119/119 sem defeito** (os 4 gates — trítono/diminuto/D2/cadência — seguem
+  VERDES no corpus ampliado; a teoria generaliza de 62→119).
 - **Centro tonal por CORROBORAÇÃO** (não acurácia): `detect_key` × `chediak_functional_center`
   (acha a tônica pela resolução do dominante funcional, pp.84/87, sem anotação). Cobertura
-  **58/62** (4 em quarentena modal/estática); **concordam 48/58 (83%)** = centros de alta
+  **108/119** (11 em quarentena modal/estática); **concordam 84/108 (78%)** = centros de alta
   confiança (41/58 → 47/59 após `sanitize-chord-extraction` limpar fantasmas → 48/58 após
   `harden-functional-center` endurecer as guardas de repouso); as divergências viram **worklist
   de curadoria** (o Chediak adjudica), nunca placar do detector. **Princípio:** a tonalidade absoluta é só quadro de exibição — a análise funcional
@@ -212,7 +213,11 @@ completos.
   modulantes. **Não há regra-cega segura** (confiar cego no funcional regride os 3 detect-certo) →
   worklist é curadoria, não placar. Gate futuro do `detect_key` teria de ser cirúrgico (só os
   V-como-tônica alta-confiança: `atras-da-porta`, `ciume`), sem tocar os 3 detect-certo.
-- **#8 Ampliar o corpus** (`cifras/*.md`): o ouro é a regra, não o gênero.
+- 🔄 **#8 Ampliar o corpus** (`cifras/*.md`): **62→119** (add do `bossa-nova-songbook-v3`, 57
+  músicas separadas 1-por-arquivo no formato do corpus, com manifesto `Acordes Utilizados` gerado
+  via extração sem-whitelist). Fonte gitignored (copyright). Os 4 gates seguem **119/119**. Nota de
+  dado: a notação `X9/S` (61x, baixo inválido) é descartada honestamente — afeta `upa-neguinho`.
+  Seguir ampliando; o ouro é a regra, não o gênero.
 - **Legado**: acordes interpolados (XXIX, refinaria de rótulo, risco/ganho ruim); detecção de
   centro modal (Caminho 1, bloqueado por dado).
 
