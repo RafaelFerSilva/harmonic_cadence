@@ -68,6 +68,32 @@ def test_gate_path_b_requires_functional_dominant():
     assert _tritone_gate(["D", "A", "D", "Bm", "G", "D"], (9, "major")) is None
 
 
+# --- caminho C: cadencial na abertura (V-como-tônica com ii-V-I no início) -----
+
+
+def test_gate_path_c_corrects_v_as_tonic_cadenced_at_opening():
+    # a-volta-like: `G7→C7M` (ii-V-I a Dó) repetido na ABERTURA; Sol descansa 1× (Gm7),
+    # então o caminho A aborta; a cadência não está na janela final, então o B aborta.
+    # O caminho C corrige Sol(K-S=o V)→Dó. Fecha em G7 (V, não repouso) → guarda 4 passa.
+    syms = ["C7M", "Dm7", "G7", "C7M", "Dm7", "G7", "C7M", "Gm7", "C7", "Am7", "Dm7", "G7"]
+    assert _tritone_gate(syms, (7, "major")) == (0, "major")
+
+
+def test_gate_path_c_requires_two_resolutions():
+    # Uma só resolução V→X (tonicização passageira do IV) → o caminho C não dispara.
+    # `G7M`(1º) abre no IV; um único `D7→G7M` não confirma Sol como tônica; Ré descansa
+    # (D7M) → A aborta; nada resolve em Sol na janela final → B aborta. Resultado: None.
+    syms = ["G7M", "C7M", "Am7", "D7", "G7M", "Em7", "A7", "D7M"]
+    assert _tritone_gate(syms, (2, "major")) is None
+
+
+def test_gate_path_c_aborts_when_piece_ends_on_ks_repose():
+    # Abre no IV (`F7M`) com DOIS `C7→F7M`, mas FECHA em Dó (repouso, `C7M`) → Dó é a
+    # tônica do fecho estrutural → a guarda 4 do caminho C aborta (não rebaixa Dó p/ Fá).
+    syms = ["F7M", "G7", "C7", "F7M", "G7", "C7", "F7M", "Am7", "Dm7", "C7M"]
+    assert _tritone_gate(syms, (0, "major")) is None
+
+
 # --- não-regressão (a invariante das 41 / diatônico) --------------------------
 
 

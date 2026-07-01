@@ -170,7 +170,7 @@ ancoradas no `cc_key` (modo/exata/relativa/coleção) e o tier de centro ancorad
   VERDES no corpus ampliado; a teoria generaliza de 62→119→170).
 - **Centro tonal por CORROBORAÇÃO** (não acurácia): `detect_key` × `chediak_functional_center`
   (acha a tônica pela resolução do dominante funcional, pp.84/87, sem anotação). Cobertura
-  **153/170** (17 em quarentena modal/estática); **concordam 121/153 (79%)** = centros de alta
+  **153/170** (17 em quarentena modal/estática); **concordam 123/153 (80%)** = centros de alta
   confiança (41/58 → 47/59 após `sanitize-chord-extraction` limpar fantasmas → 48/58 após
   `harden-functional-center` endurecer as guardas de repouso); as divergências viram **worklist
   de curadoria** (o Chediak adjudica), nunca placar do detector. **Princípio:** a tonalidade absoluta é só quadro de exibição — a análise funcional
@@ -184,7 +184,12 @@ A Fase B (centro tonal) está madura: desempate cadencial (v1, confusão relativ
 de modo paralelo (v2), filtro de afinação (v3), e o **gate de qualidade do 3b** — corrige
 o V detectado como tônica quando o palpite do K-S aparece só como dominante-7 e resolve num
 acorde de repouso (Chediak: tônica repousa, V é tensão; densidade de secundários da MPB
-derrota discriminadores estatísticos — só o funcional vence). O modalismo virou **overlay
+derrota discriminadores estatísticos — só o funcional vence). O gate ganhou um **3º caminho
+(`add-cadential-v-as-tonic-path`, Path C)**: corrige o V-como-tônica quando o `V→I` está na
+ABERTURA (fora da janela final que o Path B varre), com guardas Chediak — ≥2 resoluções V→X, X=1º
+acorde, e a peça NÃO fecha em Y como repouso (desempata "abre no IV mas fecha na tônica"). Aditivo
+(A/B intactos); fecha `a-volta`/`dia-de-vitoria` da worklist (concordância 121→123), zero regressão.
+O modalismo virou **overlay
 descritivo** (`modal-coloring`), não eixo concorrente; a detecção de modo automática falsa
 foi removida.
 

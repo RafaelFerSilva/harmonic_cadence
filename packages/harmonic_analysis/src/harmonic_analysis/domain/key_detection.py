@@ -295,22 +295,68 @@ def _anchored_resolution_path(infos, present, ks_pc: int) -> Optional[Tuple[int,
     return (X, mode) if mode is not None else None
 
 
+def _cadential_resolution_path(infos, present, ks_pc: int) -> Optional[Tuple[int, str]]:
+    """Caminho C (cadencial na abertura): corrige Y→X=(Y−7) quando o `V→I` está no INÍCIO
+    (fora da janela final, então o Path B o perde), com guardas cadenciais e estruturais.
+
+    Um V-como-tônica cuja peça abre com o `ii-V-I`/`V-I` (a-volta: `C7M Am7 Dm7 G7 C7M`).
+    ALL: (1) ≥2 resoluções de V7/SubV funcional em X na PEÇA INTEIRA (repetição confirma a
+    tônica, não uma tonicização passageira do IV/iv); (2) X é o repouso predominante; (3) X é
+    o 1º acorde; (4) a peça NÃO termina em Y como repouso (senão Y é a tônica confirmada no
+    fecho — pega o open-on-IV que fecha na tônica real, blues I7→IV); (5) X≠Y."""
+    X = (ks_pc - 7) % 12
+    if X == ks_pc:
+        return None
+    # (1) ≥2 resoluções V/SubV → X (baixo seguinte em X), peça inteira.
+    dom, subv = (X + 7) % 12, (X + 1) % 12
+    resolutions = sum(
+        1
+        for cur, nxt in zip(infos, infos[1:])
+        if cur is not None
+        and nxt is not None
+        and cur[2] is Category.DOMINANT
+        and cur[0] in (dom, subv)
+        and nxt[1] == X
+    )
+    if resolutions < 2:
+        return None
+    # (2) X é o repouso predominante (maj/min > dominante na raiz X, e ≥2).
+    cats_X = [c for (r, _b, c) in present if r == X]
+    rest = sum(1 for c in cats_X if c in (Category.MAJOR, Category.MINOR))
+    dm = sum(1 for c in cats_X if c is Category.DOMINANT)
+    if not (rest > dm and rest >= 2):
+        return None
+    # (3) X é o primeiro acorde parseável.
+    first_root = next((t[0] for t in infos if t is not None), None)
+    if X != first_root:
+        return None
+    # (4) A peça NÃO termina em Y (=ks) como repouso: senão Y é a tônica do fecho estrutural.
+    last = next((t for t in reversed(infos) if t is not None), None)
+    if last is not None and last[0] == ks_pc and last[2] in (Category.MAJOR, Category.MINOR):
+        return None
+    mode = _x_mode(present, X)
+    return (X, mode) if mode is not None else None
+
+
 def _tritone_gate(
     symbols: Sequence[str], ks_best: Tuple[int, str]
 ) -> Optional[Tuple[int, str]]:
     """Centro corrigido pelo gate de QUALIDADE, ou None — ultraconservador.
 
-    Discriminador FUNCIONAL (Chediak): a tônica é repouso, o V é tensão. Dois
-    caminhos, ambos corrigindo o centro K-S `Y` para `X = (Y−7) mod 12`:
+    Discriminador FUNCIONAL (Chediak): a tônica é repouso, o V é tensão. Três
+    caminhos (tenta A → B → C, o 1º que casar vence), todos corrigindo o centro K-S
+    `Y` para `X = (Y−7) mod 12`:
 
     - **A (restrito):** `Y` aparece SÓ como dominante-7 e resolve numa 5ª abaixo num
       alvo X de repouso (Garota de Ipanema). Ver `_exclusive_dominant_path`.
     - **B (ancorado):** mesmo que `Y` descanse ocasionalmente, corrige quando um
-      V7/SubV funcional resolve em X (estrutural), X é o repouso predominante e X é
-      âncora (1º/último acorde) — o V-como-tônica residual da MPB. Ver
-      `_anchored_resolution_path`.
+      V7/SubV funcional resolve em X na JANELA FINAL, X é o repouso predominante e X é
+      o 1º acorde — o V-como-tônica residual da MPB. Ver `_anchored_resolution_path`.
+    - **C (cadencial na abertura):** quando o `V→I` está no INÍCIO (fora da janela
+      final, então o B o perde), corrige com ≥2 resoluções em X na peça inteira, X=1º
+      acorde e a peça NÃO fecha em Y como repouso. Ver `_cadential_resolution_path`.
 
-    Guards (ambos os caminhos): blues sem repouso aborta (X também só dominante),
+    Guards (todos os caminhos): blues sem repouso aborta (X também só dominante),
     dim7 inelegível (não é `Category.DOMINANT`), tônica que descansa não é rebaixada
     pelo A. Conservador: nas peças corretas nenhum caminho dispara."""
     infos = _chord_infos(symbols)
@@ -321,7 +367,10 @@ def _tritone_gate(
     a = _exclusive_dominant_path(infos, present, ks_pc)
     if a is not None:
         return a
-    return _anchored_resolution_path(infos, present, ks_pc)
+    b = _anchored_resolution_path(infos, present, ks_pc)
+    if b is not None:
+        return b
+    return _cadential_resolution_path(infos, present, ks_pc)
 
 
 def _i7_funk_anchor_path(
