@@ -149,7 +149,16 @@ VI7/III7/bIII7 = BUG T-por-grau** (177: são V7/II, V7/VI etc. resolvidos/decept
 p.114(1) — trítono real nunca é T por posição, exceção I7 blues p.112(3), agora citável);
 **`Outro` em VII7/II7 classificável** (73: VII7 "Cadencial" p.112(2), II7 "Subd. alterada"
 p.113(4), com guarda de resolução no I). Residual honesto pós-follow-ups: ~60-90 ambíguos.
-Follow-ups: `fix-tritone-t-by-degree` e `classify-special-function-dominants`.
+Follow-ups: `fix-tritone-t-by-degree` (✅ feito) e `classify-special-function-dominants`.
+
+**T-por-grau eliminado (`fix-tritone-t-by-degree`, follow-up 1 da adjudicação):** novo ramo
+**0f** no coder — dominante-7 que atravessa a cascata aplicada sem casar, com raiz em
+VI/III/bIII, vira **`Dsec` deceptivo** com alvo esperado `(V7/x)` (Chediak XXXIV(b)(1),
+p.114); trítono real nunca mais recebe `T` por posição (exceção única: I7 blues p.112(3)).
+Escopo cirúrgico: II7/VII7 (função especial p.115(4)) e o fall-through restante ficam para a
+change seguinte. **Efeito medido:** ledger **532→318** (−214), 3 gates duros seguem
+**170/170**, corroboração de centro inalterada (125/153). Restam no ledger: bVII7 (86),
+bVI7 (31), VII7 (40), II7 (33), Emp/? (126) — insumo da `classify-special-function-dominants`.
 
 **Analytics de corpus (`corpus-analytics`):** 5 views musicológicas descritivas sobre o banco
 (`v_cadence_distribution`, `v_function_trigram`, `v_vocab_by_mode`, `v_secondary_density`,

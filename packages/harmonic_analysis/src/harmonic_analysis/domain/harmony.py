@@ -237,6 +237,21 @@ class HarmonicAnalysis:
                     self.HARMONIC_FUNCTIONS["SubV"]["name"],
                     self.HARMONIC_FUNCTIONS["SubV"]["description"],
                 )
+            # 0f. Secundário DECEPTIVO (Chediak XXXIV(b)(1), p.114): um dominante-7
+            #     que atravessou todos os ramos sem casar não pode cair na leitura
+            #     por grau — trítono real nunca é repouso por posição (única exceção:
+            #     I7 blues, 0a). Escopo cirúrgico (TRITONE-ADJUDICATION.md): só as
+            #     posições adjudicadas como bug — VI7 (9), III7 (4), bIII7 (3);
+            #     II7/VII7 ficam fora (função ESPECIAL, p.115(4), change própria).
+            if pos in (9, 4, 3):
+                alvo = _CHROMATIC_DEGREE[(pos + 5) % 12]
+                return (
+                    "Dsec",
+                    f"Dominante Secundário deceptivo (V7/{alvo})",
+                    "Dominante secundário cuja resolução esperada não acontece: "
+                    "resolução deceptiva — a análise permanece de dominante, "
+                    "notada pela expectativa (Chediak XXXIV(b)(1), p.114).",
+                )
 
         # 0c. Diminuto de 7ª como dominante SEM fundamental (V7(b9) rootless):
         #     B°7 (B-D-F-Ab) = G7(b9) (G-B-D-F-Ab) sem o G → dominante de C. A
