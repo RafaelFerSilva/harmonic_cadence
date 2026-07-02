@@ -68,3 +68,7 @@ songbook-v4-v2.md
 # Relatório de corpus (corpus-analytics) — derivado do corpus gitignored,
 # regenerável via `harmonic corpus report`.
 corpus-report.md
+
+# Songbooks fonte (PDF, copyright) — NUNCA versionar; só os FATOS derivados
+# (regra + análise) entram no repo.
+songbooks/
