@@ -56,6 +56,11 @@ base_estudo/
 # Cifras locais (substrato do local-chord-input) — fora da fronteira de copyright,
 # não versionadas (coerente com "não armazenar cifras", só fatos no corpus).
 cifras/
+
+# Corpus persistido (persist-analysis-corpus) — artefato DERIVADO do motor,
+# regenerável via `harmonic corpus build`; nunca é fonte de verdade.
+*.duckdb
+*.duckdb.wal
 songbook-bossa-nova-v2.md
 bossa-nova-songbook-v3-v3.md
 songbook-v4-v2.md

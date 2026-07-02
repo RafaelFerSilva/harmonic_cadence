@@ -92,6 +92,21 @@ openspec list --specs   # capabilities (specs)
 Teoria destilada/implementada/testada (46 changes arquivadas + `fix-d2-over-attribution` e
 `fix-cadence-function-coherence` prontas p/ arquivar, **429 testes verdes**).
 
+**Camada de persistência (`persist-analysis-corpus`, frente #8):** a saída do motor deixou de ser
+efêmera — `harmonic_analysis/persistence/` disseca o `result` num banco **DuckDB** (11 tabelas,
+grão = ocorrência de acorde) via `harmonic corpus build` (roda o motor sobre `cifras/*.md`, sem
+rede). O banco é **view materializada** do motor (derivado, regenerável por `engine_version`/
+`git_sha`; snapshot por `analysis_run`), **nunca ouro** competindo com Chediak (sem `cc_key`-
+verdade; centro é ledger `agree/diverge/quarantine`). Gates viram **views SQL** (`v_gate_*`) +
+`harmonic corpus gates`. **Achado ao materializar:** os gates de **trítono e diminuto do
+`songbook_baseline.py` são no-ops** — chamam `Chord.get_category()`/`Chord.bass` (inexistentes)
+dentro de `try/except: continue`, então o "170/170 verde" desses dois é **vacuoso**. Rodando a
+checagem correta: diminuto=0 (vira gate executável real), mas **trítono=944 flags em 155/170**
+(dominado por `→T` de I7 blues/funk e `→Emp` modal — exceções que o próprio projeto legitimou).
+Logo trítono virou **ledger de curadoria** (`v_ledger_tritone_nondominant`, informativo, NÃO
+bloqueia); o bug do baseline + adjudicação Chediak das 944 exceções são a change separada
+**`fix-baseline-noop-gates`** (proposta capturada, ver `openspec/changes/`).
+
 **Coerência cadência×função fechada (`fix-cadence-function-coherence`, fecha o #6):** o detector
 de cadência classificava a família autêntica/plagal por GRAU, ignorando a FUNÇÃO do alvo — rotulava
 `V→I` como cadência mesmo quando o coder chamava o "I" de `D2`/`Dim` (5 músicas). Chediak define a

@@ -199,6 +199,21 @@ class HarmonicCLI:
         )
         self._add_provider_flags(fp_parser)
 
+        # Comando: corpus — materializa o corpus local num banco DuckDB e roda gates
+        corpus_parser = subparsers.add_parser(
+            "corpus", help="Persiste as análises do corpus local e audita os gates"
+        )
+        corpus_parser.add_argument(
+            "action", choices=["build", "gates"],
+            help="build: materializa cifras/*.md no banco; gates: audita os invariantes",
+        )
+        corpus_parser.add_argument(
+            "--db", default="corpus.duckdb", help="Caminho do banco (padrão: corpus.duckdb)"
+        )
+        corpus_parser.add_argument(
+            "--glob", default="cifras/*.md", help="Padrão do corpus local"
+        )
+
         return parser
 
     @staticmethod
@@ -265,6 +280,8 @@ class HarmonicCLI:
                 self._handle_reharmonize(parsed_args)
             elif parsed_args.command == "fingerprint":
                 self._handle_fingerprint(parsed_args)
+            elif parsed_args.command == "corpus":
+                self._handle_corpus(parsed_args)
         except Exception as e:
             print(f"Erro: {str(e)}")
             sys.exit(1)
@@ -406,6 +423,62 @@ class HarmonicCLI:
         except Exception as e:
             print(f"\nErro fatal ao analisar músicas do artista: {str(e)}")
             sys.exit(1)
+
+    def _handle_corpus(self, args: argparse.Namespace) -> None:
+        """Materializa o corpus local no banco (build) ou audita os gates (gates).
+
+        Import tardio da camada de persistência (traz `duckdb`) — mantém a CLI base
+        enxuta, como o explainer LLM."""
+        from harmonic_analysis.persistence import build_corpus, init_db
+
+        if args.action == "build":
+            conn = init_db(args.db)
+            summary = build_corpus(conn, args.glob)
+            if summary.get("error"):
+                print(summary["error"])
+                sys.exit(1)
+            print(f"\nCorpus materializado em {args.db}")
+            print(f"  run_id={summary['run_id']}  músicas={summary['n_songs']}")
+            ledger = conn.execute(
+                "SELECT center_status, n FROM v_center_ledger ORDER BY n DESC"
+            ).fetchall()
+            print("  centro (corroboração):", ", ".join(f"{s}={n}" for s, n in ledger))
+            if summary.get("failures"):
+                print(f"  falhas (visíveis): {len(summary['failures'])}")
+                for f in summary["failures"][:10]:
+                    print(f"    - {f}")
+            conn.close()
+            return
+
+        # action == "gates"
+        conn = init_db(args.db)
+        if conn.execute("SELECT COUNT(*) FROM song").fetchone()[0] == 0:
+            print("Banco vazio — rode `harmonic corpus build` primeiro.")
+            sys.exit(1)
+        gates = {
+            "diminuto (XXI-XXII)": "v_gate_diminished",
+            "D2 resolução (XIX)": "v_gate_d2",
+            "cadência×função (XXXII)": "v_gate_cadence",
+        }
+        total = 0
+        print("\nGates EXECUTÁVEIS (Chediak; vazio = verde):")
+        for label, view in gates.items():
+            rows = conn.execute(f"SELECT * FROM {view}").fetchall()
+            total += len(rows)
+            status = "VERDE" if not rows else f"{len(rows)} VIOLAÇÕES"
+            print(f"  {label:<26} {status}")
+            for r in rows[:5]:
+                print(f"      {r}")
+        ledger = conn.execute(
+            "SELECT COUNT(*) FROM v_ledger_tritone_nondominant"
+        ).fetchone()[0]
+        print(
+            f"\nLEDGER trítono→não-dominante (curadoria, NÃO gate): {ledger} ocorrências"
+        )
+        print("  (I7 tônico de blues/funk + empréstimo modal — adjudicação Chediak"
+              " em change separada)")
+        conn.close()
+        sys.exit(1 if total else 0)
 
     def _handle_cache(self, args: argparse.Namespace) -> None:
         """Processa o comando de cache."""
