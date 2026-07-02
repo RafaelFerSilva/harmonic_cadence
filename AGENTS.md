@@ -140,6 +140,17 @@ duros NÃO filtram** (invariante por ocorrência vale em cifra parcial). Anti-dr
 com o ledger (hoje: SEM drift). O **v3 é ponto cego declarado** (fonte deletada, manifesto
 derivado do corpo — sem oráculo, sem quarentena gratuita).
 
+**Ledger de trítono ADJUDICADO (`TRITONE-ADJUDICATION.md`, 2026-07-02):** os 532 casos foram
+adjudicados contra **Chediak XXXIV pp.111-116** (o PDF do Vol. I está em `base_estudo/`), pela
+GEOMETRIA real (raiz vs. tônica + resolução), não pelo rótulo. Vereditos: **bVI7 `Emp` legítimo**
+(63, Subd. menor alterada, quadro p.113); **bVII7 condicional** (157: `→I` = AEM backdoor
+legítimo p.112(1); `→bIII` = V7/bIII, dominante — codar `Emp` é defeito, p.114); **`T` em
+VI7/III7/bIII7 = BUG T-por-grau** (177: são V7/II, V7/VI etc. resolvidos/deceptivos, `Dsec`
+p.114(1) — trítono real nunca é T por posição, exceção I7 blues p.112(3), agora citável);
+**`Outro` em VII7/II7 classificável** (73: VII7 "Cadencial" p.112(2), II7 "Subd. alterada"
+p.113(4), com guarda de resolução no I). Residual honesto pós-follow-ups: ~60-90 ambíguos.
+Follow-ups: `fix-tritone-t-by-degree` e `classify-special-function-dominants`.
+
 **Analytics de corpus (`corpus-analytics`):** 5 views musicológicas descritivas sobre o banco
 (`v_cadence_distribution`, `v_function_trigram`, `v_vocab_by_mode`, `v_secondary_density`,
 `v_tritone_ledger_patterns`) + `harmonic corpus report` → relatório Markdown PT-BR (6 seções,
