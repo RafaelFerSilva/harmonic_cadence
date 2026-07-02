@@ -18,7 +18,64 @@ Corolário (a lição que re-bloqueou o `modal-center-arbitration`): um alvo só
 implementável se **o dado bruto o codifica**; quando o CC não codifica o fato de Chediak,
 a frente fica **bloqueada por dado** — precisa de corpus curado, não de mais mecanismo.
 
-## Status (2026-06-28)
+## Status (2026-07-02) — HANDOFF DA SESSÃO "corpus & adjudicação"
+
+**8 changes arquivadas num dia (56 no total), 496 testes verdes, tudo na `main`
+(`1279d99..cc34fe1`).** A sessão transformou a saída do motor num corpus persistido, honesto e
+curado contra a fonte física. Detalhe canônico de cada change no AGENTS.md ("Estado atual");
+aqui, o mapa:
+
+1. **`persist-analysis-corpus`** — banco DuckDB (11 tabelas, grão = ocorrência de acorde,
+   snapshot por `analysis_run`), CLI `harmonic corpus build|gates|report`. Banco = view
+   materializada do motor, NUNCA ouro.
+2. **`fix-baseline-noop-gates`** — descoberto que os gates de trítono/diminuto do baseline eram
+   **no-ops** (acessor fantasma): "170/170" vacuoso. Corrigido: 3 gates duros REAIS
+   (diminuto/D2/cadência); trítono virou ledger com isenção I7 citável.
+3. **`corpus-analytics`** — 5 views musicológicas + relatório MD PT-BR (nunca placar).
+4. **`fix-glued-chord-density`** — token colado (`Am6/`) derrubava linhas inteiras da extração
+   sem diagnóstico (dindi 26→52 acordes). Views escopadas ao run corrente (bônus).
+5. **`corpus-completeness-quarantine`** — ledger curado de completude (evidência obrigatória,
+   padrão modal_centers) + `scripts/audit_completeness.py` (anti-drift) + `song.completeness`.
+6. **`fix-tritone-t-by-degree`** + 7. **`classify-special-function-dominants`** — a adjudicação
+   **`TRITONE-ADJUDICATION.md`** executada: o **PDF do Chediak Vol. I está em `base_estudo/`**
+   (página do PDF = página do livro; dá para LER e citar). Cap. XXXIV integralmente
+   implementado no coder. **Trajetória do ledger de trítono: 944 (vacuoso) → 519 → 532 → 318
+   → 21** (bV7→Emp genérico, ambíguo honesto, parked).
+8. **`retranscribe-v4-quarantined`** — os **5 volumes do Songbook Bossa Nova estão em
+   `songbooks/`** (PDF, gitignored; offset Vol.4: PDF = página − 20). As 15 cifras
+   `incomplete` foram **re-transcritas do livro** (verificação mecânica 15/15); a corrupção da
+   conversão original incluía páginas perdidas, codas descartadas e **transposição espúria**
+   (tempo-feliz estava em Sol, o livro imprime Ré). Quarentena v4 resolvida
+   (`incomplete=0`, restam 13 `suspect` das originais).
+
+**Métricas ao vivo (n=170, run 4 do banco):** 3 gates duros **170/170** · corroboração de
+centro **127/153 (83%)**, quarentena 17 · ledger de trítono **21** em 11 músicas · completude
+`complete=157 / suspect=13 / incomplete=0` · auditoria de completude **SEM drift**.
+
+**Próximos passos (ordem recomendada):**
+1. **#8 Ingerir os Vols. 1/2/5** (~150+ músicas novas) — pipeline provado hoje: transcrever/
+   converter → `split_songbook.py` → `audit_completeness.py` → `corpus build` → `gates` →
+   `report`. Atenção: a conversão automática PDF→MD foi a fonte de TODA a corrupção do v4 —
+   considerar transcrição assistida página-a-página (o modelo lê o PDF direto) ou validação
+   por vocabulário desde o início.
+2. **Auditoria ampla v4×livro** (~36 músicas restantes) — a transposição espúria só é
+   detectável abrindo a página (o oráculo de vocabulário não a vê quando o vocabulário fecha).
+3. **Adjudicar as 13 `suspect`** das originais (oráculo fraco) e o **bV7 (21)** quando houver
+   página que decida.
+4. **Camada C — ML/NLP overlay** sobre o banco (anomalia→worklist, similaridade, LM de
+   progressões) — dados agora limpos; ML nunca arbitra (as 170 análises são PRATA, circular
+   p/ treino supervisionado). Abrir com `/openspec-explore` próprio.
+
+**Método (inegociável, provado 8× hoje):** OpenSpec propose→apply→archive; medir SEMPRE
+contra `songbook_baseline.py` ao vivo (política pausa-e-investiga: gate quebrado = investigar,
+nunca forçar verde); probe READ-ONLY antes de codar; adjudicar pela GEOMETRIA (raiz vs. tônica
++ resolução medida), nunca pelo rótulo; fatos citados com página; commit+push na main ao
+arquivar. Copyright: `songbooks/`, `cifras/`, `*.duckdb`, `corpus-report.md`, md-fontes —
+tudo gitignored; só FATOS entram no repo.
+
+---
+
+## Status (2026-06-28) — histórico
 
 **Feito e no `main`** (36 changes OpenSpec arquivadas, 334 testes verdes, `openspec/`
 versionado em `openspec/changes/archive/`):
