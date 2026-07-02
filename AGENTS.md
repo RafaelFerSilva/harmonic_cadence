@@ -140,6 +140,19 @@ duros NÃO filtram** (invariante por ocorrência vale em cifra parcial). Anti-dr
 com o ledger (hoje: SEM drift). O **v3 é ponto cego declarado** (fonte deletada, manifesto
 derivado do corpo — sem oráculo, sem quarentena gratuita).
 
+**Quarentena v4 RESOLVIDA pela fonte (`retranscribe-v4-quarantined`):** os 5 volumes do
+Songbook Bossa Nova chegaram em `songbooks/` (PDF, **gitignored** — copyright; offset do Vol.4:
+PDF = página do livro − 20). As 15 `incomplete` foram **re-transcritas do livro** (tom impresso,
+verificação mecânica extração ⊇ diagramas 15/15) — a corrupção era pior que truncamento: páginas
+perdidas (se-todos perdeu a p.133), codas descartadas (a-paz), **transposição espúria**
+(tempo-feliz estava em Sol; o livro imprime Ré) e OCR mangling (Eb7M≈Ebm7, Em7≈Em6, B7M4≈B6(9)).
+As 15 saíram do ledger com proveniência; as seções do md-fonte local foram reparadas
+(header+fence). **Efeito medido:** gates duros **170/170** (a teoria generaliza no dado
+corrigido), corroboração de centro **125→127/153 (83%)**, completude `incomplete=0`/`suspect=13`.
+**Risco registrado:** as outras ~36 do v4 podem ter corrupção que o oráculo de vocabulário não
+detecta (auditoria ampla v4×livro = candidata a change). **Vols. 1/2/5 nunca ingeridos** —
+material da frente #8.
+
 **Ledger de trítono ADJUDICADO (`TRITONE-ADJUDICATION.md`, 2026-07-02):** os 532 casos foram
 adjudicados contra **Chediak XXXIV pp.111-116** (o PDF do Vol. I está em `base_estudo/`), pela
 GEOMETRIA real (raiz vs. tônica + resolução), não pelo rótulo. Vereditos: **bVI7 `Emp` legítimo**

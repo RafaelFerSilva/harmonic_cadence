@@ -32,14 +32,16 @@ def test_invalid_status_fails_fast():
 
 def test_lookup_defaults_to_complete():
     assert completeness_for("slug-que-nao-existe") == "complete"
-    assert completeness_for("a-paz") == "incomplete"
+    # a-paz foi RESOLVIDA (re-transcrita da fonte, retranscribe-v4-quarantined)
+    assert completeness_for("a-paz") == "complete"
     assert completeness_for("dindi") == "suspect"
 
 
 def test_ledger_facts_are_wellformed():
     """Todo fato do ledger tem evidência, ausentes e status válido (o __post_init__
     já garante; isto trava a importação como gate)."""
-    assert len(COMPLETENESS_LEDGER) >= 20
+    # pós retranscribe-v4-quarantined: só as 13 suspect das originais restam
+    assert len(COMPLETENESS_LEDGER) == 13
     for slug, fact in COMPLETENESS_LEDGER.items():
         assert fact.slug == slug
         assert fact.missing_declared and fact.evidence.strip()

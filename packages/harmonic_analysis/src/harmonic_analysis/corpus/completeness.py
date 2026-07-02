@@ -70,37 +70,17 @@ def _f(slug: str, status: CompletenessStatus, missing: str, evidence: str) -> Co
     )
 
 
-# ── INCOMPLETE — oráculo forte: o header `Acordes:` do songbook v4 declara
-#    acordes ausentes do corpo (truncamento na conversão PDF→MD; irrecuperável
-#    sem a fonte original). Auditoria 2026-07-02, pós fix-glued-chord-density,
-#    dialeto descontado. ─────────────────────────────────────────────────────
-_INCOMPLETE = [
-    _f("a-paz", "incomplete", "Cm7(9) Eb7M Gm Gm7(9)", _V4_ORACLE),
-    _f("a-tarde", "incomplete", "C7M(9/#11)", _V4_ORACLE),
-    _f("ainda-mais-lindo", "incomplete", "Ab7(13)", _V4_ORACLE),
-    _f("brisa-do-mar", "incomplete", "Eb7M", _V4_ORACLE),
-    _f("beijo-partido", "incomplete", "B7M4", _V4_ORACLE),
-    _f("embarcacao", "incomplete", "D7(b9)", _V4_ORACLE),
-    _f("estrada-branca", "incomplete", "D7(9) Em7(9)", _V4_ORACLE),
-    _f("gaiolas-abertas", "incomplete", "Eb7(13)", _V4_ORACLE),
-    _f("luiza", "incomplete", "Em7(b9)", _V4_ORACLE),
-    _f(
-        "no-cordao-da-saideira",
-        "incomplete",
-        "Am6 Bb/E Bb7(11) Bm7(11) C#7(#9) C#7(b9) G7(#5)",
-        _V4_ORACLE,
-    ),
-    _f(
-        "se-todos-fossem-iguais-a-voce",
-        "incomplete",
-        "A7(b9) Em7(9) F#m7(b5)",
-        _V4_ORACLE,
-    ),
-    _f("viola-enluarada", "incomplete", "G/A", _V4_ORACLE),
-    _f("seu-chopin-desculpe", "incomplete", "D7(b9)", _V4_ORACLE),
-    _f("tempo-feliz", "incomplete", "D7(b9) Eb7(9) G6 G7(13)", _V4_ORACLE),
-    _f("ultima-forma", "incomplete", "Em7", _V4_ORACLE),
-]
+# ── INCOMPLETE — (vazio) ────────────────────────────────────────────────────
+# RESOLVIDO 2026-07-02 (`retranscribe-v4-quarantined`): as 15 músicas do
+# songbook v4 antes quarentenadas aqui foram RE-TRANSCRITAS diretamente do PDF
+# do Vol. 4 (`songbooks/`, offset PDF = página do livro − 20), no tom impresso,
+# com verificação mecânica (extração ⊇ diagramas da página) 15/15. A conversão
+# original tinha truncado páginas (ex.: se-todos perdeu a p.133 inteira; a-paz
+# perdeu a coda) e até TRANSPOSTO conteúdo (tempo-feliz estava em Sol; o livro
+# imprime Ré). Casos que nem eram truncamento: no-cordao (diagramas do livro
+# sobre-inclusivos, não usados na cifra impressa) e OCR mangling (Eb7M≈Ebm7,
+# Em7(b9)≈E7(b9), Em7≈Em6, B7M4≈B6(9), F2(9)≈F74(9)).
+_INCOMPLETE: list[CompletenessFact] = []
 
 # ── SUSPECT — oráculo fraco: manifesto independente diverge do corpo e não há
 #    fonte para confirmar truncamento (pode ser vocabulário de seção não
