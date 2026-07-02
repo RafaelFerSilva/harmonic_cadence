@@ -50,12 +50,11 @@ def test_blues_i7_iv7_untouched():
     assert _code("F7", "C7") in ("SD",)    # IV7 blues (0a)
 
 
-def test_special_function_positions_not_captured():
-    """II7 (D7) e VII7 sem resolução (B7→x) ficam FORA do 0f — função especial
-    (p.115(4)) é da change classify-special-function-dominants."""
-    assert _code("D7", "C7M") != "Dsec" or "deceptivo" not in H.analyze_function(
-        Chord("D7"), None, Chord("C7M"), False, False
-    )[1]
-    # B7 seguido de acorde não-alvo: não pode virar Dsec-deceptivo pelo 0f
+def test_special_function_positions_have_their_own_reading():
+    """II7 e VII7 não caem no 0f (VI/III/bIII): têm leitura própria de função
+    especial (classify-special-function-dominants, Chediak p.112-113) — II7 é
+    subdominante alterada, VII7 sem tônica é V7/III."""
+    code, name, _ = H.analyze_function(Chord("D7"), None, Chord("C7M"), False, False)
+    assert code == "SD" and "II7" in name
     code, name, _ = H.analyze_function(Chord("B7"), None, Chord("F7M"), False, False)
-    assert not (code == "Dsec" and "deceptivo" in name)
+    assert code == "Dsec" and "V7/III" in name

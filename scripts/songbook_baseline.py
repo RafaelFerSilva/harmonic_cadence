@@ -74,9 +74,26 @@ def _tritone_nondominant_ledger(chords: list[str], analysis: dict) -> list[str]:
         code = (item.get("function_code") or "")
         if any(k in code.upper() for k in ("D", "SUBV")):
             continue  # já é dominante-família
-        # Isenção I7-tônica: função T no grau da tônica (i7-funk-anchor).
-        if code == "T" and degree_base(item.get("degree") or "") in ("I", "i"):
+        deg = degree_base(item.get("degree") or "")
+        # Isenções CITÁVEIS — funções especiais não-dominantes documentadas
+        # (Chediak XXXIV, quadro p.113; TRITONE-ADJUDICATION.md):
+        #   I7 blues → T (p.112(3), i7-funk-anchor); IV7 blues → SD (p.112(3));
+        #   II7 subdominante alterada → SD (p.113(4)); bVII7/bVI7 subdominante
+        #   menor → Emp SÓ com raiz a 10/8 semitons da tônica (p.112(1)/p.113) —
+        #   o filtro por raiz poupa o Emp genérico do bV7, que é ambíguo e FICA
+        #   no ledger (invariante das posições coberto por teste).
+        if code == "T" and deg in ("I", "i"):
             continue
+        if code == "SD" and deg in ("IV", "iv", "II", "ii"):
+            continue
+        if code == "Emp":
+            key = analysis.get("key")
+            try:
+                pos = HarmonicAnalysis._get_interval(key, Chord(sym).root)
+            except Exception:
+                pos = None
+            if pos in (10, 8):
+                continue
         ledger.append(f"{sym}→{code}")
     return ledger
 

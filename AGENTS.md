@@ -149,7 +149,11 @@ VI7/III7/bIII7 = BUG T-por-grau** (177: são V7/II, V7/VI etc. resolvidos/decept
 p.114(1) — trítono real nunca é T por posição, exceção I7 blues p.112(3), agora citável);
 **`Outro` em VII7/II7 classificável** (73: VII7 "Cadencial" p.112(2), II7 "Subd. alterada"
 p.113(4), com guarda de resolução no I). Residual honesto pós-follow-ups: ~60-90 ambíguos.
-Follow-ups: `fix-tritone-t-by-degree` (✅ feito) e `classify-special-function-dominants`.
+Follow-ups: `fix-tritone-t-by-degree` (✅) e `classify-special-function-dominants` (✅) —
+**adjudicação COMPLETA**: ledger final = **20 ocorrências em 10/170** (só bV7→Emp genérico,
+ambíguo honesto). O **cap. XXXIV do Chediak está integralmente implementado e citado no coder**:
+funções especiais (I7/IV7 blues, bVII7/bVI7 Emp, II7 SD alterada, VII7 cadencial/V7-III),
+secundários deceptivos (0f), e resolução-precede-empréstimo (bVII7→4ªJ diatônica = Dsec).
 
 **T-por-grau eliminado (`fix-tritone-t-by-degree`, follow-up 1 da adjudicação):** novo ramo
 **0f** no coder — dominante-7 que atravessa a cascata aplicada sem casar, com raiz em

@@ -49,9 +49,11 @@ WHERE f.is_resolving = TRUE
 
 -- ── LEDGER (NÃO gate) — trítono real lido como não-dominante (D9) ────────────
 -- Semântica idêntica ao baseline: função-alvo NÃO contém 'D' nem 'SUBV'
--- (case-insensitive), APÓS isentar a classe limpa I7-como-tônica (função `T` no
--- grau da tônica `I`/`i` — blues/funk, `i7-funk-anchor`; ver fix-baseline-noop-
--- gates). Worklist de adjudicação, não placar; informativo em `corpus gates`.
+-- (case-insensitive), APÓS as isenções CITÁVEIS das funções especiais
+-- não-dominantes documentadas (Chediak XXXIV, quadro p.113;
+-- TRITONE-ADJUDICATION.md): I7 blues→T (p.112(3)), IV7 blues→SD (p.112(3)),
+-- II7 subd. alterada→SD (p.113(4)), bVII7/bVI7 subd. menor→Emp (p.112(1)).
+-- Worklist de adjudicação, não placar; informativo em `corpus gates`.
 CREATE OR REPLACE VIEW v_ledger_tritone_nondominant AS
 SELECT o.song_id, o.position, o.symbol, o.function_code
 FROM chord_occurrence o
@@ -61,7 +63,21 @@ WHERE v.has_real_tritone = TRUE
   AND (o.function_code IS NULL
        OR (UPPER(o.function_code) NOT LIKE '%D%'
            AND UPPER(o.function_code) NOT LIKE '%SUBV%'))
-  AND NOT (o.function_code = 'T' AND o.degree IN ('I', 'i'));
+  AND NOT (o.function_code = 'T' AND o.degree IN ('I', 'i'))
+  AND NOT (o.function_code = 'SD'
+           AND upper(regexp_extract(COALESCE(o.degree, ''),
+               '(?i)^[b#]?(vii|vi|iv|v|iii|ii|i)', 1)) IN ('IV', 'II'))
+  -- Emp só é isento quando é bVII7/bVI7 de fato (raiz a 10/8 da tônica) —
+  -- o Emp genérico do bV7 é ambíguo e PERMANECE no ledger.
+  AND NOT (o.function_code = 'Emp'
+           AND ((v.root_pc - CASE sc.detected_key
+                  WHEN 'C' THEN 0 WHEN 'C#' THEN 1 WHEN 'Db' THEN 1
+                  WHEN 'D' THEN 2 WHEN 'D#' THEN 3 WHEN 'Eb' THEN 3
+                  WHEN 'E' THEN 4 WHEN 'F' THEN 5 WHEN 'F#' THEN 6
+                  WHEN 'Gb' THEN 6 WHEN 'G' THEN 7 WHEN 'G#' THEN 8
+                  WHEN 'Ab' THEN 8 WHEN 'A' THEN 9 WHEN 'A#' THEN 10
+                  WHEN 'Bb' THEN 10 WHEN 'B' THEN 11 END + 12) % 12)
+               IN (10, 8));
 
 -- ── ANALYTICS — ledger de corroboração de centro (contagem, não acurácia) ────
 CREATE OR REPLACE VIEW v_center_ledger AS

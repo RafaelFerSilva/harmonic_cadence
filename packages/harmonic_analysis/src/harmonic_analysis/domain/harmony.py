@@ -200,35 +200,43 @@ class HarmonicAnalysis:
                         f"Dominante Auxiliar (V7/{alvo})",
                         self.HARMONIC_FUNCTIONS["Daux"]["description"],
                     )
-            # 0c. bVII7/bVI7 SEM resolução funcional → subdominante menor (empréstimo).
-            if pos == 10:  # bVII7
-                return (
-                    "Emp",
-                    "Subdominante menor (bVII7)",
-                    "bVII7: subdominante menor / empréstimo modal (Chediak)",
-                )
-            if pos == 8:  # bVI7
-                return (
-                    "Emp",
-                    "Subdominante menor alterado (bVI7)",
-                    "bVI7: subdominante menor alterado (Chediak)",
-                )
-            # 0d. V7/x secundário (alvo diatônico) e VII7 cadencial.
-            if next_chord:
-                ni = self._get_interval(chord.root, next_chord.root)
-                target_is_tonic = self._get_interval(next_chord.root, self.key) == 0
-                if ni == 5 and not target_is_tonic:
-                    target_degree = self.get_degree(next_chord)
+                # V7/x secundário (alvo DIATÔNICO não-tônica). ANTES do Emp de
+                # bVII7/bVI7: a resolução precede a leitura de empréstimo — em tom
+                # menor, bVII7→bIII diatônico é V7/III (Chediak p.114, ex. Bb7→Eb),
+                # não subdominante menor.
+                if ni == 5 and not target_is_tonic and target_degree is not None:
                     return (
                         "Dsec",
                         f"Dominante Secundário (V7/{target_degree})",
                         self.HARMONIC_FUNCTIONS["Dsec"]["description"],
                     )
+            # 0c. bVII7/bVI7 SEM resolução funcional → subdominante menor (função
+            #     especial documentada: Chediak XXXIV(a), quadro p.113).
+            if pos == 10:  # bVII7
+                return (
+                    "Emp",
+                    "Subdominante menor (bVII7)",
+                    "bVII7: subdominante menor / empréstimo modal, função especial "
+                    "não-dominante (Chediak XXXIV(a)(1), p.112; quadro p.113)",
+                )
+            if pos == 8:  # bVI7
+                return (
+                    "Emp",
+                    "Subdominante menor alterado (bVI7)",
+                    "bVI7: subdominante menor alterado, função especial "
+                    "não-dominante (Chediak XXXIV(a)(4), p.113; quadro p.113)",
+                )
+            # 0d. VII7 cadencial (resolução direta na tônica, Chediak p.112(2)).
+            if next_chord:
+                target_is_tonic = (
+                    self._get_interval(next_chord.root, self.key) == 0
+                )
                 if pos == 11 and target_is_tonic:
                     return (
                         "D",
                         "VII7 cadencial",
-                        "VII7 resolvendo direto na tônica: função cadencial (Chediak)",
+                        "VII7 resolvendo direto na tônica: função cadencial "
+                        "(Chediak XXXIV(a)(2), p.112)",
                     )
             # 0e. SubV primário (bII7): um semitom acima da tônica.
             if self._get_interval(chord.root, self.key) == 11:
@@ -251,6 +259,28 @@ class HarmonicAnalysis:
                     "Dominante secundário cuja resolução esperada não acontece: "
                     "resolução deceptiva — a análise permanece de dominante, "
                     "notada pela expectativa (Chediak XXXIV(b)(1), p.114).",
+                )
+            # 0g. Funções especiais restantes (Chediak XXXIV(a), quadro p.113).
+            #     II7 = subdominante ALTERADA (resolução esperada I ou I/5ª) —
+            #     família SD, não dominante nem "Outro".
+            if pos == 2:  # II7
+                return (
+                    "SD",
+                    "Subdominante alterada (II7)",
+                    "II7: subdominante alterada, função especial não-dominante — "
+                    "resolução esperada no I ou I/5ª (Chediak XXXIV(a)(4), p.113; "
+                    "quadro p.113)",
+                )
+            #     VII7 SEM resolução direta no I (o caso →I já saiu como Cadencial
+            #     em 0d): leitura V7/III (Chediak p.112(2)), deceptiva quando nem o
+            #     III segue (p.114).
+            if pos == 11:  # VII7
+                return (
+                    "Dsec",
+                    "Dominante Secundário deceptivo (V7/III)",
+                    "VII7 sem resolução direta na tônica: lido como V7/III "
+                    "(Chediak XXXIV(a)(2), p.112), deceptivo quando o III não "
+                    "segue (p.114).",
                 )
 
         # 0c. Diminuto de 7ª como dominante SEM fundamental (V7(b9) rootless):

@@ -87,10 +87,20 @@ de `Outro` (Cadencial/Subd.alt.) → o ledger residual cai para ~**60-90** ambí
 
 ## Follow-ups recomendados (OpenSpec)
 
-1. **`fix-tritone-t-by-degree`** — veto de qualidade no coder (`T` nunca com trítono real,
-   exceto I7 blues p.112(3)); VI7/III7/bIII7 → `Dsec` resolvido/deceptivo (p.114). Gates
-   duros re-medidos; o ledger deve cair ~177.
-2. **`classify-special-function-dominants`** — VII7 "Cadencial" (p.112(2)) e II7 "Subd.
-   alterada" (p.113(4)) com guarda de resolução no I; bVII7 condicional (V7/bIII vs. AEM).
-3. Isenções do ledger (baseline + views) atualizadas para citar p.112-113; bVI7→I e
-   bVII7→I entram como isenções citáveis.
+1. **`fix-tritone-t-by-degree`** — ✅ **EXECUTADO** (2026-07-02): ramo 0f, VI7/III7/bIII7 →
+   `Dsec` deceptivo (p.114(1)). Ledger 532→318.
+2. **`classify-special-function-dominants`** — ✅ **EXECUTADO** (2026-07-02): resolução
+   precede empréstimo (bVII7→4ªJ diatônica = `Dsec`, p.114); II7 → `SD` "Subdominante
+   alterada" (quadro p.113); VII7 sem tônica → `Dsec (V7/III)` (p.112(2)); isenções
+   citáveis no ledger (I7/IV7 blues, bVII7/bVI7 Emp por raiz 10/8, II7 SD). Ledger 318→**20**.
+3. ✅ Isenções do baseline + view citando p.112-113 — feito na change 2.
+
+## Estado FINAL da adjudicação (2026-07-02)
+
+Trajetória do ledger: 944 (vacuoso) → 519 (isenção I7) → 532 (pós `fix-glued-chord-density`
+recuperar linhas) → 318 (pós follow-up 1) → **20 ocorrências em 10/170 músicas** (pós
+follow-up 2). O residual é a classe **bV7 lida como Emp genérico** — ambígua (SubV7/IV não
+resolvido? blues #IV? sem página que decida) e honestamente mantida como worklist. Os 3
+gates duros permanecem **170/170** e a corroboração de centro inalterada (125/153, 82%)
+durante toda a adjudicação. **O capítulo XXXIV do Chediak está integralmente implementado
+e citado no coder.**
