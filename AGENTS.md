@@ -125,9 +125,20 @@ perdidos (dindi 26→52 acordes, samba-em-preludio 25→52). Fix: `_glued_chord_
 do malformado invertida) conta na densidade — classificação e extração concordam; decoração pura
 (`///`) saiu do denominador. **Efeito medido:** 3 gates duros seguem **170/170**; corroboração de
 centro **123→125/153 (82%)** (a perda alimentava a worklist); ledger de trítono 519→**532** (+13
-recuperados a adjudicar). Pendências da auditoria (fora desta change): 16 músicas do songbook v4
-com truncamento na conversão PDF→MD (oráculo = header `Acordes:` do livro) e 13 originais com
-manifesto divergente — candidatas a **quarentena de completude** no corpus.
+recuperados a adjudicar).
+
+**Quarentena de completude (`corpus-completeness-quarantine`):** as cifras incompletas da
+auditoria viraram **ledger curado** (`harmonic_analysis/corpus/completeness.py`, padrão
+`modal_centers`: evidência obrigatória, falha-rápido, só fatos — zero texto de cifra):
+**15 `incomplete`** (oráculo forte — o header `Acordes:` do songbook v4 declara acordes ausentes
+do corpo; truncamento PDF→MD, irrecuperável sem a fonte; piores: a-paz, no-cordao-da-saideira,
+tempo-feliz) + **13 `suspect`** (manifesto independente divergente, pós-desconto de dialeto por
+pitch-classes). `song.completeness` é estampado no `corpus build`; o `report` mostra a contagem e
+marca a worklist de trítono (ocorrências de cifra parcial pesam menos na adjudicação). **Gates
+duros NÃO filtram** (invariante por ocorrência vale em cifra parcial). Anti-drift:
+`scripts/audit_completeness.py` re-deriva a evidência com a extração corrente e acusa divergência
+com o ledger (hoje: SEM drift). O **v3 é ponto cego declarado** (fonte deletada, manifesto
+derivado do corpo — sem oráculo, sem quarentena gratuita).
 
 **Analytics de corpus (`corpus-analytics`):** 5 views musicológicas descritivas sobre o banco
 (`v_cadence_distribution`, `v_function_trigram`, `v_vocab_by_mode`, `v_secondary_density`,

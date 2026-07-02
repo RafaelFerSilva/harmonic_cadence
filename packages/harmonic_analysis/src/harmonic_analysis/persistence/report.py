@@ -48,6 +48,11 @@ def render_report(conn, top_n: int = 15) -> str:
     ledger_center = _rows(
         conn, "SELECT center_status, n FROM v_center_ledger ORDER BY n DESC"
     )
+    completeness = _rows(
+        conn,
+        "SELECT completeness, COUNT(*) FROM v_song_current "
+        "GROUP BY completeness ORDER BY 2 DESC",
+    )
     parts.append("# Relatório musicológico do corpus\n")
     parts.append(
         "> Estatística **descritiva** sobre a saída do motor (Chediak é o árbitro "
@@ -62,6 +67,10 @@ def render_report(conn, top_n: int = 15) -> str:
         f"- Corroboração de centro (ledger, não placar): "
         + ", ".join(f"{s}={n}" for s, n in ledger_center)
         + f" (sobre {n_songs} músicas)\n"
+        f"- Completude do DADO DE ENTRADA (ledger curado, qualidade da fonte — "
+        f"não defeito do motor): "
+        + ", ".join(f"{s}={n}" for s, n in completeness)
+        + "\n"
     )
 
     # ── 2. Cadências ─────────────────────────────────────────────────────────
@@ -137,6 +146,18 @@ def render_report(conn, top_n: int = 15) -> str:
     parts.append(_table(
         ["Função-alvo", "Grau", "Qualidade", "n", "Músicas", "Exemplo"], patterns
     ))
+    quarantined_ledger = _one(
+        conn,
+        "SELECT COUNT(*) FROM v_ledger_tritone_nondominant l "
+        "JOIN v_song_current s ON l.song_id = s.song_id "
+        "WHERE s.completeness != 'complete'",
+    )[0]
+    if quarantined_ledger:
+        parts.append(
+            f"\n> ⚠ {quarantined_ledger} das {total_ledger} ocorrências vêm de músicas "
+            "com completude `suspect`/`incomplete` (cifra parcial) — pesar isso na "
+            "adjudicação.\n"
+        )
     parts.append("")
 
     return "\n".join(parts)

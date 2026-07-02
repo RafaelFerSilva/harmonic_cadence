@@ -62,6 +62,10 @@ CREATE TABLE IF NOT EXISTS song (
     center_pc       INTEGER,            -- chediak_functional_center → pitch-class
     center_mode     TEXT,
     center_status   TEXT NOT NULL,      -- 'agree' | 'diverge' | 'quarantine' (ledger)
+    completeness    TEXT NOT NULL DEFAULT 'complete',
+                                        -- 'complete' | 'suspect' | 'incomplete' —
+                                        -- QUALIDADE DO DADO DE ENTRADA (ledger curado
+                                        -- corpus/completeness.py), nunca defeito do motor
     n_chords        INTEGER NOT NULL,
     UNIQUE (run_id, slug)
 );

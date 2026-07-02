@@ -19,6 +19,7 @@ from cifra_core import cifra_from_text, extract_chords_from_lines
 from cifra_core.slug import slugify
 from cifra_core.theory import parse as parse_chord
 
+from harmonic_analysis.corpus.completeness import completeness_for
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
 from harmonic_analysis.domain.key_detection import detect_key
@@ -211,13 +212,14 @@ def build_corpus(conn, corpus_glob: str = "cifras/*.md") -> dict:
     for name, chords, result in songs:
         song_id += 1
         status, c_pc, c_mode = _center_status(chords)
+        slug = slugify(name)
         conn.execute(
             "INSERT INTO song (song_id, run_id, artist, title, slug, source, "
             "detected_key, detected_mode, center_pc, center_mode, center_status, "
-            "n_chords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            [song_id, run_id, "", name, slugify(name), "local",
+            "completeness, n_chords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [song_id, run_id, "", name, slug, "local",
              result.get("key"), result.get("mode"), c_pc, c_mode, status,
-             len(chords)],
+             completeness_for(slug), len(chords)],
         )
 
         items = result.get("harmonic_analysis") or []
