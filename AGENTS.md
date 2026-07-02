@@ -117,6 +117,18 @@ VI/III = T-por-grau, `→Emp` backdoor, `→Outro`) são **worklist honesta**, a
 página-a-página fora do escopo (não se cita o que não se tem). O trítono **não é gate verde** — é
 ledger; o "170/170" agora só vale para os três invariantes limpos.
 
+**Perda silenciosa de linhas coladas corrigida (`fix-glued-chord-density`):** a auditoria de
+completude (2026-07-02) achou que token de acorde colado em barra de ritmo (`Am6/`, `Bm7/`) não
+contava na densidade do `classify_line` (não é fullmatch nem malformado — resíduo vazio), a linha
+virava LYRIC e era descartada INTEIRA sem diagnóstico: 11 músicas, 20 linhas, ~109 acordes
+perdidos (dindi 26→52 acordes, samba-em-preludio 25→52). Fix: `_glued_chord_token` (cláusula (d)
+do malformado invertida) conta na densidade — classificação e extração concordam; decoração pura
+(`///`) saiu do denominador. **Efeito medido:** 3 gates duros seguem **170/170**; corroboração de
+centro **123→125/153 (82%)** (a perda alimentava a worklist); ledger de trítono 519→**532** (+13
+recuperados a adjudicar). Pendências da auditoria (fora desta change): 16 músicas do songbook v4
+com truncamento na conversão PDF→MD (oráculo = header `Acordes:` do livro) e 13 originais com
+manifesto divergente — candidatas a **quarentena de completude** no corpus.
+
 **Analytics de corpus (`corpus-analytics`):** 5 views musicológicas descritivas sobre o banco
 (`v_cadence_distribution`, `v_function_trigram`, `v_vocab_by_mode`, `v_secondary_density`,
 `v_tritone_ledger_patterns`) + `harmonic corpus report` → relatório Markdown PT-BR (6 seções,
@@ -206,8 +218,8 @@ ancoradas no `cc_key` (modo/exata/relativa/coleção) e o tier de centro ancorad
   trítono é ledger honesto.
 - **Centro tonal por CORROBORAÇÃO** (não acurácia): `detect_key` × `chediak_functional_center`
   (acha a tônica pela resolução do dominante funcional, pp.84/87, sem anotação). Cobertura
-  **153/170** (17 em quarentena modal/estática); **concordam 123/153 (80%)** = centros de alta
-  confiança (41/58 → 47/59 após `sanitize-chord-extraction` limpar fantasmas → 48/58 após
+  **153/170** (17 em quarentena modal/estática); **concordam 125/153 (82%)** = centros de alta
+  confiança (41/58 → 47/59 após `sanitize-chord-extraction` → 48/58 após `harden-functional-center` → 123→125/153 após `fix-glued-chord-density` recuperar linhas coladas; histórico: 48/58 após
   `harden-functional-center` endurecer as guardas de repouso); as divergências viram **worklist
   de curadoria** (o Chediak adjudica), nunca placar do detector. **Princípio:** a tonalidade absoluta é só quadro de exibição — a análise funcional
   é invariante a transposição; tudo nasce da música + Chediak, nada do CC.

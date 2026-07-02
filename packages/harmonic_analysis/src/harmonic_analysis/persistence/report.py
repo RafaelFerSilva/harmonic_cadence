@@ -38,9 +38,12 @@ def render_report(conn, top_n: int = 15) -> str:
         "SELECT run_id, engine_version, git_sha, corpus_version, generated_at "
         "FROM analysis_run ORDER BY run_id DESC LIMIT 1",
     )
+    # Escopo = run corrente (o banco pode reter snapshots antigos p/ A/B).
     n_songs, n_occ = _one(
         conn,
-        "SELECT (SELECT COUNT(*) FROM song), (SELECT COUNT(*) FROM chord_occurrence)",
+        "SELECT (SELECT COUNT(*) FROM v_song_current), "
+        "(SELECT COUNT(*) FROM chord_occurrence o "
+        " JOIN v_song_current s ON o.song_id = s.song_id)",
     )
     ledger_center = _rows(
         conn, "SELECT center_status, n FROM v_center_ledger ORDER BY n DESC"

@@ -119,3 +119,25 @@ def test_report_is_descriptive_never_scoreboard(conn):
         assert forbidden not in md, forbidden
     assert "worklist de curadoria" in md
     assert "não placar" in md or "nada aqui é placar" in md
+
+
+def test_views_scope_to_current_run(tmp_path):
+    """Dois builds no mesmo banco: gates/ledger/analytics respondem SÓ pelo run
+    corrente (sem o escopo, os snapshots somavam — ledger dobrado)."""
+    from harmonic_analysis.persistence.materialize import build_corpus as _build
+
+    cifras = tmp_path / "cifras"
+    cifras.mkdir()
+    (cifras / "t.md").write_text(_FIXTURES["teste-um"], encoding="utf-8")
+    conn2 = init_db(str(tmp_path / "c.duckdb"))
+    _build(conn2, str(cifras / "*.md"))
+    _build(conn2, str(cifras / "*.md"))  # segundo snapshot, mesmo corpus
+
+    assert conn2.execute("SELECT COUNT(*) FROM song").fetchone()[0] == 2  # histórico
+    assert conn2.execute("SELECT COUNT(*) FROM v_song_current").fetchone()[0] == 1
+    n_ledger = conn2.execute(
+        "SELECT SUM(n) FROM v_center_ledger"
+    ).fetchone()[0]
+    assert n_ledger == 1  # não soma runs
+    md = render_report(conn2)
+    assert "Músicas: **1**" in md

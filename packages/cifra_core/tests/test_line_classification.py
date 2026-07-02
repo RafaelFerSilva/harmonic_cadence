@@ -135,3 +135,38 @@ def test_classification_does_not_mutate_line_stream():
     cleaned = clean_cifra_lines(lines)
     assert clean_cifra_lines(cleaned) == cleaned  # idempotente
     assert "Bim bom bim bom o meu baião" in cleaned  # letra preservada para display
+
+
+# ── fix-glued-chord-density: token colado conta na densidade ─────────────────
+
+
+def test_glued_tokens_count_in_density_dindi_line():
+    """Linha real do dindi: tokens `Am6/`/`Bm7/`/`Gm6/` colados na barra derrubavam a
+    densidade → LYRIC → linha inteira descartada sem diagnóstico. Agora é CHORD e a
+    extração recupera todos os acordes (o resgate via find_all já existia)."""
+    line = "C#m7 /      Am6/           C#m7 /       F#7 /       Bm7/ / /    Gm6/ / /"
+    assert classify_line(line) is LineKind.CHORD
+    assert extract_chords_from_lines([line]) == [
+        "C#m7", "Am6", "C#m7", "F#7", "Bm7", "Gm6",
+    ]
+
+
+def test_lyric_word_with_chord_prefix_is_not_chord_position():
+    """`Dado/`/`Brasil` têm prefixo-acorde mas resíduo não-vazio — não contam; prosa
+    permanece LYRIC."""
+    assert classify_line("Dado/ o amor Brasil canta") is LineKind.LYRIC
+    assert extract_chords_from_lines(["Dado/ o amor Brasil canta"]) == []
+
+
+def test_pure_decoration_runs_do_not_dilute_density():
+    """`///` (não listado no _DECOR antigo) não conta no denominador."""
+    line = "Am7 /// G7 /// C7M ///"
+    assert classify_line(line) is LineKind.CHORD
+    assert extract_chords_from_lines([line]) == ["Am7", "G7", "C7M"]
+
+
+def test_glued_composite_still_extracted():
+    """Acordes colados compostos seguem CHORD + extraídos (regressão do cenário spec)."""
+    line = "Gm7(11)///Gb7(#11)/// F7M"
+    assert classify_line(line) is LineKind.CHORD
+    assert extract_chords_from_lines([line]) == ["Gm7(11)", "Gb7(#11)", "F7M"]

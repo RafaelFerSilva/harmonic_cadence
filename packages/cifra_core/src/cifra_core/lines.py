@@ -65,6 +65,26 @@ def malformed_chord_token(token: str) -> bool:
     return residue != ""
 
 
+def _glued_chord_token(token: str) -> bool:
+    """True sse o token é acorde(s) COLADO(s) em decoração — resíduo vazio.
+
+    Ex.: `Am6/`, `Bb7(9)///`, `B°/A/`, `Gm7(11)///Gb7(#11)///`. É a cláusula (d) do
+    `malformed_chord_token` INVERTIDA (mesmo teste, veredito oposto): ≥1 acorde válido e
+    NADA sobra após remover todos os acordes e a decoração. Espelha o que a extração
+    resgata via `find_all` — a densidade deve contar o que a extração aproveita (senão a
+    linha vira LYRIC e é descartada inteira, sem diagnóstico). Palavra de letra não entra:
+    `Dado/` → remove `D`, resíduo `ado`."""
+    if is_chord_token(token):
+        return False
+    if not ChordPattern.CHORD.search(token):
+        return False
+    return _RESIDUE_DECOR.sub("", ChordPattern.CHORD.sub(" ", token)) == ""
+
+
+# Token composto SÓ de decoração (qualquer comprimento: `///`, `|—|`) — fora do denominador.
+_DECOR_RUN = re.compile(r"^[/|%\-—·]+$")
+
+
 def classify_line(line: str, *, threshold: float = 0.6) -> LineKind:
     """Classifica a linha por DENSIDADE de acordes válidos (fonte única de desambiguação).
 
@@ -78,12 +98,17 @@ def classify_line(line: str, *, threshold: float = 0.6) -> LineKind:
         return LineKind.SECTION
     body = _LABEL_RE.sub("", s, count=1)
     had_label = body != s
-    tokens = [t for t in body.split() if t not in _DECOR]
+    tokens = [t for t in body.split() if not _DECOR_RUN.match(t)]
     if not tokens:
         return LineKind.SECTION if had_label else LineKind.LYRIC
-    # Posição-de-acorde = acorde válido OU malformado (`D9/S`): conta o malformado para a
-    # linha não sumir (senão a densidade cai e os acordes válidos dela são descartados).
-    chords = sum(1 for t in tokens if is_chord_token(t) or malformed_chord_token(t))
+    # Posição-de-acorde = acorde válido, malformado (`D9/S`) OU colado (`Am6/`): conta os
+    # três para a linha não sumir — a densidade deve concordar com o que a extração
+    # aproveita (o malformado é reportado; o colado é resgatado pelo `find_all`).
+    chords = sum(
+        1
+        for t in tokens
+        if is_chord_token(t) or malformed_chord_token(t) or _glued_chord_token(t)
+    )
     return LineKind.CHORD if chords / len(tokens) >= threshold else LineKind.LYRIC
 
 

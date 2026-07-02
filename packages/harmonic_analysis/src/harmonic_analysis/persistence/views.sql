@@ -5,10 +5,19 @@
 -- o gate de trítono do baseline é no-op e o invariante tem exceções documentadas
 -- (I7 tônico de blues/funk, empréstimo modal) pendentes de adjudicação Chediak.
 
+-- Escopo padrão = RUN CORRENTE: o banco guarda snapshots (analysis_run) para
+-- comparação A/B, mas gates/ledger/analytics respondem pelo estado ATUAL do
+-- motor — sem o filtro, dois builds somam (ledger dobrado). Comparação entre
+-- runs é consulta direta às tabelas, não às views.
+CREATE OR REPLACE VIEW v_song_current AS
+SELECT * FROM song
+WHERE run_id = (SELECT MAX(run_id) FROM analysis_run);
+
 -- ── GATE EXECUTÁVEL 1 — diminuto nunca é Emp/SD/T/Modal (Chediak XXI-XXII p.90) ─
 CREATE OR REPLACE VIEW v_gate_diminished AS
 SELECT o.song_id, o.position, o.symbol, o.function_code
 FROM chord_occurrence o
+JOIN v_song_current sc ON o.song_id = sc.song_id
 JOIN chord_vocab v ON o.symbol = v.symbol
 WHERE v.category = 'DIMINISHED'
   AND (o.function_code IS NULL
@@ -19,6 +28,7 @@ WHERE v.category = 'DIMINISHED'
 CREATE OR REPLACE VIEW v_gate_d2 AS
 SELECT o.song_id, o.position, o.symbol, o.function_code
 FROM chord_occurrence o
+JOIN v_song_current sc ON o.song_id = sc.song_id
 WHERE o.function_code = 'D2'
   AND (o.d2_resolved IS NULL OR o.d2_resolved = FALSE);
 
@@ -28,6 +38,7 @@ WHERE o.function_code = 'D2'
 CREATE OR REPLACE VIEW v_gate_cadence AS
 SELECT c.song_id, c.family, c.from_symbol, c.to_symbol, o.function_code
 FROM cadence c
+JOIN v_song_current sc ON c.song_id = sc.song_id
 JOIN cadence_family_ref f ON c.family = f.family
 JOIN chord_occurrence o
   ON o.song_id = c.song_id AND o.position = c.to_position
@@ -44,6 +55,7 @@ WHERE f.is_resolving = TRUE
 CREATE OR REPLACE VIEW v_ledger_tritone_nondominant AS
 SELECT o.song_id, o.position, o.symbol, o.function_code
 FROM chord_occurrence o
+JOIN v_song_current sc ON o.song_id = sc.song_id
 JOIN chord_vocab v ON o.symbol = v.symbol
 WHERE v.has_real_tritone = TRUE
   AND (o.function_code IS NULL
@@ -54,7 +66,7 @@ WHERE v.has_real_tritone = TRUE
 -- ── ANALYTICS — ledger de corroboração de centro (contagem, não acurácia) ────
 CREATE OR REPLACE VIEW v_center_ledger AS
 SELECT center_status, COUNT(*) AS n
-FROM song
+FROM v_song_current
 GROUP BY center_status;
 
 -- ── ANALYTICS — bigrama de função sobre o corpus inteiro ────────────────────
@@ -63,6 +75,7 @@ SELECT a.function_code AS from_fn,
        b.function_code AS to_fn,
        COUNT(*) AS n
 FROM chord_occurrence a
+JOIN v_song_current sc ON a.song_id = sc.song_id
 JOIN chord_occurrence b
   ON a.song_id = b.song_id AND b.position = a.position + 1
 GROUP BY a.function_code, b.function_code
@@ -78,6 +91,7 @@ SELECT c.family,
        COUNT(*) AS instances,
        COUNT(DISTINCT c.song_id) AS songs
 FROM cadence c
+JOIN v_song_current sc ON c.song_id = sc.song_id
 JOIN cadence_family_ref f ON c.family = f.family
 GROUP BY c.family, f.is_resolving, f.chediak_page
 ORDER BY instances DESC;
@@ -89,6 +103,7 @@ SELECT a.function_code AS fn1,
        c.function_code AS fn3,
        COUNT(*) AS n
 FROM chord_occurrence a
+JOIN v_song_current sc ON a.song_id = sc.song_id
 JOIN chord_occurrence b
   ON a.song_id = b.song_id AND b.position = a.position + 1
 JOIN chord_occurrence c
@@ -103,7 +118,7 @@ SELECT s.detected_mode,
        COUNT(*) AS n,
        COUNT(DISTINCT o.symbol) AS distinct_symbols
 FROM chord_occurrence o
-JOIN song s ON o.song_id = s.song_id
+JOIN v_song_current s ON o.song_id = s.song_id
 JOIN chord_vocab v ON o.symbol = v.symbol
 GROUP BY s.detected_mode, v.quality
 ORDER BY s.detected_mode, n DESC;
@@ -122,7 +137,7 @@ SELECT s.song_id,
                WHERE o.function_code IN ('Dsec', 'Daux', 'Dext', 'SubV', 'Sub2')
            ) / NULLIF(s.n_chords, 0), 1
        ) AS secondary_pct
-FROM song s
+FROM v_song_current s
 LEFT JOIN chord_occurrence o ON o.song_id = s.song_id
 GROUP BY s.song_id, s.title, s.n_chords
 ORDER BY secondary_pct DESC;
