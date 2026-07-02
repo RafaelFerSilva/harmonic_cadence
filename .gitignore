@@ -64,3 +64,7 @@ cifras/
 songbook-bossa-nova-v2.md
 bossa-nova-songbook-v3-v3.md
 songbook-v4-v2.md
+
+# Relatório de corpus (corpus-analytics) — derivado do corpus gitignored,
+# regenerável via `harmonic corpus report`.
+corpus-report.md

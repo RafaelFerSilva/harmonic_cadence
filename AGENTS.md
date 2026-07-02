@@ -117,6 +117,13 @@ VI/III = T-por-grau, `→Emp` backdoor, `→Outro`) são **worklist honesta**, a
 página-a-página fora do escopo (não se cita o que não se tem). O trítono **não é gate verde** — é
 ledger; o "170/170" agora só vale para os três invariantes limpos.
 
+**Analytics de corpus (`corpus-analytics`):** 5 views musicológicas descritivas sobre o banco
+(`v_cadence_distribution`, `v_function_trigram`, `v_vocab_by_mode`, `v_secondary_density`,
+`v_tritone_ledger_patterns`) + `harmonic corpus report` → relatório Markdown PT-BR (6 seções,
+denominadores visíveis, **nunca placar** — guarda-corpo testado). A view de padrões agrupa o
+ledger de trítono por (função×grau×qualidade): os 519 casos soltos viram padrões adjudicáveis —
+insumo direto da futura adjudicação Chediak.
+
 **Coerência cadência×função fechada (`fix-cadence-function-coherence`, fecha o #6):** o detector
 de cadência classificava a família autêntica/plagal por GRAU, ignorando a FUNÇÃO do alvo — rotulava
 `V→I` como cadência mesmo quando o coder chamava o "I" de `D2`/`Dim` (5 músicas). Chediak define a

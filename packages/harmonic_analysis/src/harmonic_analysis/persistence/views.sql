@@ -67,3 +67,85 @@ JOIN chord_occurrence b
   ON a.song_id = b.song_id AND b.position = a.position + 1
 GROUP BY a.function_code, b.function_code
 ORDER BY n DESC;
+
+-- ═══ corpus-analytics — views musicológicas DESCRITIVAS (nunca placar) ═══════
+
+-- ── Distribuição das cadências por família (instâncias + músicas + Chediak) ──
+CREATE OR REPLACE VIEW v_cadence_distribution AS
+SELECT c.family,
+       f.is_resolving,
+       f.chediak_page,
+       COUNT(*) AS instances,
+       COUNT(DISTINCT c.song_id) AS songs
+FROM cadence c
+JOIN cadence_family_ref f ON c.family = f.family
+GROUP BY c.family, f.is_resolving, f.chediak_page
+ORDER BY instances DESC;
+
+-- ── Trigrama de função — as "frases" funcionais do corpus (D2 do design) ────
+CREATE OR REPLACE VIEW v_function_trigram AS
+SELECT a.function_code AS fn1,
+       b.function_code AS fn2,
+       c.function_code AS fn3,
+       COUNT(*) AS n
+FROM chord_occurrence a
+JOIN chord_occurrence b
+  ON a.song_id = b.song_id AND b.position = a.position + 1
+JOIN chord_occurrence c
+  ON a.song_id = c.song_id AND c.position = a.position + 2
+GROUP BY a.function_code, b.function_code, c.function_code
+ORDER BY n DESC;
+
+-- ── Vocabulário por modo — qualidades de acorde × modo detectado ────────────
+CREATE OR REPLACE VIEW v_vocab_by_mode AS
+SELECT s.detected_mode,
+       v.quality,
+       COUNT(*) AS n,
+       COUNT(DISTINCT o.symbol) AS distinct_symbols
+FROM chord_occurrence o
+JOIN song s ON o.song_id = s.song_id
+JOIN chord_vocab v ON o.symbol = v.symbol
+GROUP BY s.detected_mode, v.quality
+ORDER BY s.detected_mode, n DESC;
+
+-- ── Densidade de dominantes secundários/substitutos por música (D4) ─────────
+-- Fiel ao conceito: dominante NÃO-primário = Dsec/Daux/Dext/SubV/Sub2.
+CREATE OR REPLACE VIEW v_secondary_density AS
+SELECT s.song_id,
+       s.title,
+       s.n_chords,
+       COUNT(o.occ_id) FILTER (
+           WHERE o.function_code IN ('Dsec', 'Daux', 'Dext', 'SubV', 'Sub2')
+       ) AS secondary_count,
+       ROUND(
+           100.0 * COUNT(o.occ_id) FILTER (
+               WHERE o.function_code IN ('Dsec', 'Daux', 'Dext', 'SubV', 'Sub2')
+           ) / NULLIF(s.n_chords, 0), 1
+       ) AS secondary_pct
+FROM song s
+LEFT JOIN chord_occurrence o ON o.song_id = s.song_id
+GROUP BY s.song_id, s.title, s.n_chords
+ORDER BY secondary_pct DESC;
+
+-- ── Ledger de trítono AGRUPADO por padrão (insumo de adjudicação, D3) ────────
+-- Espelha `degree_base` do motor: acidente inicial opcional + numeral romano,
+-- caixa-alta. Transforma as ocorrências soltas em padrões adjudicáveis
+-- (função-alvo × grau-base × qualidade) com contagem, músicas e exemplos.
+CREATE OR REPLACE VIEW v_tritone_ledger_patterns AS
+SELECT COALESCE(l.function_code, '(vazio)') AS function_code,
+       COALESCE(
+           NULLIF(upper(regexp_extract(
+               COALESCE(o.degree, ''), '(?i)^[b#]?(vii|vi|iv|v|iii|ii|i)', 1
+           )), ''),
+           '?'
+       ) AS degree_base,
+       v.quality,
+       COUNT(*) AS n,
+       COUNT(DISTINCT l.song_id) AS songs,
+       MIN(l.symbol) AS example_symbol
+FROM v_ledger_tritone_nondominant l
+JOIN chord_occurrence o
+  ON o.song_id = l.song_id AND o.position = l.position
+JOIN chord_vocab v ON l.symbol = v.symbol
+GROUP BY 1, 2, 3
+ORDER BY n DESC;

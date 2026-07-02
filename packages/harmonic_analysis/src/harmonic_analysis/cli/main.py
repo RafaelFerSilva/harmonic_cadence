@@ -204,14 +204,19 @@ class HarmonicCLI:
             "corpus", help="Persiste as análises do corpus local e audita os gates"
         )
         corpus_parser.add_argument(
-            "action", choices=["build", "gates"],
-            help="build: materializa cifras/*.md no banco; gates: audita os invariantes",
+            "action", choices=["build", "gates", "report"],
+            help="build: materializa cifras/*.md no banco; gates: audita os "
+            "invariantes; report: relatório musicológico descritivo (Markdown)",
         )
         corpus_parser.add_argument(
             "--db", default="corpus.duckdb", help="Caminho do banco (padrão: corpus.duckdb)"
         )
         corpus_parser.add_argument(
             "--glob", default="cifras/*.md", help="Padrão do corpus local"
+        )
+        corpus_parser.add_argument(
+            "--out", default="corpus-report.md",
+            help="Arquivo de saída do report (padrão: corpus-report.md)",
         )
 
         return parser
@@ -450,11 +455,21 @@ class HarmonicCLI:
             conn.close()
             return
 
-        # action == "gates"
+        # gates/report exigem banco populado (falha visível).
         conn = init_db(args.db)
         if conn.execute("SELECT COUNT(*) FROM song").fetchone()[0] == 0:
             print("Banco vazio — rode `harmonic corpus build` primeiro.")
             sys.exit(1)
+
+        if args.action == "report":
+            from harmonic_analysis.persistence.report import render_report
+
+            md = render_report(conn)
+            with open(args.out, "w", encoding="utf-8") as f:
+                f.write(md)
+            print(f"Relatório musicológico gerado: {args.out}")
+            conn.close()
+            return
         gates = {
             "diminuto (XXI-XXII)": "v_gate_diminished",
             "D2 resolução (XIX)": "v_gate_d2",
