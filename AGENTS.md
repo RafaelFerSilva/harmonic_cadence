@@ -104,8 +104,18 @@ dentro de `try/except: continue`, então o "170/170 verde" desses dois é **vacu
 checagem correta: diminuto=0 (vira gate executável real), mas **trítono=944 flags em 155/170**
 (dominado por `→T` de I7 blues/funk e `→Emp` modal — exceções que o próprio projeto legitimou).
 Logo trítono virou **ledger de curadoria** (`v_ledger_tritone_nondominant`, informativo, NÃO
-bloqueia); o bug do baseline + adjudicação Chediak das 944 exceções são a change separada
-**`fix-baseline-noop-gates`** (proposta capturada, ver `openspec/changes/`).
+bloqueia); o bug do baseline + adjudicação Chediak das exceções são a change separada
+**`fix-baseline-noop-gates`**.
+
+**Bug do baseline corrigido (`fix-baseline-noop-gates`):** os acessores fantasma
+(`Chord.get_category()`/`.bass`) trocados pelos que existem (`.quality`/`.properties.bass`) —
+os gates **executam de fato**. Resultado real: **diminuto/D2/cadência 170/170 verdes** (gates
+duros reais), e o **trítono é ledger afiado = 519** ocorrências em 124/170 (a classe limpa
+**I7-como-tônica** — função `T` no grau `I`/`i`, blues/funk, `i7-funk-anchor` — foi **isentada**:
+425 das 944; a mesma isenção afia `v_ledger_tritone_nondominant`). Os ~519 restantes (`→T` em
+VI/III = T-por-grau, `→Emp` backdoor, `→Outro`) são **worklist honesta**, adjudicação Chediak
+página-a-página fora do escopo (não se cita o que não se tem). O trítono **não é gate verde** — é
+ledger; o "170/170" agora só vale para os três invariantes limpos.
 
 **Coerência cadência×função fechada (`fix-cadence-function-coherence`, fecha o #6):** o detector
 de cadência classificava a família autêntica/plagal por GRAU, ignorando a FUNÇÃO do alvo — rotulava
@@ -180,9 +190,13 @@ rigorosas) e o **songbook** (`cifras/*.md`, local/gitignored) é o corpus baseli
 ancoradas no `cc_key` (modo/exata/relativa/coleção) e o tier de centro ancorado no `cc_key` foram
 **aposentados**. O baseline roda em `scripts/songbook_baseline.py` (corpus local via
 `cifra_from_text`, sem scraping) e mede:
-- **Invariante funcional** (a base rochosa, transposição-invariante): todo trítono real ⇒
-  dominante. Atual: **170/170 sem defeito** (os 4 gates — trítono/diminuto/D2/cadência — seguem
-  VERDES no corpus ampliado; a teoria generaliza de 62→119→170).
+- **Invariantes funcionais** (a base rochosa, transposição-invariantes): **três gates duros
+  verdes 170/170** — diminuto (XXI-XXII), D2-resolução (XIX) e cadência×função (XXXII). O quarto,
+  "trítono real ⇒ dominante", **não é invariante limpo** (tem exceções legítimas: I7-tônica de
+  blues/funk) — vira **ledger de curadoria** (519 ocorrências pós-isenção I7; ver
+  `fix-baseline-noop-gates`), não gate. Nota histórica: os gates de trítono/diminuto eram no-ops
+  (acessor fantasma) — o antigo "170/170 do trítono" era vacuoso; hoje diminuto executa verde e
+  trítono é ledger honesto.
 - **Centro tonal por CORROBORAÇÃO** (não acurácia): `detect_key` × `chediak_functional_center`
   (acha a tônica pela resolução do dominante funcional, pp.84/87, sem anotação). Cobertura
   **153/170** (17 em quarentena modal/estática); **concordam 123/153 (80%)** = centros de alta

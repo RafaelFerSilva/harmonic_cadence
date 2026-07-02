@@ -21,13 +21,17 @@ próprio projeto introduziu. Isso exige **adjudicação Chediak**, não um gate 
   o acessor que existe (`Chord(sym).quality`), e `_d2_resolution_invariant` passa a usar
   `.properties.bass` — os gates voltam a **executar de fato**.
 - **Diminuto vira gate executável verde** (0 violações) — endurece o baseline sem regressão.
-- **Adjudicar as 944 exceções de trítono** contra Chediak: caracterizar quais leituras
-  não-dominantes são **legítimas** (I7 tônico de blues/funk pp.; empréstimo modal) e quais são
-  **bugs reais** do coder de função. O invariante de trítono é **refinado** para exemptar as
-  categorias legítimas (via função-alvo `T`/`Emp` sob guardas), OU rebaixado a ledger de
-  curadoria se a teoria não fechar um invariante limpo.
+- **Caracterizar e afiar o ledger de trítono** (não vira gate verde). A investigação recortou
+  as 944 estruturalmente: **425** são `→T` grau **I** com root **== tônica** = **I7 como tônica**
+  (blues/funk), classe legítima já documentada pelo projeto (`i7-funk-anchor`) — **isentável** de
+  forma estrutural e transposição-invariante (grau `I` + função `T`). Os **~519** restantes
+  (`→T` em VI/III = `T`-por-grau ignorando o trítono; `→Emp` backdoor/ambíguo; `→Outro`
+  não-classificado) são **mistura de bug real e ambiguidade que exige adjudicação página-a-página
+  do Chediak** — fora do escopo desta change (não se cita o que não se tem). Logo o trítono
+  **permanece ledger de curadoria**, agora **afiado** (filtra os 425 legítimos, deixa ~519 como
+  worklist honesta), tanto no `songbook_baseline.py` quanto na view `v_ledger_tritone_nondominant`.
 - **Sincronizar a documentação**: AGENTS.md/ROADMAP hoje afirmam "170/170" para gates que não
-  rodavam — corrigir a narrativa para o estado real.
+  rodavam — corrigir a narrativa (diminuto vira gate verde real; trítono é ledger afiado ~519).
 
 ## Capabilities
 

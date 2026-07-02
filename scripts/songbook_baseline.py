@@ -52,21 +52,33 @@ def _chords_from_md(path: str) -> list[str]:
     return extract_chords_from_lines(cifra.cifra, known_chords=_manifest(text))
 
 
-def _dominant_invariant(chords: list[str], analysis: dict) -> list[str]:
-    """Defeitos: trítono real (Category.DOMINANT) NÃO lido como dominante na análise."""
+def _tritone_nondominant_ledger(chords: list[str], analysis: dict) -> list[str]:
+    """LEDGER de curadoria (NÃO gate): trítono real (`quality=="dominant"`) lido como
+    NÃO-dominante, APÓS isentar a classe limpa I7-como-tônica.
+
+    O invariante "trítono ⇒ dominante" NÃO é limpo no corpus: um `I7` funcionando como
+    tônica (blues/funk, `i7-funk-anchor`, ex. Aquele Abraço) é um trítono não-dominante
+    LEGÍTIMO. A guarda estrutural — função `T` E grau da tônica (`I`/`i`) — isenta exatamente
+    essa classe (transposição-invariante: usa grau, não tom). O resto (`→T` em VI/III =
+    T-por-grau; `→Emp` backdoor/ambíguo; `→Outro`) fica no ledger para adjudicação Chediak
+    página-a-página — worklist, não pass/fail."""
     items = analysis.get("harmonic_analysis") or []
-    violations = []
+    ledger = []
     for item, sym in zip(items, chords):
         try:
-            is_tritone_dom = Chord(sym).get_category().value == "dominant"
+            is_tritone_dom = Chord(sym).quality == "dominant"
         except Exception:
             continue
-        if is_tritone_dom:
-            code = (item.get("function_code") or "").upper()
-            # códigos dominantes do projeto: D, D2 (ii cad.), Dsec, Daux, Dext, SubV...
-            if not any(k in code for k in ("D", "SUBV")):
-                violations.append(f"{sym}→{item.get('function_code')}")
-    return violations
+        if not is_tritone_dom:
+            continue
+        code = (item.get("function_code") or "")
+        if any(k in code.upper() for k in ("D", "SUBV")):
+            continue  # já é dominante-família
+        # Isenção I7-tônica: função T no grau da tônica (i7-funk-anchor).
+        if code == "T" and degree_base(item.get("degree") or "") in ("I", "i"):
+            continue
+        ledger.append(f"{sym}→{code}")
+    return ledger
 
 
 # Função de repouso/diminuto aceitáveis p/ um acorde Category.DIMINISHED (Chediak XXI-XXII, p.90):
@@ -83,7 +95,7 @@ def _diminished_invariant(chords: list[str], analysis: dict) -> list[str]:
     violations = []
     for item, sym in zip(items, chords):
         try:
-            is_dim = Chord(sym).get_category().value == "diminished"
+            is_dim = Chord(sym).quality == "diminished"
         except Exception:
             continue
         if is_dim and (item.get("function_code") or "") not in _DIM_OK:
@@ -114,7 +126,10 @@ def _d2_resolution_invariant(chords: list[str], analysis: dict) -> list[str]:
                 and iv(cur.root, dom.root) == 5
                 and (
                     iv(dom.root, tgt.root) == 5
-                    or (tgt.bass is not None and iv(dom.root, tgt.bass) == 5)
+                    or (
+                        tgt.properties.bass is not None
+                        and iv(dom.root, tgt.properties.bass) == 5
+                    )
                 )
             )
         except Exception:
@@ -184,7 +199,8 @@ def main() -> None:
     service = AnalysisService()  # sem provider: caminho local
     agree = disagree = quarantine = 0
     worklist: list[str] = []
-    defects: list[str] = []
+    tri_ledger: list[str] = []  # trítono→não-dominante (curadoria, pós-isenção I7)
+    tri_count = 0
     dim_defects: list[str] = []
     d2_defects: list[str] = []
     cad_defects: list[str] = []
@@ -217,9 +233,10 @@ def main() -> None:
             {"artist": "", "name": name, "cifra": [" ".join(chords)]}
         )
         if "error" not in result:
-            v = _dominant_invariant(chords, result)
+            v = _tritone_nondominant_ledger(chords, result)
             if v:
-                defects.append(f"  {name[:26]:<27} {', '.join(v[:4])}")
+                tri_count += len(v)
+                tri_ledger.append(f"  {name[:26]:<27} {', '.join(v[:4])}")
             dv = _diminished_invariant(chords, result)
             if dv:
                 dim_defects.append(f"  {name[:26]:<27} {', '.join(dv[:4])}")
@@ -231,11 +248,14 @@ def main() -> None:
                 cad_defects.append(f"  {name[:26]:<27} {', '.join(cv[:4])}")
 
     print(f"\nBaseline FUNCIONAL sobre o songbook (corpus local, n={n}) — base = Chediak\n")
-    print("INVARIANTE funcional (a base: trítono real ⇒ dominante; transposição-invariante):")
-    print(f"  músicas sem defeito: {n - len(defects)}/{n}")
-    if defects:
-        print("  defeitos (trítono não lido como dominante):")
-        print("\n".join(defects))
+    print("LEDGER trítono→não-dominante (curadoria, NÃO gate; pós-isenção I7-tônica):")
+    print(f"  ocorrências a adjudicar: {tri_count}  em {len(tri_ledger)}/{n} músicas")
+    print("  (I7 tônico de blues/funk isentado; resto = T-por-grau VI/III, Emp backdoor,")
+    print("   Outro — exige adjudicação Chediak página-a-página, worklist não pass/fail)")
+    if tri_ledger:
+        print("\n".join(tri_ledger[:12]))
+        if len(tri_ledger) > 12:
+            print(f"  … +{len(tri_ledger) - 12} músicas")
     print("\nINVARIANTE diminuto (Chediak XXI-XXII / p.90; nunca Emp/SD/T/Modal):")
     print(f"  músicas sem defeito: {n - len(dim_defects)}/{n}")
     if dim_defects:

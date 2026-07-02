@@ -76,7 +76,10 @@ versionado em `openspec/changes/archive/`):
 `uv run python scripts/songbook_baseline.py`. O **Cifra Club é só fonte de cifra** (base de
 nada); o **Chediak é a base de validação**; o **songbook** (`cifras/*.md`, local) é o corpus.
 As 4 métricas ancoradas no `cc_key` foram **aposentadas**. Mede agora:
-- **Invariante funcional** (transposição-invariante): trítono real ⇒ dominante — **62/62**.
+- **Invariantes funcionais** (transposição-invariantes): **três gates duros verdes** — diminuto,
+  D2-resolução, cadência×função (**170/170**). O "trítono ⇒ dominante" **não** é gate: tem
+  exceções legítimas (I7-tônica de blues/funk) e virou **ledger** de 519 pós-isenção I7
+  (`fix-baseline-noop-gates` corrigiu os gates no-op de acessor fantasma).
 - **Centro por CORROBORAÇÃO** (`detect_key` × centro funcional do Chediak, sem anotação):
   cobertura **58/62**, concordam **41/58 (71%)**; divergências = worklist de curadoria.
 

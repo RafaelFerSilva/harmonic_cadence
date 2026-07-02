@@ -38,8 +38,9 @@ WHERE f.is_resolving = TRUE
 
 -- ── LEDGER (NÃO gate) — trítono real lido como não-dominante (D9) ────────────
 -- Semântica idêntica ao baseline: função-alvo NÃO contém 'D' nem 'SUBV'
--- (case-insensitive). Worklist de adjudicação, não placar; informativo em
--- `corpus gates` — NÃO falha o build.
+-- (case-insensitive), APÓS isentar a classe limpa I7-como-tônica (função `T` no
+-- grau da tônica `I`/`i` — blues/funk, `i7-funk-anchor`; ver fix-baseline-noop-
+-- gates). Worklist de adjudicação, não placar; informativo em `corpus gates`.
 CREATE OR REPLACE VIEW v_ledger_tritone_nondominant AS
 SELECT o.song_id, o.position, o.symbol, o.function_code
 FROM chord_occurrence o
@@ -47,7 +48,8 @@ JOIN chord_vocab v ON o.symbol = v.symbol
 WHERE v.has_real_tritone = TRUE
   AND (o.function_code IS NULL
        OR (UPPER(o.function_code) NOT LIKE '%D%'
-           AND UPPER(o.function_code) NOT LIKE '%SUBV%'));
+           AND UPPER(o.function_code) NOT LIKE '%SUBV%'))
+  AND NOT (o.function_code = 'T' AND o.degree IN ('I', 'i'));
 
 -- ── ANALYTICS — ledger de corroboração de centro (contagem, não acurácia) ────
 CREATE OR REPLACE VIEW v_center_ledger AS
