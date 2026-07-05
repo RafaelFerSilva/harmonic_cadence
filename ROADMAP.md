@@ -18,6 +18,61 @@ Corolário (a lição que re-bloqueou o `modal-center-arbitration`): um alvo só
 implementável se **o dado bruto o codifica**; quando o CC não codifica o fato de Chediak,
 a frente fica **bloqueada por dado** — precisa de corpus curado, não de mais mecanismo.
 
+## NORTE ATUAL (2026-07-05) — Ingestão ENCERRADA; foco em desenvolvimento & análise (n=293)
+
+**Decisão de escopo (o corpus congela em n=293, Vols. 1–5).** A frente de **aquisição de
+dados** (songbooks) está **ENCERRADA**. O que não deu para capturar é **descartado** — não
+perseguimos mais a fonte:
+- `isaura` (gap de digitalização no PDF do Vol. 5, pp.90–91 ausentes) — **descartada**.
+- `se-e-tarde-me-perdoa`, `bate-boca`, `bonita` — **fantasmas de índice-irmão**, não existem
+  nos volumes; **descartados** (registro honesto fica no archive da change).
+- **Auditoria ampla Vol.1/Vol.4 × livro** (~36+ músicas com possível transposição espúria da
+  conversão automática) — **descartada**: não vamos abrir página-a-página atrás disso. Se uma
+  análise específica tropeçar num arquivo suspeito, corrige-se pontualmente, não em varredura.
+- Novos volumes / corpus modal curado — **fora de escopo** até surgir necessidade *e* fonte
+  citável nova (o `modal-center` segue parked por dado, não por mecanismo).
+
+Daqui em diante a régua muda: **desenvolver e analisar o que já temos**, não crescer o dado.
+
+**O que temos (base sólida):** motor neuro-simbólico com a teoria do Chediak Vol. I destilada,
+implementada e testada (Cap. XXXIV integralmente citado no coder). Corpus **n=293** (Vols. 1–5)
+materializado em **`corpus.duckdb`** (11 tabelas, grão = ocorrência de acorde; `run_id=5`).
+**3 gates duros 293/293 verdes** (diminuto XXI-XXII · D2 XIX · cadência×função XXXII) em duas
+medições independentes (baseline funcional ao vivo + gates SQL). Centro por corroboração
+216/262 (82%); quarentena 31; ledger de trítono 43. `audit_completeness` sem drift. 5 views
+musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em `base_estudo/`
+(página do PDF = página do livro) — citação é viável.
+
+**Próximos passos — duas trilhas (o norte das próximas sessões):**
+
+*Trilha A — ANÁLISE (adjudicação com Chediak; ZERO dado novo, tudo já no repo):*
+1. **Adjudicar o ledger de trítono (43 ocorrências, 20 músicas)** contra Chediak (`base_estudo/`),
+   pela GEOMETRIA (raiz vs. tônica + resolução), não pelo rótulo — vira fatos citados; o resíduo
+   bV7→Emp genérico segue ambíguo honesto. Molde pronto: `TRITONE-ADJUDICATION.md` (arquivado).
+2. **Adjudicar a worklist de centro (46 diverge)** — `detect_key` × critério funcional. Achado de
+   `#7`: não há regra-cega segura; um gate do `detect_key` só é seguro se **cirúrgico** (V/ii-como-
+   tônica alta-confiança com V→I limpo a repouso), sem tocar os detect-certo. Candidata a change.
+
+*Trilha B — DESENVOLVIMENTO (evoluir o produto sobre o corpus que temos):*
+3. **Camada C — overlay ML/NLP.** As análises do motor são **PRATA** (rótulos derivados de regra +
+   Chediak): usar o DuckDB (293 músicas, grão de ocorrência) como dataset supervisionado para um
+   overlay estatístico que **complementa** (não substitui) o símbolo. Começar por um alvo estreito
+   e mensurável (ex.: prever função do acorde a partir de contexto; comparar contra o coder como
+   ground truth). O símbolo continua dominante; o ML é subordinado e corrigível.
+4. **Aprofundar o analytics musicológico** — o retorno de ter 293 músicas: novas views/relatórios
+   descritivos (distribuições de cadência, trigramas de função, vocabulário por modo já existem;
+   expandir), sempre **denominador visível, nunca placar**. Insumo direto p/ a adjudicação (A).
+
+*Refino de teoria (quando houver apetite, não urgente):* acordes interpolados (Chediak XXIX —
+refinaria de rótulo, risco/ganho historicamente ruim). **Parked por dado:** detecção de centro
+modal (Caminho 1) — só reabre com NOVA autoridade citada (Chediak Vol. II / academia).
+
+**Invariante de método (não muda):** toda mudança no motor mede contra o `songbook_baseline.py`
+ao vivo; pausa-e-investiga se um gate quebrar; adjudicar pela geometria com página citada; o
+Cifra Club é só fonte, o Chediak é a base; análise funcional é invariante a transposição.
+
+---
+
 ## Status (2026-07-05) — Vols. 2 E 5 do Songbook ingeridos
 
 **`ingest-songbook-vols-2-5` (apply): Vols. 2 e 5 COMPLETOS.** Varredura sequencial página-a-página

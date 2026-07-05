@@ -346,12 +346,21 @@ completos.
   `isaura` é gap de scan real**, não fantasma) em
   `openspec/changes/ingest-songbook-vols-2-5/INGESTION-DECISIONS.md`. Nota de dado: v3 tinha `X9/S`
   (61x, baixo inválido) — hoje **reportado** em `diagnostics` (ver `report-unidentified-notations`).
-  **Vols. 1–5 ingeridos**; falta o `corpus build` DuckDB final (tarefa 4.2) e arquivar a change.
-- **Legado**: acordes interpolados (XXIX, refinaria de rótulo, risco/ganho ruim); detecção de
-  centro modal (Caminho 1, bloqueado por dado). **`grow-modal-center-corpus` arquivada-como-parked
-  (2026-07-01)** — data-gated em n=2 (Vol. I §XXXVI.4 exaurido); crescer o corpus modal precisa de
-  NOVA autoridade citada (Chediak Vol. II/academia), não de mais mecanismo. Arquivada com
-  `--skip-specs` (nada entregue). Reabrir/nova change quando surgir a fonte.
+  **Vols. 1–5 ingeridos**; change arquivada (`2026-07-05-ingest-songbook-vols-2-5`); DuckDB
+  materializado (`run_id=5`, gates 293/293).
+- ✅ **DECISÃO DE ESCOPO (2026-07-05): frente #8 (aquisição de dados) ENCERRADA — corpus congela
+  em n=293.** O que não deu p/ capturar foi **descartado, não perseguido**: `isaura` (gap de scan
+  Vol.5), fantasmas `se-e-tarde-me-perdoa`/`bate-boca`/`bonita`, e a **auditoria ampla Vol.1/Vol.4
+  × livro** (transposição espúria da conversão automática — não vamos varrer página-a-página; só
+  correção pontual se uma análise tropeçar num arquivo suspeito). Daqui em diante o foco é
+  **desenvolver e analisar o n=293**, não crescer o dado. Ver ROADMAP "NORTE ATUAL" (2 trilhas):
+  **(A) análise** = adjudicar ledger de trítono (43) e worklist de centro (46 diverge) contra
+  Chediak (`base_estudo/`), zero dado novo; **(B) desenvolvimento** = Camada C (overlay ML/NLP
+  sobre o DuckDB, análises são PRATA/rótulo derivado) + aprofundar analytics musicológico.
+- **Legado / parked**: acordes interpolados (XXIX, refinaria de rótulo, risco/ganho ruim);
+  detecção de centro modal (Caminho 1, **bloqueado por dado**). **`grow-modal-center-corpus`
+  arquivada-como-parked (2026-07-01)** — data-gated em n=2 (Vol. I §XXXVI.4 exaurido); reabrir
+  só com NOVA autoridade citada (Chediak Vol. II/academia), não com mais mecanismo.
 
 **Regra de ouro:** o Cifra Club é só fonte de cifra; o Chediak é a base. Toda mudança no motor
 mede contra o **baseline funcional ao vivo** (`songbook_baseline.py`) — não contra anotação do CC.
