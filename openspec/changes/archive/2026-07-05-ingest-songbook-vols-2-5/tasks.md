@@ -40,9 +40,11 @@
 
 - [x] 4.1 `audit_completeness.py` sobre o corpus ampliado (n=231 no Vol. 2; **re-rodado n=293**
       ao fim do Vol. 5): **SEM drift** em ambos; novas entram `complete`.
-- [ ] 4.2 `harmonic corpus build` + `corpus gates` + `corpus report` — **adiado p/ o fim da change**
-      (após o Vol. 5): o build DuckDB é caro (~4-6 min) e faz mais sentido materializar o corpus
-      final de uma vez. Baseline funcional ao vivo já cobre os gates neste checkpoint.
+- [x] 4.2 `harmonic corpus build` + `corpus gates` + `corpus report` — **feito ao fim da change**
+      (2026-07-05): `corpus.duckdb` materializado (run_id=5, 293 músicas; centro agree=216/
+      diverge=46/quarantine=31); `corpus gates` = **3 gates VERDES** (diminuto/D2/cadência),
+      ledger trítono 43; `corpus-report.md` gerado. Artefatos gitignored (view materializada,
+      regenerável). Bate com o baseline funcional ao vivo.
 - [x] 4.3 Números novos registrados (gates 231/231, centro 170/207, ledger trítono 32) em
       `INGESTION-DECISIONS.md` e ROADMAP/AGENTS.
 - [x] 4.4 `make test` — **496 verdes** (sem mudança de motor).

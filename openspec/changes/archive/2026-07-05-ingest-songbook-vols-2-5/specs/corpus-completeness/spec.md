@@ -3,16 +3,16 @@
 ## ADDED Requirements
 
 ### Requirement: Admissão de cifra nova da fonte primária é verificada por vocabulário
-Uma cifra nova transcrita da fonte primária (página do songbook) SÓ entra no corpus
-(`cifras/<slug>.md`) após verificação mecânica de vocabulário: o conjunto de acordes
-extraído do arquivo novo pelo caminho canônico de extração DEVE ser superconjunto dos
-acordes que a página do livro declara nos diagramas (`extração ⊇ diagramas`), com
-diferenças de mera grafia normalizadas para a grafia canônica do projeto. O manifesto
-`Acordes Utilizados:` do header DEVE vir dos diagramas impressos (o vocabulário que o
-livro declara), nunca da própria extração. A cifra admitida entra com completude
-`complete` e a auditoria de completude NÃO a acusa. Uma música cuja página não permita a
-verificação (ilegível, diagramas ausentes) NÃO é admitida — ela DEVE ser reportada como
-pendência com a página, nunca transcrita por palpite.
+A new chart transcribed from the primary source (a songbook page) SHALL enter the corpus
+(`cifras/<slug>.md`) only after a mechanical vocabulary check: the set of chords extracted
+from the new file by the canonical extraction path MUST be a superset of the chords the
+book page declares in its diagrams (`extração ⊇ diagramas`), with mere spelling differences
+normalized to the project's canonical spelling. The `Acordes Utilizados:` header manifest
+MUST come from the printed diagrams (the vocabulary the book declares), never from the
+extraction itself. An admitted chart enters with completeness `complete` and the
+completeness audit MUST NOT flag it. A song whose page does not allow the check (illegible,
+diagrams absent) MUST NOT be admitted — it SHALL be reported as a pending item with its
+page, never transcribed by guessing.
 
 #### Scenario: Cifra verificada é admitida como complete
 - **WHEN** uma música do songbook é transcrita no tom impresso e a extração do arquivo
