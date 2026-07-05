@@ -25,19 +25,21 @@
       real = 60. Baseline: **gates duros 231/231 verdes** (diminuto/D2/cadência); centro
       170/207 (82%); ledger trítono 32. 496 testes verdes. Sem regressão.
 
-## 3. Ingestão Vol. 5 (63 músicas, lotes de ~10–15)
+## 3. Ingestão Vol. 5 (63 músicas reais — COMPLETO, salvo 1 gap de scan)
 
-- [ ] 3.1 Lote 5.A: transcrever, verificar, riscar (miolo decide sobre o índice)
-- [ ] 3.2 Lote 5.B: idem
-- [ ] 3.3 Lote 5.C: idem
-- [ ] 3.4 Lote 5.D: idem (até esgotar; páginas ilegíveis viram pendência com página,
-      nunca palpite)
-- [ ] 3.5 Fechamento do Vol. 5: reconciliar índice × miolo; baseline — gates duros 100%
+- [x] 3.1–3.4 Varredura sequencial completa do PDF (livro pp.31–160; PDF 4–134). **62 músicas
+      transcritas+verificadas** (`verify_transcription.py` = `ok` em cada uma). Detalhes de
+      parser/decisões em `INGESTION-DECISIONS.md`.
+- [x] 3.5 Fechamento do Vol. 5: índice próprio (PDF p.3) × miolo reconciliados. **63 reais** =
+      62 transcritas + **`isaura`** (real, livro p.90, mas GAP DE SCAN: pp.90–91 faltam no PDF —
+      offset salta −25→−27; `[!]`). **`bate-boca`/`bonita`** = fantasmas (não constam no índice;
+      `[!]`). Baseline: **gates duros 293/293 verdes** (diminuto/D2/cadência); centro 216/262
+      (82%); ledger trítono 43. `audit_completeness` (n=293): SEM drift.
 
 ## 4. Re-medição e fatos (Vol. 2 — feito; refazer ao fim do Vol. 5)
 
-- [x] 4.1 `audit_completeness.py` sobre o corpus ampliado (n=231): **SEM drift**; as 14 novas
-      entram `complete`.
+- [x] 4.1 `audit_completeness.py` sobre o corpus ampliado (n=231 no Vol. 2; **re-rodado n=293**
+      ao fim do Vol. 5): **SEM drift** em ambos; novas entram `complete`.
 - [ ] 4.2 `harmonic corpus build` + `corpus gates` + `corpus report` — **adiado p/ o fim da change**
       (após o Vol. 5): o build DuckDB é caro (~4-6 min) e faz mais sentido materializar o corpus
       final de uma vez. Baseline funcional ao vivo já cobre os gates neste checkpoint.

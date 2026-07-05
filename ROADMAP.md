@@ -18,29 +18,29 @@ Corolário (a lição que re-bloqueou o `modal-center-arbitration`): um alvo só
 implementável se **o dado bruto o codifica**; quando o CC não codifica o fato de Chediak,
 a frente fica **bloqueada por dado** — precisa de corpus curado, não de mais mecanismo.
 
-## Status (2026-07-05) — Vol. 2 do Songbook ingerido
+## Status (2026-07-05) — Vols. 2 E 5 do Songbook ingeridos
 
-**`ingest-songbook-vols-2-5` (apply, em andamento): Vol. 2 COMPLETO.** Varredura sequencial
-página-a-página do PDF (`songbooks/`, livro pp.26–143, offset PDF=livro−25); **60/60 músicas
-reais** ingeridas (46 de sessão anterior + 14 nesta) — **corpus 170→231**. Cada cifra passou o
-**gate de admissão** `scripts/verify_transcription.py` (extração⊇diagramas, reusa `audit_completeness`):
-nenhuma entra sem `ok`. Transcrição **à mão** (não conversão automática — a lição do v4), só-acordes
-(regra anti-filtro), normalização de empilhado.
+**`ingest-songbook-vols-2-5` (apply): Vols. 2 e 5 COMPLETOS.** Varredura sequencial página-a-página
+dos PDFs (`songbooks/`, offset PDF=livro−25), à mão, só-acordes (anti-filtro), normalização de
+empilhado. Vol. 2 = **60/60 reais** (livro pp.26–143); Vol. 5 = **62 transcritas** + 1 gap de scan
+(livro pp.31–160). **Corpus 170→231→293.** Cada cifra passou o **gate de admissão**
+`scripts/verify_transcription.py` (extração⊇diagramas): nenhuma entra sem `ok`.
 
-**Métricas ao vivo (n=231):** 3 gates duros **231/231** (diminuto/D2/cadência — a teoria generaliza
-sem defeito no dado novo) · corroboração de centro **170/207 (82%)**, quarentena 24 · ledger de
-trítono **32** em 16 músicas · `audit_completeness` **SEM drift** · **496 testes verdes**.
+**Métricas ao vivo (n=293):** 3 gates duros **293/293** (diminuto/D2/cadência — a teoria generaliza
+sem defeito no dado ampliado) · corroboração de centro **216/262 (82%)**, quarentena 31 · ledger de
+trítono **43** em 20 músicas · `audit_completeness` (n=293) **SEM drift**.
 
-**Fatos da ingestão** (`openspec/changes/ingest-songbook-vols-2-5/INGESTION-DECISIONS.md`): ordem do
-livro **NÃO é alfabética** (varredura sequencial é a única verdade); **header da página = autoridade
-de compositor** (`bloco-do-eu-sozinho` = Marcos Valle E Ruy Guerra); **2 fantasmas do índice-irmão**
-(`se-e-tarde-me-perdoa`, "Eu sei que…") que NÃO existem no Vol. 2 (buscar no Vol. 5); o verificador
-força correções sem fabricar (Eb7M(6)→Eb7M; Abm7 só-partitura excluído; cliché de manha-de-carnaval
-colapsado a Am(add9) funcionalmente invariante). **Fato corrigido:** o **Vol. 1 (62) JÁ É o corpus
-original n=62** — "Vols. 1/2/5 nunca ingeridos" era erro; falta só o **Vol. 5 (65 músicas)**.
+**Fatos da ingestão** (`.../ingest-songbook-vols-2-5/INGESTION-DECISIONS.md`): ordem do livro **NÃO
+é alfabética**; **header da página = autoridade de compositor**; **fantasmas de índice-irmão** —
+Vol.2: `se-e-tarde-me-perdoa`, "Eu sei que…"; Vol.5: `bate-boca`, `bonita` (nenhum consta no índice
+do próprio volume). **Achado Vol.5:** o índice próprio (PDF p.3) declara **63 músicas**; `isaura`
+(livro p.90) é **REAL mas caiu num gap de digitalização** — as pp.90–91 faltam no PDF (offset salta
+−25→−27, = as 2 páginas), irrecuperável sem re-scan. O verificador força correções sem fabricar
+(`omit3`→forma sem-omit; `rosa-morena` D#° de passagem recuperado do diagrama+partitura).
 
-**Próximo:** Vol. 5 (índice próprio com páginas, offset a calibrar); depois arquivar a change.
-Nada commitado ainda (arquivos-ouro e PDFs gitignored).
+**Próximo:** `corpus build`/`gates`/`report` DuckDB final (tarefa 4.2, adiada) e arquivar a change.
+Oportunístico: re-scan da fonte p/ recuperar `isaura`; auditoria ampla Vol.1/Vol.4×livro.
+Nada commitado ainda nesta rodada (arquivos-ouro e PDFs gitignored — só fatos entram).
 
 ## Status (2026-07-02) — HANDOFF DA SESSÃO "corpus & adjudicação"
 
@@ -77,11 +77,11 @@ centro **127/153 (83%)**, quarentena 17 · ledger de trítono **21** em 11 músi
 `complete=157 / suspect=13 / incomplete=0` · auditoria de completude **SEM drift**.
 
 **Próximos passos (ordem recomendada):**
-1. **#8 Ingerir o Vol. 5** (65 músicas) — Vol. 1 já é o corpus n=62; **Vol. 2 feito (2026-07-05)**.
-   Método provado no Vol. 2: transcrição **à mão página-a-página** do PDF (o modelo lê direto),
-   só-acordes, admissão por `scripts/verify_transcription.py` (extração⊇diagramas) — nunca conversão
-   automática (a lição do v4). Vol. 5 tem índice próprio com páginas (offset a calibrar no início);
-   buscar nele o fantasma `se-e-tarde-me-perdoa`. Depois `corpus build`/`gates`/`report` + arquivar.
+1. **#8 Corpus DuckDB + arquivar** — **Vols. 1–5 ingeridos** (n=293; Vol. 2 +60 e Vol. 5 +62 em
+   2026-07-05, à mão página-a-página, admissão por `verify_transcription.py`). Falta rodar o
+   `harmonic corpus build`/`gates`/`report` DuckDB final (tarefa 4.2, adiada por ser cara) e
+   **arquivar a change**. Oportunístico: re-scan da fonte p/ recuperar `isaura` (gap de digitalização
+   no PDF do Vol. 5); `se-e-tarde-me-perdoa` segue fantasma sem volume de origem.
 2. **Auditoria ampla v4×livro** (~36 músicas restantes) — a transposição espúria só é
    detectável abrindo a página (o oráculo de vocabulário não a vê quando o vocabulário fecha).
 3. **Adjudicar as 13 `suspect`** das originais (oráculo fraco) e o **bV7 (21)** quando houver

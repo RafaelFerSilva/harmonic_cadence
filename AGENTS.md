@@ -153,8 +153,11 @@ corrigido), corroboração de centro **125→127/153 (83%)**, completude `incomp
 detecta (auditoria ampla v4×livro = candidata a change). **Fato corrigido (2026-07-05):** o
 **Vol. 1 (62 músicas) JÁ É o corpus original n=62** (conferido contra o índice; "Vols. 1/2/5
 nunca ingeridos" era erro — só valia p/ 2 e 5). A proveniência do Vol.1 é a conversão antiga
-(mesma família lossy do v4 → risco na auditoria ampla). O **Vol. 2 foi ingerido em 2026-07-05**
-(ver frente #8); o **Vol. 5 (65) segue pendente**.
+(mesma família lossy do v4 → risco na auditoria ampla). O **Vol. 2 (+60) e o Vol. 5 (+62)
+foram ingeridos em 2026-07-05** por transcrição manual página-a-página (ver frente #8). O Vol. 5
+tem **63 músicas reais** (índice próprio, PDF p.3): 62 transcritas + **`isaura` num gap de scan**
+(pp.90–91 faltam no PDF — offset PDF↔livro salta −25→−27); **`bate-boca`/`bonita` são fantasmas**
+do índice-irmão (não constam no índice do volume). Corpus **231→293**.
 
 **Ledger de trítono ADJUDICADO (`TRITONE-ADJUDICATION.md`, 2026-07-02):** os 532 casos foram
 adjudicados contra **Chediak XXXIV pp.111-116** (o PDF do Vol. I está em `base_estudo/`), pela
@@ -330,18 +333,20 @@ completos.
   nenhum pega o I)**, e 6 modulantes. **Não há regra-cega segura** → worklist é curadoria, não placar.
   Gate futuro do `detect_key` teria de ser cirúrgico (V/ii-como-tônica alta-conf com V→I limpo a
   repouso), sem tocar os detect-certo; a armadilha ii-V pede o achador preferir o ALVO do V (o I) ao ii.
-- 🔄 **#8 Ampliar o corpus** (`cifras/*.md`): **62→119→170→231** (songbooks Bossa Nova v3 +57,
-  v4 +51 via `scripts/split_songbook.py`; **Vol. 2 +60 em 2026-07-05** via `ingest-songbook-vols-2-5`).
-  Nota histórica de método: v3/v4 vieram de conversão automática PDF→MD (origem da corrupção do v4);
-  o **Vol. 2 foi transcrito à mão página-a-página do PDF** (`songbooks/`, offset PDF=livro−25),
-  só-acordes, com **admissão verificada** (`scripts/verify_transcription.py`: extração⊇diagramas) —
-  nenhuma música entra sem `ok`. Fontes gitignored (copyright). **Gates duros seguem 231/231**
-  (diminuto/D2/cadência; a teoria generaliza sem defeito); centro 170/207 (82%); ledger trítono 32;
-  496 testes verdes. Fatos da ingestão do Vol.2 (ordem NÃO-alfabética; 2 fantasmas do índice-irmão —
-  `se-e-tarde-me-perdoa`, "Eu sei que…" — que não existem no volume; header do livro = autoridade de
-  compositor) em `openspec/changes/ingest-songbook-vols-2-5/INGESTION-DECISIONS.md`. Nota de dado: v3
-  tinha `X9/S` (61x, baixo inválido) — hoje **reportado** em `diagnostics` (ver
-  `report-unidentified-notations`). **Falta o Vol. 5 (65 músicas)**; o ouro é a regra, não o gênero.
+- ✅ **#8 Ampliar o corpus** (`cifras/*.md`): **62→119→170→231→293** (songbooks Bossa Nova v3 +57,
+  v4 +51 via `scripts/split_songbook.py`; **Vol. 2 +60 e Vol. 5 +62 em 2026-07-05** via
+  `ingest-songbook-vols-2-5`). Nota histórica de método: v3/v4 vieram de conversão automática PDF→MD
+  (origem da corrupção do v4); os **Vols. 2 e 5 foram transcritos à mão página-a-página do PDF**
+  (`songbooks/`, offset PDF=livro−25), só-acordes, com **admissão verificada**
+  (`scripts/verify_transcription.py`: extração⊇diagramas) — nenhuma música entra sem `ok`. Fontes
+  gitignored (copyright). **Gates duros seguem 293/293** (diminuto/D2/cadência; a teoria generaliza
+  sem defeito); centro 216/262 (82%); ledger trítono 43; `audit_completeness` (n=293) SEM drift.
+  Fatos da ingestão (ordem NÃO-alfabética; **fantasmas de índice-irmão** — Vol.2: `se-e-tarde-me-perdoa`,
+  "Eu sei que…"; Vol.5: `bate-boca`, `bonita`; header do livro = autoridade de compositor; **Vol.5
+  `isaura` é gap de scan real**, não fantasma) em
+  `openspec/changes/ingest-songbook-vols-2-5/INGESTION-DECISIONS.md`. Nota de dado: v3 tinha `X9/S`
+  (61x, baixo inválido) — hoje **reportado** em `diagnostics` (ver `report-unidentified-notations`).
+  **Vols. 1–5 ingeridos**; falta o `corpus build` DuckDB final (tarefa 4.2) e arquivar a change.
 - **Legado**: acordes interpolados (XXIX, refinaria de rótulo, risco/ganho ruim); detecção de
   centro modal (Caminho 1, bloqueado por dado). **`grow-modal-center-corpus` arquivada-como-parked
   (2026-07-01)** — data-gated em n=2 (Vol. I §XXXVI.4 exaurido); crescer o corpus modal precisa de
