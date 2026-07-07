@@ -90,6 +90,19 @@ SELECT center_status, COUNT(*) AS n
 FROM v_song_current
 GROUP BY center_status;
 
+-- ── WORKLIST de centro — divergências detect×funcional + veredito adjudicado ──
+-- As músicas `diverge` (detect_key × chediak_functional_center) com o veredito curado
+-- (corpus tonal_center_adjudications, tabela derivada center_adjudication). ADITIVA;
+-- música não-adjudicada → winner/curated NULL (não some). Curadoria, NÃO placar.
+CREATE OR REPLACE VIEW v_center_worklist AS
+SELECT s.song_id, s.title, s.slug,
+       s.detected_key, s.detected_mode,
+       s.center_pc, s.center_mode,
+       adj.winner, adj.curated_root, adj.curated_mode, adj.chediak_page, adj.evidence
+FROM v_song_current s
+LEFT JOIN center_adjudication adj ON adj.song_id = s.song_id
+WHERE s.center_status = 'diverge';
+
 -- ── ANALYTICS — bigrama de função sobre o corpus inteiro ────────────────────
 CREATE OR REPLACE VIEW v_function_bigram AS
 SELECT a.function_code AS from_fn,

@@ -196,6 +196,22 @@ SubV (sobem um semitom / resolvem por trítono / sem centro) — honestamente am
 inalterados; suíte **628 verde**. **Pendente:** revisão do curador (autoridade Chediak) para promover
 ambíguos→decisivos com página antes de arquivar.
 
+**Worklist de centro — malha FECHADA (`adjudicate-center-worklist`, Trilha A #2):** mesmo padrão do
+trítono, agora para as **46 divergências** de centro (`detect_key` × `chediak_functional_center`,
+`center_status='diverge'`). Corpus tipado `corpus.tonal_center_adjudications` (`TonalCenterVerdict`:
+`curated_root`/`curated_mode` + `winner` de enum fechado + `evidence` + `Citation` obrigatória p/
+os decisivos, pp.84-85/87). É **ANOTAÇÃO (PRATA): não toca `detect_key`/`center_status`** — um gate
+cirúrgico do detector = change de *fix downstream* (precedente: `add-cadential-v-as-tonic-path`). O
+veredito cruza na nova view `v_center_worklist` (LEFT JOIN à tabela derivada `center_adjudication`,
+aditiva) e na §7 do `corpus report`; `scripts/audit_center_adjudication.py` = anti-drift. **Adjudicação
+das 46** (porta a `WORKLIST-ADJUDICATION.md` onde a geometria bate; reexame onde o centro funcional
+deslocou — `razao-de-viver` funcional D→C): **`functional` 28, `detect` 8, `neither_ii_v` 3
+(armadilha ii-V: bolinha-de-sabao/menina/rio, o I é Dó/Dó/Fá), `modulating` 4, `ambiguous` 3**
+(ponteio/cartao-de-visita/eu-e-a-brisa — modo/relativa não fecha). **Achado do #7 preservado: não há
+vencedor único.** Medido ao vivo: gates **293/293**, detecção intocada (PRATA), centro 216/262 e
+ledger 43 inalterados, suíte **727 verde**. **Distinto de `modal_centers`** (centro modal grego
+não-codificado); aqui é a divergência do centro TONAL entre dois métodos do motor.
+
 **Camada de persistência (`persist-analysis-corpus`, frente #8):** a saída do motor deixou de ser
 efêmera — `harmonic_analysis/persistence/` disseca o `result` num banco **DuckDB** (11 tabelas,
 grão = ocorrência de acorde) via `harmonic corpus build` (roda o motor sobre `cifras/*.md`, sem

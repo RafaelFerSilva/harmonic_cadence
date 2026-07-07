@@ -144,3 +144,17 @@ CREATE TABLE IF NOT EXISTS tritone_adjudication (
     note      TEXT NOT NULL,
     PRIMARY KEY (song_id, position)
 );
+
+-- Vereditos curados da worklist de centro (anotação PRATA, derivada do corpus-em-código
+-- `harmonic_analysis.corpus.tonal_center_adjudications`). Grão = música (song_id).
+-- NÃO muta o detector: só anota o veredito+centro adjudicado+página p/ cruzar no worklist/report.
+-- Regenerável no build; rollback = DROP + reverter a view do worklist.
+CREATE TABLE IF NOT EXISTS center_adjudication (
+    song_id      INTEGER NOT NULL REFERENCES song(song_id),
+    curated_root TEXT NOT NULL,         -- centro adjudicado (raiz)
+    curated_mode TEXT NOT NULL,         -- major | minor
+    winner       TEXT NOT NULL,         -- detect | functional | neither_ii_v | modulating | ambiguous
+    chediak_page INTEGER,               -- NULL p/ modulating/ambiguous (sem centro único a citar)
+    evidence     TEXT NOT NULL,
+    PRIMARY KEY (song_id)
+);

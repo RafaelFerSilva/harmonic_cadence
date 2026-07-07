@@ -179,4 +179,28 @@ def render_report(conn, top_n: int = 15) -> str:
         )
     parts.append("")
 
+    # ── 7. Worklist de centro — divergências detect × funcional ──────────────
+    total_div = _one(
+        conn, "SELECT COUNT(*) FROM v_center_worklist"
+    )[0]
+    if total_div:
+        winners = _rows(
+            conn,
+            "SELECT COALESCE(winner, '(pendente)') AS w, COUNT(*) "
+            "FROM v_center_worklist GROUP BY 1 ORDER BY 2 DESC",
+        )
+        n_cited_c = _one(
+            conn,
+            "SELECT COUNT(*) FROM v_center_worklist WHERE chediak_page IS NOT NULL",
+        )[0]
+        parts.append("\n## 7. Worklist de centro — divergências detect × funcional\n")
+        parts.append(
+            f"**{total_div} músicas** onde `detect_key` e o critério funcional do Chediak "
+            "DIVERGEM (não há vencedor único — #7). A divergência é curadoria, **não** placar "
+            "de nenhum método (a análise funcional é invariante a transposição). Distribuição "
+            f"por veredito adjudicado ({n_cited_c} com página; `modulating`/`ambiguous` = sem "
+            "centro único a citar):\n"
+        )
+        parts.append(_table(["Veredito (winner)", "Músicas"], winners))
+
     return "\n".join(parts)

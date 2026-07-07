@@ -20,6 +20,9 @@ from cifra_core.slug import slugify
 from cifra_core.theory import parse as parse_chord
 
 from harmonic_analysis.corpus.completeness import completeness_for
+from harmonic_analysis.corpus.tonal_center_adjudications import (
+    ADJUDICATIONS as CENTER_ADJUDICATIONS,
+)
 from harmonic_analysis.corpus.tritone_adjudications import ADJUDICATIONS
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
@@ -348,9 +351,25 @@ def build_corpus(conn, corpus_glob: str = "cifras/*.md") -> dict:
         )
         n_adj += 1
 
+    # ── center_adjudication (anotação PRATA da worklist de centro) ────────────────
+    n_center = 0
+    for adj in CENTER_ADJUDICATIONS:
+        sid = slug_to_id.get(adj.key)
+        if sid is None:
+            continue
+        page = adj.citation.page if adj.citation is not None else None
+        conn.execute(
+            "INSERT INTO center_adjudication "
+            "(song_id, curated_root, curated_mode, winner, chediak_page, evidence) "
+            "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (song_id) DO NOTHING",
+            [sid, adj.curated_root, adj.curated_mode, adj.winner, page, adj.evidence],
+        )
+        n_center += 1
+
     return {
         "run_id": run_id,
         "n_songs": len(songs),
         "failures": failures,
         "n_adjudications": n_adj,
+        "n_center_adjudications": n_center,
     }

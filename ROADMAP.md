@@ -57,9 +57,15 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
    honesto declarado). Correção da própria hipótese: os `#11` (samba/beatriz/ausência) NÃO resolvem
    como SubV. Gates 293/293, coder intocado, +tests. **Falta: revisão do curador (Chediak) para
    promover ambíguos→decisivos com página; depois arquivar.**
-2. **Adjudicar a worklist de centro (46 diverge)** — `detect_key` × critério funcional. Achado de
-   `#7`: não há regra-cega segura; um gate do `detect_key` só é seguro se **cirúrgico** (V/ii-como-
-   tônica alta-confiança com V→I limpo a repouso), sem tocar os detect-certo. Candidata a change.
+2. ✅ **Worklist de centro (46 diverge) — ADJUDICADA (`adjudicate-center-worklist`).** Mesmo padrão
+   do trítono: corpus tipado `corpus.tonal_center_adjudications` (`TonalCenterVerdict` = centro
+   adjudicado + `winner` + evidência + `Citation` pp.84-85/87), view `v_center_worklist`, §7 do report,
+   anti-drift `scripts/audit_center_adjudication.py`. ANOTAÇÃO PRATA — **não toca `detect_key`**.
+   Vereditos: **`functional` 28, `detect` 8, `neither_ii_v` 3 (armadilha ii-V), `modulating` 4,
+   `ambiguous` 3**. Achado #7 preservado (sem vencedor único). Gates 293/293, detecção intocada, suíte
+   727 verde. **Follow-up downstream (não urgente):** gate cirúrgico do `detect_key` só se seguro
+   (V/ii-como-tônica alta-confiança com V→I limpo a repouso; ou a armadilha ii-V = achador preferir o
+   ALVO do V ao ii), sem tocar os `detect`-certo. Molde do fix: `add-cadential-v-as-tonic-path` (Path C).
 
 *Trilha B — DESENVOLVIMENTO (evoluir o produto sobre o corpus que temos):*
 3. **Camada C — overlay ML/NLP.** As análises do motor são **PRATA** (rótulos derivados de regra +

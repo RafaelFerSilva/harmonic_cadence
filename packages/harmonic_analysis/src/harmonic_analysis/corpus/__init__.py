@@ -10,6 +10,14 @@ from harmonic_analysis.corpus.modal_centers import (
     ModalCenterFact,
     lookup_modal_center,
 )
+from harmonic_analysis.corpus.tonal_center_adjudications import (
+    ADJUDICATIONS as CENTER_ADJUDICATIONS,
+)
+from harmonic_analysis.corpus.tonal_center_adjudications import (
+    CenterWinner,
+    TonalCenterVerdict,
+    lookup_center_verdict,
+)
 from harmonic_analysis.corpus.tritone_adjudications import (
     ADJUDICATIONS,
     TritoneVerdict,
@@ -26,4 +34,8 @@ __all__ = [
     "TritoneVerdict",
     "TritoneVerdictKind",
     "lookup_tritone_verdict",
+    "CENTER_ADJUDICATIONS",
+    "TonalCenterVerdict",
+    "CenterWinner",
+    "lookup_center_verdict",
 ]
