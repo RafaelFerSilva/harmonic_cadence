@@ -4,6 +4,13 @@
 > Escrito a pedido: detalhar as 3 frentes de DL (arquitetura, dados, riscos,
 > dependências) para o usuário decidir depois. A decisão de stack ficou comigo,
 > justificada aqui.
+>
+> **⚠ ATUALIZAÇÃO (probe Fase 0 rodado — ver `PROBE-EMBEDDINGS-FINDINGS.md`):**
+> **Frente A (embeddings de acorde aprendidos) = NO-GO.** Medido ao vivo: chord2vec
+> quebra a invariância de transposição (0.63–0.68 vs. 1.0 do Fingerprint à mão) e não
+> supera o baseline. O gargalo é **arquitetural**, não de dado — transferência externa
+> (Frente B) não resolveria. DL não se paga por esta via. Maior retorno segue sendo a
+> adjudicação humana (mais labels), não DL nem dado novo.
 
 ## 0. As leis que restringem TODA frente de ML aqui (não-negociáveis)
 
