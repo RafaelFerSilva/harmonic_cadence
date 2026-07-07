@@ -111,6 +111,19 @@ class TonalCenterVerdict:
 # Achado do #7 preservado: não há vencedor único (functional 28, detect 8, neither_ii_v
 # 3, modulating 4, ambiguous 3). Um gate cirúrgico do detector (armadilha ii-V;
 # V-como-tônica) é change de FIX DOWNSTREAM separada.
+#
+# ADJUDICAÇÃO HUMANA COMPLETA (2026-07-07) — worklist de centro 100% revisada pelo
+# curador, em 5 levas (todas confirmadas; nenhum veredito revertido):
+#   L1  neither_ii_v (3) + detect (8): detector correto, funcional pegou pivô. `feitinha`
+#       decidida Ré MAIOR pelo repouso final (modo era contestável).
+#   L2  V↔I (a-mulher, me-perdoe, razao-de-viver): detect pegou o V, funcional o I.
+#       `razao-de-viver` REEXAME confirmado Dó (a extração atual fecha em Dó, supera o Ré n=170).
+#   L3  paralela (7): mesma raiz, modo pelo repouso. `entrudo` = Fá MENOR (fecho F7(13)=I7 modal).
+#   L4  ii/iii/IV/relativa (18): 13 limpas + 5 com modo cravado pelo curador (e-luxo-so Ré maj,
+#       bloco Fá maj, amor-em-paz Fá# maj, tempo-de-solidao Ré men, ilusao-a-toa Dó# men).
+#   L5  modulating (4) + ambiguous (3): confirmados honestos, NENHUM promove (sem tônica única /
+#       relativa-modo não fecha) — o resíduo de centro declarado.
+# Resultado: 46/46 humano. PRATA intacto (detecção/center_status nunca tocados).
 # ---------------------------------------------------------------------------
 
 _P84 = Citation(
@@ -148,7 +161,8 @@ ADJUDICATIONS: tuple[TonalCenterVerdict, ...] = (
     _v("tema-do-boneco-de-palha", "G", "minor", "detect",
        "Abre Gm7 Gm6; Am7(b5) D7(b9) Gm(7M) = ii-V-i; o funcional pegou a relativa maior (Bb)."),
     _v("feitinha-pro-poeta", "D", "major", "detect",
-       "Fecha D6(9) (repouso maior); o funcional pegou o A7→Dm7 do corpo. Modo maior pelo repouso final."),
+       "Fecha D6(9) (repouso maior); o funcional pegou o A7→Dm7 do corpo. HUMANO (2026-07-07): "
+       "Ré MAIOR confirmado pelo REPOUSO FINAL (D6/9), apesar do A7→Dm no corpo (modo contestável)."),
     # ── funcional acertou; o K-S pegou V/IV/ii/iii/relativa/paralela (28) ────────
     _v("ciume", "D", "major", "functional",
        "Em7 A7 D6/9 = ii-V-I; o detect pegou o II7 secundário (E7 = V/V)."),
@@ -194,7 +208,8 @@ ADJUDICATIONS: tuple[TonalCenterVerdict, ...] = (
     _v("atras-da-porta", "F#", "minor", "functional",
        "Abre F#m7; C#7(b9)→F#m(7M) (V→i); o detect trocou o modo p/ maior."),
     _v("entrudo", "F", "minor", "functional",
-       "C7(b9)→Fm7(9) (V→i); abre Cm7 (v); o detect trocou o modo p/ maior."),
+       "C7(b9)→Fm7(9) (V→i); abre Cm7 (v). HUMANO (2026-07-07): Fá MENOR pelo C7→Fm7; o fecho "
+       "em F7(13) é o I7 de cor modal/blues (como o vamp de o-morro), NÃO Fá maior."),
     _v("eu-vim-da-bahia", "A", "minor", "functional",
        "Fecha Am7; Bb7(#11) SubV→Am7; o detect trocou o modo p/ maior."),
     _v("no-cordao-da-saideira", "E", "minor", "functional",
@@ -216,7 +231,7 @@ ADJUDICATIONS: tuple[TonalCenterVerdict, ...] = (
        "Gm7 C7 → F7M = ii-V-I; o detect pegou o V (C7), o funcional o ii (Gm7); o I (F) é a tônica."),
     # ── modulantes: sem tônica global única (o palpite pende pro fim) (4) ─────────
     _open("embarcacao", "D#", "major", "modulating",
-          "84 acordes; a 2ª metade é a 1ª transposta ½t acima; sem tônica única (palpite: fim em D#)."),
+          "113 acordes; a 2ª metade é a 1ª transposta ½t acima; sem tônica única (palpite: fim em D#)."),
     _open("ah-se-eu-pudesse", "E", "major", "modulating",
           "Abre em Eb maior; F7(#11) SubV→E7M fecha em E; modula, sem tônica global única."),
     _open("eu-te-amo", "B", "major", "modulating",

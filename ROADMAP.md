@@ -63,7 +63,11 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
    honesto declarado). Correção da própria hipótese: os `#11` (samba/beatriz/ausência) NÃO resolvem
    como SubV. Gates 293/293, coder intocado, +tests. **Falta: revisão do curador (Chediak) para
    promover ambíguos→decisivos com página; depois arquivar.**
-2. ✅ **Worklist de centro (46 diverge) — ADJUDICADA (`adjudicate-center-worklist`).** Mesmo padrão
+2. ✅ **Worklist de centro (46) — ADJUDICADA POR HUMANO 100% (2026-07-07).** Curador × pp.84-85/87,
+   em 5 levas, **nenhum veredito revertido** (drafts confirmados). Decisões de modo cravadas
+   (feitinha=Ré maj, entrudo=Fá men, +5 na L4); `razao-de-viver` reexame confirmado Dó (fecha em
+   Dó, supera o Ré n=170); modulantes(4)/ambíguos(3) honestos, nenhum promove. Infra abaixo:
+   ✅ **Worklist de centro (46 diverge) — ADJUDICADA (`adjudicate-center-worklist`).** Mesmo padrão
    do trítono: corpus tipado `corpus.tonal_center_adjudications` (`TonalCenterVerdict` = centro
    adjudicado + `winner` + evidência + `Citation` pp.84-85/87), view `v_center_worklist`, §7 do report,
    anti-drift `scripts/audit_center_adjudication.py`. ANOTAÇÃO PRATA — **não toca `detect_key`**.

@@ -222,6 +222,13 @@ vencedor único.** Medido ao vivo: gates **293/293**, detecção intocada (PRATA
 ledger 43 inalterados, suíte **727 verde**. **Distinto de `modal_centers`** (centro modal grego
 não-codificado); aqui é a divergência do centro TONAL entre dois métodos do motor.
 
+**Worklist de centro ADJUDICADA POR HUMANO (2026-07-07, 100%):** o curador revisou as 46 em 5 levas
+(pp.84-85/87, cadência visível); **nenhum veredito revertido** (os drafts bateram). Decisões de modo
+cravadas: `feitinha`=Ré maior (repouso final), `entrudo`=Fá menor (fecho F7(13)=I7 modal), + 5 na L4
+(e-luxo-so/bloco/amor-em-paz/tempo-de-solidao/ilusao-a-toa). **REEXAME confirmado:** `razao-de-viver`
+= Dó (a extração atual fecha em Dó via ii-V-I, supera o Ré do n=170). Os `modulating`(4)/`ambiguous`(3)
+confirmados honestos — nenhum promove (resíduo de centro declarado). PRATA intacto.
+
 **Path D — bracket ii-V no `detect_key` (`add-ii-v-bracket-center-path`, 1º fix downstream da
 adjudicação de centro):** a armadilha do ii-V (`neither_ii_v`: bolinha/menina/rio) virou correção
 no motor. Novo `_ii_v_bracket_path` no gate de qualidade: corrige `Y→X=(Y−7)` quando o `detect_key`
