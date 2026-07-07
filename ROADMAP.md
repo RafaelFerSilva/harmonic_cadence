@@ -55,10 +55,17 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
 
 *Trilha B — DESENVOLVIMENTO (evoluir o produto sobre o corpus que temos):*
 3. **Camada C — overlay ML/NLP.** As análises do motor são **PRATA** (rótulos derivados de regra +
-   Chediak): usar o DuckDB (293 músicas, grão de ocorrência) como dataset supervisionado para um
-   overlay estatístico que **complementa** (não substitui) o símbolo. Começar por um alvo estreito
-   e mensurável (ex.: prever função do acorde a partir de contexto; comparar contra o coder como
-   ground truth). O símbolo continua dominante; o ML é subordinado e corrigível.
+   Chediak): usar o DuckDB (293 músicas, grão de ocorrência) como dataset para um overlay
+   estatístico que **complementa** (não substitui) o símbolo. O símbolo continua dominante; o ML é
+   subordinado e corrigível.
+   - ✅ **1ª change — `function-anomaly-worklist` (feita):** LM de sequência funcional (backoff
+     Witten-Bell) sobre os `function_code`s → **surpresa** por ocorrência → view `v_anomaly_worklist`
+     + `harmonic corpus anomalies`. Em vez do alvo circular "prever função e medir contra o coder",
+     o produto é uma **worklist de discordância ranqueada** (discordância = SINAL, não erro), cruzada
+     com o ledger de trítono (43) e centro-diverge (46): a **Trilha B ordena o que a Trilha A
+     adjudica**. Gates duros 293/293 intactos, `function_code` nunca reescrito (PRATA), +14 testes.
+   - Próximas (abertas): contexto bilateral / feature de grau no mesmo overlay; **embeddings de
+     progressão + retrieval de similaridade** (ferramenta musicológica descritiva).
 4. **Aprofundar o analytics musicológico** — o retorno de ter 293 músicas: novas views/relatórios
    descritivos (distribuições de cadência, trigramas de função, vocabulário por modo já existem;
    expandir), sempre **denominador visível, nunca placar**. Insumo direto p/ a adjudicação (A).

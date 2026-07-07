@@ -204,9 +204,10 @@ class HarmonicCLI:
             "corpus", help="Persiste as análises do corpus local e audita os gates"
         )
         corpus_parser.add_argument(
-            "action", choices=["build", "gates", "report"],
+            "action", choices=["build", "gates", "report", "anomalies"],
             help="build: materializa cifras/*.md no banco; gates: audita os "
-            "invariantes; report: relatório musicológico descritivo (Markdown)",
+            "invariantes; report: relatório musicológico descritivo (Markdown); "
+            "anomalies: worklist de anomalia funcional (overlay Camada C, PRATA)",
         )
         corpus_parser.add_argument(
             "--db", default="corpus.duckdb", help="Caminho do banco (padrão: corpus.duckdb)"
@@ -468,6 +469,25 @@ class HarmonicCLI:
             with open(args.out, "w", encoding="utf-8") as f:
                 f.write(md)
             print(f"Relatório musicológico gerado: {args.out}")
+            conn.close()
+            return
+
+        if args.action == "anomalies":
+            # Overlay Camada C (PRATA): materializa a worklist e emite o relatório.
+            from harmonic_analysis.overlay.materialize import build_anomaly_worklist
+            from harmonic_analysis.overlay.report import render_anomaly_report
+
+            summary = build_anomaly_worklist(conn)
+            out = "anomaly-worklist.md" if args.out == "corpus-report.md" else args.out
+            md = render_anomaly_report(conn)
+            with open(out, "w", encoding="utf-8") as f:
+                f.write(md)
+            print(
+                f"Worklist de anomalia (overlay PRATA) materializada: run "
+                f"{summary['run_id']}, {summary['n_occurrences']} ocorrências em "
+                f"{summary['n_songs']} músicas."
+            )
+            print(f"Relatório gerado: {out}  (o ML rankeia; o Chediak adjudica)")
             conn.close()
             return
         gates = {

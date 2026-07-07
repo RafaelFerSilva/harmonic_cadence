@@ -92,6 +92,24 @@ openspec list --specs   # capabilities (specs)
 Teoria destilada/implementada/testada (46 changes arquivadas + `fix-d2-over-attribution` e
 `fix-cadence-function-coherence` prontas p/ arquivar, **429 testes verdes**).
 
+**Camada C — overlay de anomalia funcional (`function-anomaly-worklist`, 1ª change ML/NLP):** o
+primeiro overlay estatístico sobre o `corpus.duckdb` — subordinado ao símbolo (**PRATA**, o ML
+**rankeia**, o Chediak **adjudica**). `harmonic_analysis/overlay/` treina um LM de sequência
+funcional com **backoff Witten-Bell** sobre os `function_code`s do coder (grão de ocorrência,
+sequência por música, sem cruzar fronteira) e computa a **surpresa** −log₂ P(função | contexto)
+de cada ocorrência. Materializa a tabela `anomaly_score` + a view **`v_anomaly_worklist`** (ADITIVA:
+não toca `schema.sql`/`views.sql`; rollback = DROP), cruzando com `v_ledger_tritone_nondominant`
+(43) e centro `diverge` (46) — a surpresa **ordena o que adjudicar** dentro do que já é suspeito por
+teoria (**Trilha B alimenta Trilha A**). CLI `harmonic corpus anomalies` → relatório MD PT-BR com
+denominador visível e guarda-corpo anti-placar (**nunca** reescreve `function_code`). **Mata a
+circularidade** de treinar/medir no próprio coder: o produto é uma *worklist de discordância*, e
+discordância é SINAL, não erro — nenhuma avaliação por acurácia contra o coder. **Medido ao vivo:**
+3 gates duros seguem **293/293**, nenhum `function_code` alterado (invariante PRATA testado); as 43
+do ledger de trítono saem ranqueadas por surpresa (todas `Emp`, o resíduo bV7→Emp ambíguo — insumo
+direto da adjudicação Chediak). **+14 testes** (modelo: suavização-sem-zero/determinismo/fronteira;
+worklist: cobertura/invariância-base/idempotência/anti-placar). Follow-ups abertos: contexto
+bilateral, feature de grau, embeddings+similaridade (próxima change da Camada C).
+
 **Camada de persistência (`persist-analysis-corpus`, frente #8):** a saída do motor deixou de ser
 efêmera — `harmonic_analysis/persistence/` disseca o `result` num banco **DuckDB** (11 tabelas,
 grão = ocorrência de acorde) via `harmonic corpus build` (roda o motor sobre `cifras/*.md`, sem

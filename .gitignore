@@ -69,6 +69,10 @@ songbook-v4-v2.md
 # regenerável via `harmonic corpus report`.
 corpus-report.md
 
+# Worklist de anomalia (Camada C) — derivada do corpus gitignored (títulos +
+# acordes), regenerável via `harmonic corpus anomalies`.
+anomaly-worklist.md
+
 # Songbooks fonte (PDF, copyright) — NUNCA versionar; só os FATOS derivados
 # (regra + análise) entram no repo.
 songbooks/
