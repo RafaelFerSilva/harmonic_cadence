@@ -104,14 +104,17 @@ class TritoneVerdict:
 # geométrica — o resíduo honesto DECLARADO, não forçado. Aguarda revisão do
 # curador (autoridade Chediak) para promover ambíguos a decisivos com página.
 #
-# Citação da classe cromática: Chediak Vol. I, cap. XXXIV, p.111 — classifica os
-# acordes de 7ª sem função dominante em três classes, incluindo "diatônicos
-# cromaticamente alterados". Um dominante-7 um semitom ABAIXO do dominante real
-# seguinte é aproximação cromática por essa classe (geometria incontestável).
+# Citação da classe cromática: Chediak Vol. I, cap. XXXIV **c) "Acordes diatônicos
+# cromaticamente alterados", p.116** — acordes de ESTRUTURA de sétima da dominante
+# SEM função dominante, com movimento do baixo por grau conjunto e SEM resolução
+# dominante (estrutura constante). Um dominante-7 um semitom ABAIXO do V real,
+# resolvendo para CIMA nele, é dessa classe (nunca SubV, que resolve para baixo).
+# ADJUDICAÇÃO HUMANA (2026-07-07): as 6 confirmadas pelo curador contra o texto do
+# Vol. I pp.111-116 (afinou a citação p.111→p.116, a categoria específica c).
 # ---------------------------------------------------------------------------
 
-_P111 = Citation(
-    source="Almir Chediak, Harmonia & Improvisação", volume=1, page=111
+_P116 = Citation(
+    source="Almir Chediak, Harmonia & Improvisação", volume=1, page=116
 )
 
 
@@ -124,24 +127,25 @@ def _amb(slug: str, position: int, symbol: str, note: str) -> TritoneVerdict:
 def _chrom(slug: str, position: int, symbol: str, note: str) -> TritoneVerdict:
     return TritoneVerdict(
         slug=slug, position=position, symbol=symbol,
-        verdict="chromatic_approach", note=note, citation=_P111,
+        verdict="chromatic_approach", note=note, citation=_P116,
     )
 
 
 ADJUDICATIONS: tuple[TritoneVerdict, ...] = (
-    # --- chromatic_approach (6): dom7 um semitom ABAIXO do dominante seguinte ---
+    # --- chromatic_approach (6): estrutura de dom7 SEM função dominante, baixo por
+    # grau conjunto, resolvendo para CIMA no V (Chediak XXXIV c, p.116). HUMANO. ---
     _chrom("demais", 39, "Eb7(9)",
-           "Am: Eb7 um semitom abaixo de E7(b9) (V da tônica) — aproximação cromática."),
+           "Am: …B7 B7 Eb7→E7(b9)→Am; baixo B→Eb→E; cromático subindo ao V (XXXIV c)."),
     _chrom("minha-namorada", 22, "Eb7(9)",
-           "Am: Eb7 um semitom abaixo de E7(b9) (V da tônica) — aproximação cromática."),
+           "A: D/F# F7 Eb7→E7(b9); baixo F#→F→Eb→E, estrutura constante descendente (XXXIV c)."),
     _chrom("minha-namorada", 41, "Eb7",
-           "Am: Eb7 um semitom abaixo de E7(#5) (V da tônica) — aproximação cromática."),
+           "A: Bb7M Eb7→E7(#5)→A7M; baixo Bb→Eb→E→A; cromático ao V (XXXIV c)."),
     _chrom("minha-namorada", 65, "Eb7(9)",
-           "Am: Eb7 um semitom abaixo de E7(b9) (V da tônica) — aproximação cromática."),
+           "A: D/F# F7 Eb7→E7(b9); baixo F#→F→Eb→E, estrutura constante (XXXIV c) — igual pos22."),
     _chrom("eh-menina", 15, "Ab7(9)",
-           "Em: Ab7 um semitom abaixo de A7(9) (dominante seguinte) — aproximação cromática."),
+           "D: Bm7 Bb7 Ab7→A7sus→D7M; baixo B→Bb→Ab→A, descendente constante ao V (XXXIV c)."),
     _chrom("aqui-o", 58, "Bb7(9/13)",
-           "Em: Bb7 um semitom abaixo de B7(9/13) (V da tônica) — aproximação cromática."),
+           "E: Bb7↔B7↔Bb7; bordadura cromática do V (B7), estrutura constante (XXXIV c)."),
     # --- ambiguous (37): resíduo honesto (bV7 deg=6 / centro instável / resolução indecisa) ---
     _amb("amor-de-nada", 16, "Gb7",
          "Cm: Gb7 raiz a trítono do centro (bV7) → C7(9); resolve por trítono ao I. "
