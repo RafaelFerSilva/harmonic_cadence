@@ -178,10 +178,12 @@ ADJUDICATIONS: tuple[TritoneVerdict, ...] = (
          "Ebm: A7(#11) bV7 → A#m7(11) (+1, sobe um semitom). #11 sugere SubV, mas SubV "
          "resolve DESCENDO um semitom. Ambíguo."),
     _amb("bye-bye-brasil", 29, "Bb7(9)",
-         "Dm: Bb7 raiz bVI (deg=8) → Em7 (ii); bVI7 (Subd. menor alterada, cf. p.113) mas "
-         "em tom menor e sem resolução ao I. Ambíguo (candidato a emp_legitimate)."),
+         "Dm: F7M Bb7(9)→Em7(ii); Bb7 deg=8. HUMANO (2026-07-07): NÃO é emp_legitimate — o "
+         "bVI7-subd.menor-alt. da p.113 é empréstimo em MAIOR resolvendo no I; aqui é tom MENOR "
+         "e resolve no ii (por trítono), + música `diverge` (centro instável). Ambíguo honesto."),
     _amb("bye-bye-brasil", 67, "Bb7(9)",
-         "Dm: Bb7 bVI (deg=8) → Em7 (ii). Ambíguo (candidato a emp_legitimate)."),
+         "Dm: idem pos29 — Bb7 deg=8 → Em7(ii). HUMANO: não promove (menor + resolve no ii, "
+         "fora do padrão bVI7→I da p.113). Ambíguo honesto."),
     _amb("disa", 13, "Db7(9)",
          "Gm: Db7 bV7 (trítono do centro) → Eb7M (+2). Ambíguo."),
     _amb("disa", 30, "Db7(9)",
@@ -212,8 +214,9 @@ ADJUDICATIONS: tuple[TritoneVerdict, ...] = (
          "Fm: B7 bV7 (trítono) → F#m7 (+7); resolução deceptiva. Candidato a dsec_deceptive "
          "mas sem alvo canônico confirmado. Ambíguo."),
     _amb("ilusao-a-toa", 24, "A7(13)",
-         "C#m: A7 raiz bVI (deg=8) → Fm7 (+8). bVI7 (cf. p.113) sem resolução ao I. "
-         "Ambíguo (candidato a emp_legitimate)."),
+         "C#m: E7 A74 A7(13)→Fm7; A7 deg=8. HUMANO (2026-07-07): NÃO é emp_legitimate — o A7 é "
+         "TONICIZADO por E7 (E7→A = V→I secundário), não um bVI7 emprestado; e vai a Fm7 "
+         "(cromático), não ao I. Fora do padrão p.113. Ambíguo honesto."),
     _amb("imagem", 18, "C#7",
          "Gm: C#7 bV7 (trítono) → Am6/C (+8). Ambíguo."),
     _amb("o-amor-e-chama", 53, "Bb7(9)",
