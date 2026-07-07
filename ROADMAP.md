@@ -81,9 +81,12 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
      (todos mostravam T,SD,D) para por CONTRASTE (lift vs. média do corpus) — revela o dialeto real
      (Fam Emp+0.15, Fam Dsec+0.096, Fam Deceptiva+3.08); núcleo de 247 sinalizado como baseline.
      Gates 293/293, +2 testes.
+   - ✅ **6ª change — `cluster-linkage-option` (feita):** `corpus clusters --linkage {average,complete}`.
+     Complete quebra o núcleo-247 numa partição equilibrada (k=8: `[75,71,44,34,31,18,15,5]` vs.
+     average `[247,22,8,...]`). average default (compatível). Gates 293/293, +4 testes.
    - Próximas (abertas): peso função×grau / ordenação por componente no overlay de anomalia;
-     embeddings aprendidos (song2vec); `--linkage` (complete/Ward); `--metric` (JSD já no domínio);
-     ponderação por completude; cutoff de lift/suporte no contraste.
+     embeddings aprendidos (song2vec); Ward-linkage; `--metric` (JSD já no domínio); ponderação por
+     completude; cutoff de lift/suporte no contraste.
 4. **Aprofundar o analytics musicológico** — o retorno de ter 293 músicas: novas views/relatórios
    descritivos (distribuições de cadência, trigramas de função, vocabulário por modo já existem;
    expandir), sempre **denominador visível, nunca placar**. Insumo direto p/ a adjudicação (A).

@@ -166,6 +166,16 @@ minúsculos (~+0.006), honestamente quase-baseline. Só código (traço computad
 schema). **Medido ao vivo:** gates **293/293**, coder intocado; **+2 testes** (só lift > 0; corpus-vs-
 si-mesmo → zero traço distintivo). Follow-ups: cutoff mínimo de lift/suporte; normalizar por desvio.
 
+**Linkage de clustering (`cluster-linkage-option`, 6ª change ML):** o `average-linkage` isolava
+outliers (núcleo-247 + satélites); agora `_agglomerate` aceita `linkage` = `average` (padrão) ou
+`complete` (distância entre famílias = MÍNIMO de similaridade = máxima distância → famílias compactas/
+equilibradas). CLI `corpus clusters --linkage {average,complete}`. **Efeito medido (k=8):** average
+= `[247,22,8,5,5,2,2,2]` (outlier-detection) → complete = `[75,71,44,34,31,18,15,5]` (partição
+equilibrada que revela sub-dialetos dentro do corpo) — as duas lentes disponíveis, `k`/linkage do
+usuário, sem "ótimo". Só código, `average` default (compatível). **Medido ao vivo:** gates **293/293**,
+coder intocado; **+4 testes** (complete determinístico; maior-família(complete) ≤ maior(average);
+idênticos juntos nos dois; linkage inválido rejeitado). Follow-up: Ward (exige métrica euclidiana).
+
 **Camada de persistência (`persist-analysis-corpus`, frente #8):** a saída do motor deixou de ser
 efêmera — `harmonic_analysis/persistence/` disseca o `result` num banco **DuckDB** (11 tabelas,
 grão = ocorrência de acorde) via `harmonic corpus build` (roda o motor sobre `cifras/*.md`, sem

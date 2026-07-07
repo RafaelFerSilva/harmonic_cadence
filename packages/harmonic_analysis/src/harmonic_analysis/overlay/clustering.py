@@ -73,25 +73,34 @@ def _similarity_matrix(song_ids, vectors) -> dict:
     return sim
 
 
-def _agglomerate(song_ids: list[int], sim: dict, k: int) -> list[list[int]]:
-    """Aglomerativo *average-linkage* até `k` clusters. Determinístico.
+def _agglomerate(
+    song_ids: list[int], sim: dict, k: int, linkage: str = "average"
+) -> list[list[int]]:
+    """Aglomerativo até `k` clusters. Determinístico.
 
-    Distância entre clusters = 1 − média das similaridades entre seus membros.
+    Distância entre clusters:
+    - `average`: 1 − média das similaridades par-a-par entre membros;
+    - `complete`: 1 − MÍNIMO das similaridades (= máxima distância) → famílias
+      mais compactas/equilibradas.
     Desempate: menor par de (min song_id, ...) para reprodutibilidade.
     """
+    if linkage not in ("average", "complete"):
+        raise ValueError(f"linkage inválido: {linkage!r} (use average|complete)")
+
     clusters: list[list[int]] = [[sid] for sid in song_ids]
     if k >= len(clusters):
         return clusters
 
-    def avg_sim(ca: list[int], cb: list[int]) -> float:
-        total = sum(sim[(x, y)] for x in ca for y in cb)
-        return total / (len(ca) * len(cb))
+    def cluster_dist(ca: list[int], cb: list[int]) -> float:
+        sims = [sim[(x, y)] for x in ca for y in cb]
+        agg = sum(sims) / len(sims) if linkage == "average" else min(sims)
+        return 1.0 - agg
 
     while len(clusters) > k:
-        best = None  # (dist, i, j)
+        best = None  # (chave, i, j)
         for i in range(len(clusters)):
             for j in range(i + 1, len(clusters)):
-                dist = 1.0 - avg_sim(clusters[i], clusters[j])
+                dist = cluster_dist(clusters[i], clusters[j])
                 key = (dist, min(clusters[i]), min(clusters[j]))
                 if best is None or key < best[0]:
                     best = (key, i, j)
@@ -176,9 +185,12 @@ def cluster_traits(
     return {"functions": _lift("functions"), "cadences": _lift("cadences")}
 
 
-def build_clusters(conn: "duckdb.DuckDBPyConnection", k: int = 8) -> dict:
+def build_clusters(
+    conn: "duckdb.DuckDBPyConnection", k: int = 8, linkage: str = "average"
+) -> dict:
     """Agrupa as músicas do run corrente em `k` famílias e materializa.
 
+    `linkage`: `average` (padrão) ou `complete` (famílias mais equilibradas).
     Idempotente: recomputa só o run corrente. Reusa os embeddings de estilo.
     """
     run_id = _current_run_id(conn)
@@ -194,7 +206,7 @@ def build_clusters(conn: "duckdb.DuckDBPyConnection", k: int = 8) -> dict:
     sim = _similarity_matrix(song_ids, vectors)
 
     k = max(1, min(k, len(song_ids)))
-    clusters = _agglomerate(song_ids, sim, k)
+    clusters = _agglomerate(song_ids, sim, k, linkage=linkage)
 
     records: list[tuple] = []
     for cluster_id, members in enumerate(clusters):
@@ -214,5 +226,6 @@ def build_clusters(conn: "duckdb.DuckDBPyConnection", k: int = 8) -> dict:
         "run_id": run_id,
         "n_songs": len(song_ids),
         "k": len(clusters),
+        "linkage": linkage,
         "sizes": sorted((len(c) for c in clusters), reverse=True),
     }

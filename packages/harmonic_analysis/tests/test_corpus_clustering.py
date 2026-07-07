@@ -126,6 +126,36 @@ def test_cluster_traits_by_contrast(conn):
             assert lift > 0  # só sobre-representados
 
 
+def test_complete_linkage_deterministic(conn):
+    build_clusters(conn, k=2, linkage="complete")
+    a = conn.execute("SELECT * FROM song_cluster ORDER BY song_id").fetchall()
+    build_clusters(conn, k=2, linkage="complete")
+    b = conn.execute("SELECT * FROM song_cluster ORDER BY song_id").fetchall()
+    assert a == b
+
+
+def test_complete_not_less_balanced_than_average(conn):
+    """A maior família em complete-linkage não é maior que em average (mesmo k)."""
+    def largest(linkage):
+        s = build_clusters(conn, k=3, linkage=linkage)
+        return s["sizes"][0]
+
+    assert largest("complete") <= largest("average")
+
+
+def test_identical_profiles_share_family_both_linkages(conn):
+    ii = {resolve_slug(conn, s) for s in ("iivi-do", "iivi-re", "iivi-mib")}
+    for linkage in ("average", "complete"):
+        build_clusters(conn, k=2, linkage=linkage)
+        clusters = _clusters(conn)
+        assert any(ii.issubset(members) for members in clusters.values())
+
+
+def test_invalid_linkage_rejected(conn):
+    with pytest.raises(ValueError):
+        build_clusters(conn, k=2, linkage="single")
+
+
 def test_whole_corpus_has_no_distinctive_traits(conn):
     """O corpus inteiro contra si mesmo (baseline) → sem traço distintivo."""
     base = corpus_baseline(conn)

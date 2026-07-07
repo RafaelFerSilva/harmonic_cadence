@@ -220,6 +220,11 @@ class HarmonicCLI:
             "--k", type=int, default=10, help="nº de vizinhos (padrão: 10)"
         )
         corpus_parser.add_argument(
+            "--linkage", choices=["average", "complete"], default="average",
+            help="critério de ligação do `clusters`: average (padrão) ou "
+            "complete (famílias mais equilibradas)",
+        )
+        corpus_parser.add_argument(
             "--db", default="corpus.duckdb", help="Caminho do banco (padrão: corpus.duckdb)"
         )
         corpus_parser.add_argument(
@@ -556,12 +561,12 @@ class HarmonicCLI:
                 corpus_baseline,
             )
 
-            summary = build_clusters(conn, k=args.k)
+            summary = build_clusters(conn, k=args.k, linkage=args.linkage)
             baseline = corpus_baseline(conn)
             print(
                 f"\n{summary['k']} famílias harmônicas sobre {summary['n_songs']} "
-                f"músicas (k escolhido pelo usuário — descritivo, NÃO 'k ótimo'; "
-                "família ≠ qualidade)\n"
+                f"músicas · linkage={summary['linkage']} (k e linkage escolhidos "
+                "pelo usuário — descritivo, NÃO 'ótimo'; família ≠ qualidade)\n"
             )
             rows = conn.execute(
                 "SELECT cluster_id, song_id, song_title, song_slug, "
