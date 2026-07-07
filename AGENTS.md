@@ -193,8 +193,18 @@ dominante real — cita a p.111, classe cromática) + **37 `ambiguous`** com not
 **corrige a hipótese da própria proposta**: os `#11` (samba, beatriz, ausência) NÃO resolvem como
 SubV (sobem um semitom / resolvem por trítono / sem centro) — honestamente ambíguos, não forçados.
 **Medido ao vivo:** 3 gates duros **293/293**, coder intocado (PRATA), ledger 43 e centro 216/262
-inalterados; suíte **628 verde**. **Pendente:** revisão do curador (autoridade Chediak) para promover
-ambíguos→decisivos com página antes de arquivar.
+inalterados; suíte **628 verde**.
+
+**Ledger de trítono ADJUDICADO POR HUMANO (2026-07-07, 100%):** o curador revisou as 43 caso a caso
+contra o Vol. I pp.111-116 (PDF em `base_estudo/`). Resultado: **6 `chromatic_approach`** confirmadas
+→ **Chediak XXXIV c, p.116** ("cromaticamente alterados"; citação afiada de p.111→p.116). As
+hipóteses do draft **caíram na leitura**: **bVI7** (bye-bye/ilusao) refutada (o quadro p.113 é
+empréstimo em MAIOR resolvendo no I; aqui é menor + resolve no ii); **#11** refutada (#11≠SubV, que
+resolve ½t abaixo — p.114). O **resíduo bV7/#IV7** (25) confirmado indecidível ("Emp genérico sem
+página que decida", consistente com `TRITONE-ADJUDICATION.md` n=170). **Flag p/ fix downstream:**
+`disa/30` (Db7→Ab7 por 4ªJ) pode ser Dext mis-codado Emp — revisar no coder. Final: **6 decididas
+citadas + 37 ambiguous honestas**, nenhuma forçada (regra de ouro: refutar > inflar). Só notas/
+citação no corpus-em-código (PRATA; DuckDB rebuildado, `chediak_page`=116 nos 6).
 
 **Worklist de centro — malha FECHADA (`adjudicate-center-worklist`, Trilha A #2):** mesmo padrão do
 trítono, agora para as **46 divergências** de centro (`detect_key` × `chediak_functional_center`,

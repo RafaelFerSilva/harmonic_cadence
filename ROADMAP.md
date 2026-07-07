@@ -46,7 +46,13 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
 **Próximos passos — duas trilhas (o norte das próximas sessões):**
 
 *Trilha A — ANÁLISE (adjudicação com Chediak; ZERO dado novo, tudo já no repo):*
-1. 🔶 **Ledger de trítono (43) — INFRAESTRUTURA + DRAFT feitos (`adjudicate-tritone-ledger`).** A
+1. ✅ **Ledger de trítono (43) — ADJUDICADO POR HUMANO 100% (2026-07-07).** Curador × Vol. I
+   pp.111-116: **6 `chromatic_approach`** cravadas (**Chediak XXXIV c, p.116**; citação afiada de
+   p.111); **bVI7** e **#11** refutadas na leitura → ambiguous honestos; **resíduo bV7** (25)
+   confirmado indecidível (consistente com `TRITONE-ADJUDICATION.md`). Flag: `disa/30` possível Dext
+   mis-codado → fix downstream. **Final: 6 decididas + 37 ambiguous, nenhuma forçada** (refutar >
+   inflar). Infra abaixo (a change `adjudicate-tritone-ledger`):
+   🔶 **Ledger de trítono (43) — INFRAESTRUTURA + DRAFT (`adjudicate-tritone-ledger`).** A
    malha neuro-simbólica FECHOU: corpus tipado `corpus.tritone_adjudications` (veredito citado, a
    `Citation` é gate; enum `subv`/`chromatic_approach`/`emp_legitimate`/`dsec_deceptive`/`ambiguous`),
    auditoria anti-drift (`scripts/audit_tritone_adjudication.py`), cruzamento na

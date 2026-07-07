@@ -109,8 +109,20 @@ class TritoneVerdict:
 # SEM função dominante, com movimento do baixo por grau conjunto e SEM resolução
 # dominante (estrutura constante). Um dominante-7 um semitom ABAIXO do V real,
 # resolvendo para CIMA nele, é dessa classe (nunca SubV, que resolve para baixo).
-# ADJUDICAÇÃO HUMANA (2026-07-07): as 6 confirmadas pelo curador contra o texto do
-# Vol. I pp.111-116 (afinou a citação p.111→p.116, a categoria específica c).
+# ADJUDICAÇÃO HUMANA COMPLETA (2026-07-07) — ledger de trítono 100% revisado pelo
+# curador contra o texto do Vol. I pp.111-116, caso a caso:
+#   • 6 `chromatic_approach` CONFIRMADAS → Chediak XXXIV c, p.116 (citação afiada de
+#     p.111→p.116, a categoria específica "cromaticamente alterados").
+#   • bVI7 (bye-bye-brasil ×2, ilusao-a-toa) REFUTADAS → o quadro p.113 é empréstimo em
+#     MAIOR resolvendo no I; aqui é tom menor + resolve no ii/cromático. Ficam ambiguous.
+#   • #11 (beatriz, ausencia, aqui-o/51, samba ×6) REFUTADAS → #11≠SubV (SubV resolve ½t
+#     ABAIXO, p.114); resolvem p/ cima / trítono / mesma-raiz / centro=None. Ficam ambiguous.
+#   • resíduo bV7/#IV7 (25 casos, deg=6 salvo flora=None e embarcacao=bII modulante)
+#     CONFIRMADO indecidível — não é SubV/c)/bVI7; classe "Emp genérico sem página que
+#     decida", consistente com TRITONE-ADJUDICATION.md (n=170). Ficam ambiguous honestos.
+#   • FLAG p/ FIX DOWNSTREAM (não veredito): disa/30 (Db7→Ab7 por 4ªJ) pode ser Dext
+#     mis-codado Emp — revisar no coder, não aqui.
+# Resultado: 6 decididas citadas + 37 ambiguous honestas (nenhuma forçada). PRATA intacto.
 # ---------------------------------------------------------------------------
 
 _P116 = Citation(
@@ -189,7 +201,10 @@ ADJUDICATIONS: tuple[TritoneVerdict, ...] = (
     _amb("disa", 13, "Db7(9)",
          "Gm: Db7 bV7 (trítono do centro) → Eb7M (+2). Ambíguo."),
     _amb("disa", 30, "Db7(9)",
-         "Gm: Db7 bV7 → Ab7(#11) (+7, outro dominante). Ambíguo."),
+         "Gm: Db7 → Ab7 por 4ªJ descendente (outro dominante). HUMANO (2026-07-07): "
+         "assinatura de dominante ESTENDIDO (Dext, XXVIII pp.107-108), não Emp — se for, "
+         "o coder codar Emp é DEFEITO → candidato a FIX DOWNSTREAM (não cadeia clara isolada, "
+         "então fica flag de revisão de coder, não veredito). Ambíguo aqui."),
     _amb("embarcacao", 12, "A7(b5)",
          "Abm: A7(b5) raiz bII (deg=1) → A7 (prolonga). SubV/I? (bII7 resolve ao I por "
          "semitom, mas aqui prolonga). Ambíguo."),
