@@ -69,8 +69,15 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
    que consulta o achador funcional (o #7 provou ao vivo que todo gate estrutural regride: "abre em
    ii-V" quebra agree/detect-certos). **Zero regressão** (simulação 293 + baseline). Corrige o
    detector, **não** move o placar (216/262: o funcional segue no ii → os 3 seguem `diverge`).
-   Restante do follow-up (fora de escopo): corrigir o achador funcional preferir o alvo do ii-V ao
-   ii (aí os 3 virariam agree, 216→219) — 2º subsistema do OURO, outra change.
+   **Follow-up INVESTIGADO E REJEITADO (2026-07-07, motor intacto):** corrigir o achador funcional a
+   preferir o alvo do ii-V ao ii (p/ os 3 virarem agree, 216→219) foi **simulado ao vivo nas 293 e
+   dá SALDO NEGATIVO** — a heurística "cand é um ii" quebra **5 agree** de alta confiança (`amazonas`
+   Am→Gm, `ate-parece` Em→Ré, `demais` Am→Sol, `e-nada-mais` Am→Gm, `gaiolas-abertas` Ebm→Dó#: são
+   tônicas menores legítimas, não ii) para ganhar 3. O #7 vale também para o achador funcional: sem
+   regra-cega segura. O único discriminador ("o detect também aponta X") acoplaria `functional_center
+   →detect_key` = **recursão** (o Path D já faz o inverso). **Decisão: não mexer no achador** — os 3
+   traps seguem `diverge` (os métodos genuinamente discordam), o detect já está correto (Path D) e a
+   adjudicação de centro cita o I. Placar 216/262 é **real**, não inflado.
 
 *Trilha B — DESENVOLVIMENTO (evoluir o produto sobre o corpus que temos):*
 3. **Camada C — overlay ML/NLP.** As análises do motor são **PRATA** (rótulos derivados de regra +
