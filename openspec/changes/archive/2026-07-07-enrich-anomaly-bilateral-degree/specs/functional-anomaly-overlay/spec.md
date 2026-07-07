@@ -1,13 +1,5 @@
-# functional-anomaly-overlay Specification
+## MODIFIED Requirements
 
-## Purpose
-Overlay estatístico (Camada C) que ranqueia as ocorrências de acorde do corpus persistido por
-SURPRESA funcional — subordinado ao símbolo (**PRATA**: o ML rankeia, o Chediak adjudica). Treina
-um LM de sequência sobre os `function_code`s do coder e materializa uma worklist de curadoria que
-prioriza as worklists de trítono/centro já suspeitas por teoria (Trilha B alimenta Trilha A). NUNCA
-reescreve rótulo, NUNCA arbitra centro, NUNCA é avaliado por acurácia contra o coder — discordância
-é sinal, não erro, o que mata a circularidade de treinar/medir sobre a saída do próprio motor.
-## Requirements
 ### Requirement: Modelo de sequência funcional suavizado
 
 O sistema SHALL treinar modelos de sequência sobre o corpus persistido (grão = ocorrência de
@@ -74,35 +66,3 @@ de gate/ledger existentes.
 
 - **WHEN** `v_anomaly_worklist` é remateralizada
 - **THEN** as 11 tabelas-base e as views `v_gate_*`/`v_ledger_*` permanecem inalteradas
-
-### Requirement: Relatório de anomalias sem placar
-
-O sistema SHALL expor o subcomando `harmonic corpus anomalies` que emite um relatório Markdown em
-PT-BR a partir de `v_anomaly_worklist`. O relatório SHALL exibir **denominadores visíveis** (total
-de ocorrências, quantas na worklist, cobertura) e SHALL NOT apresentar qualquer métrica como
-placar de acurácia/qualidade do detector — o overlay é descritivo e a decisão é do Chediak. O
-relatório SHALL declarar explicitamente que o ML **rankeia** e o Chediak **adjudica**.
-
-#### Scenario: Relatório mostra denominador, não placar
-
-- **WHEN** o usuário roda `harmonic corpus anomalies`
-- **THEN** o relatório lista as ocorrências mais surpreendentes com seus denominadores
-- **AND** NÃO contém nenhuma linha do tipo "acurácia/precisão do modelo = X%" ou placar equivalente
-
-#### Scenario: Guarda-corpo anti-placar testado
-
-- **WHEN** a suíte de testes verifica o texto do relatório
-- **THEN** um teste falha se aparecer vocabulário de placar (acurácia/precisão/score do modelo como verdade)
-
-### Requirement: Subordinação ao símbolo (PRATA, nunca ouro)
-
-O overlay SHALL ser estritamente subordinado ao motor simbólico. Ele SHALL NOT reescrever
-`function_code`, SHALL NOT arbitrar centro tonal, e SHALL NOT alterar o resultado do
-`songbook_baseline.py`, dos 3 gates duros (diminuto/D2/cadência) nem do `detect_key`. A saída do
-overlay SHALL ser consumida apenas como worklist de curadoria (sinal), nunca como verdade.
-
-#### Scenario: Gates duros e baseline intactos
-
-- **WHEN** o overlay é adicionado e materializado
-- **THEN** `songbook_baseline.py` continua reportando os 3 gates duros 293/293
-- **AND** nenhum `function_code` no `chord_occurrence` é modificado pelo overlay

@@ -101,6 +101,19 @@ def test_surprise_is_finite_and_positive(conn):
     assert row[1] < float("inf")
 
 
+def test_combined_is_mean_of_channels(conn):
+    """`surprise_bits` = média dos componentes bilaterais de função e grau."""
+    build_anomaly_worklist(conn)
+    rows = conn.execute(
+        "SELECT surprise_bits, surprise_function, surprise_degree "
+        "FROM v_anomaly_worklist"
+    ).fetchall()
+    assert rows
+    for combined, sf, sd in rows:
+        assert abs(combined - (sf + sd) / 2.0) < 1e-9
+        assert sf > 0 and sd > 0  # ambos os canais contribuem
+
+
 def test_materialization_does_not_touch_base_or_gates(conn):
     """Invariância: tabelas-base e gates idênticos antes/depois do overlay (PRATA)."""
     before = _base_snapshot(conn)
@@ -125,10 +138,11 @@ def test_rebuild_is_idempotent(conn):
     assert top1 == top2
 
 
-def test_report_shows_denominators(conn):
+def test_report_shows_components(conn):
+    """Componentes bilaterais de função e grau ficam visíveis (denominador)."""
     build_anomaly_worklist(conn)
     md = render_anomaly_report(conn)
-    assert "n(trigrama)" in md and "n(contexto)" in md
+    assert "↳função" in md and "↳grau" in md
     assert "Ocorrências pontuadas" in md
 
 

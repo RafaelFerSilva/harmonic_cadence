@@ -13,24 +13,30 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from harmonic_analysis.overlay.model import FunctionalSequenceModel
+from harmonic_analysis.overlay.model import BidirectionalModel
 
 if TYPE_CHECKING:
     import duckdb
 
+# `∅` = grau ausente (acorde sem grau diatônico) — token informativo, 1ª classe.
+_NO_DEGREE = "∅"
 
 _SCORE_DDL = """
 CREATE TABLE IF NOT EXISTS anomaly_score (
-    run_id         INTEGER,
-    song_id        INTEGER,
-    position       INTEGER,
-    function_code  VARCHAR,
-    surprise_bits  DOUBLE,
-    ngram_count    INTEGER,
-    context_count  INTEGER,
+    run_id             INTEGER,
+    song_id            INTEGER,
+    position           INTEGER,
+    function_code      VARCHAR,
+    degree             VARCHAR,
+    surprise_bits      DOUBLE,  -- combinado = média(função, grau)
+    surprise_function  DOUBLE,  -- bilateral, canal de função
+    surprise_degree    DOUBLE,  -- bilateral, canal de grau
     PRIMARY KEY (run_id, song_id, position)
 );
 """
+
+# Colunas que a v2 acrescenta — se a tabela v1 existir sem elas, recriamos (derivado).
+_V2_COLUMNS = {"degree", "surprise_function", "surprise_degree"}
 
 # Worklist = escores do run corrente + o acorde/símbolo + marcas de interseção com
 # as worklists de curadoria já existentes (trítono não-dominante; centro divergente).
@@ -42,9 +48,10 @@ SELECT
     a.position,
     o.symbol,
     a.function_code,
+    a.degree,
     a.surprise_bits,
-    a.ngram_count,
-    a.context_count,
+    a.surprise_function,
+    a.surprise_degree,
     (t.song_id IS NOT NULL)               AS in_tritone_ledger,
     (s.center_status = 'diverge')         AS in_center_diverge,
     s.completeness
@@ -74,45 +81,47 @@ def build_anomaly_worklist(
     """
     run_id = _current_run_id(conn)
 
-    # Sequências por música, em ordem de position (escopo = run corrente).
+    # Sequências por música, em ordem de position (escopo = run corrente). Dois
+    # canais: função e grau (NULL → sentinela ∅, informativo).
     rows = conn.execute(
         """
-        SELECT o.song_id, o.position, o.function_code
+        SELECT o.song_id, o.position, o.function_code, o.degree
         FROM chord_occurrence o
         JOIN v_song_current s ON o.song_id = s.song_id
         ORDER BY o.song_id, o.position
         """
     ).fetchall()
 
-    sequences: dict[int, list[tuple[int, str]]] = {}
-    for song_id, position, fn in rows:
-        sequences.setdefault(song_id, []).append((position, fn))
+    sequences: dict[int, list[tuple[int, str, str]]] = {}
+    for song_id, position, fn, deg in rows:
+        sequences.setdefault(song_id, []).append(
+            (position, fn, deg if deg is not None else _NO_DEGREE)
+        )
 
-    model = FunctionalSequenceModel(order=order)
-    model.fit([[fn for _pos, fn in seq] for seq in sequences.values()])
+    fn_model = BidirectionalModel(order=order).fit(
+        [[fn for _p, fn, _d in seq] for seq in sequences.values()]
+    )
+    deg_model = BidirectionalModel(order=order).fit(
+        [[d for _p, _fn, d in seq] for seq in sequences.values()]
+    )
 
     records: list[tuple] = []
     for song_id, seq in sequences.items():
-        codes = [fn for _pos, fn in seq]
-        for (position, _fn), sc in zip(seq, model.score_sequence(codes)):
+        fn_bits = fn_model.score_sequence([fn for _p, fn, _d in seq])
+        deg_bits = deg_model.score_sequence([d for _p, _fn, d in seq])
+        for (position, fn, deg), sf, sd in zip(seq, fn_bits, deg_bits):
+            combined = (sf + sd) / 2.0
             records.append(
-                (
-                    run_id,
-                    song_id,
-                    position,
-                    sc.function_code,
-                    sc.surprise_bits,
-                    sc.ngram_count,
-                    sc.context_count,
-                )
+                (run_id, song_id, position, fn, deg, combined, sf, sd)
             )
 
-    conn.execute(_SCORE_DDL)
+    # Rebuild derivado: se a tabela v1 existir sem as colunas da v2, recria (sem perda).
+    _ensure_score_schema(conn)
     conn.execute("DELETE FROM anomaly_score WHERE run_id = ?", [run_id])
     conn.executemany(
         "INSERT INTO anomaly_score "
-        "(run_id, song_id, position, function_code, surprise_bits, "
-        " ngram_count, context_count) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "(run_id, song_id, position, function_code, degree, surprise_bits, "
+        " surprise_function, surprise_degree) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         records,
     )
     conn.execute(_WORKLIST_DDL)
@@ -123,3 +132,20 @@ def build_anomaly_worklist(
         "n_songs": len(sequences),
         "order": order,
     }
+
+
+def _ensure_score_schema(conn: "duckdb.DuckDBPyConnection") -> None:
+    """Cria `anomaly_score`; se a tabela v1 (sem colunas v2) existir, recria-a.
+
+    A tabela é derivada/regenerável — dropá-la não perde nada (o run é recomputado).
+    """
+    existing = {
+        r[0]
+        for r in conn.execute(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_name = 'anomaly_score'"
+        ).fetchall()
+    }
+    if existing and not _V2_COLUMNS.issubset(existing):
+        conn.execute("DROP TABLE anomaly_score")
+    conn.execute(_SCORE_DDL)

@@ -107,8 +107,21 @@ discordância é SINAL, não erro — nenhuma avaliação por acurácia contra o
 3 gates duros seguem **293/293**, nenhum `function_code` alterado (invariante PRATA testado); as 43
 do ledger de trítono saem ranqueadas por surpresa (todas `Emp`, o resíduo bV7→Emp ambíguo — insumo
 direto da adjudicação Chediak). **+14 testes** (modelo: suavização-sem-zero/determinismo/fronteira;
-worklist: cobertura/invariância-base/idempotência/anti-placar). Follow-ups abertos: contexto
-bilateral, feature de grau, embeddings+similaridade (próxima change da Camada C).
+worklist: cobertura/invariância-base/idempotência/anti-placar).
+
+**Overlay enriquecido — bilateral + grau (`enrich-anomaly-bilateral-degree`, 2ª change ML):** a
+surpresa deixou de ser causal-só-função. `BidirectionalModel` treina o LM nas **duas direções**
+(causal + reversa sobre sequências revertidas por música) e o overlay roda **dois canais** —
+`function_code` e `degree` (`NULL`→sentinela `∅`, informativo). A surpresa de cada canal = média
+das direções; `surprise_bits` = média dos canais, com **componentes visíveis** (`surprise_function`/
+`surprise_degree`) na `anomaly_score`/`v_anomaly_worklist` (schema v1→v2 recria a tabela derivada no
+rebuild; a view expõe `degree` + os componentes). Pega o que o causal-só-função perdia: acorde
+normal pela esquerda mas atípico à direita (resolução), e função comum em **grau** raro (ex.:
+`desafinado` Gb7M `Crom`/VII° anômalo nos dois canais; `cancao-do-amanhecer` Gm7(9) `Outro`/vii sobe
+pelo grau). **Medido ao vivo:** 3 gates duros seguem **293/293**, `function_code`/`degree` do coder
+intocados (PRATA), **+5 testes** (bilateral espelha/fronteira-dupla; combinado=média-dos-canais).
+Follow-ups abertos: peso função×grau / ordenação por componente; embeddings+similaridade (próxima
+change da Camada C).
 
 **Camada de persistência (`persist-analysis-corpus`, frente #8):** a saída do motor deixou de ser
 efêmera — `harmonic_analysis/persistence/` disseca o `result` num banco **DuckDB** (11 tabelas,

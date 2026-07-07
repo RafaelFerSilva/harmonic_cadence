@@ -8,7 +8,10 @@ Testa as três invariantes da spec `functional-anomaly-overlay`:
 
 import math
 
-from harmonic_analysis.overlay.model import FunctionalSequenceModel
+from harmonic_analysis.overlay.model import (
+    BidirectionalModel,
+    FunctionalSequenceModel,
+)
 
 # Corpus-brinquedo: "gramática" tonal simples repetida + uma frase rara.
 _COMMON = ["T", "SD", "D", "T"]
@@ -75,3 +78,48 @@ def test_first_token_uses_empty_context():
     s = m.surprise_of(["T", "SD"], 0)
     assert s.context == ()
     assert math.isfinite(s.surprise_bits)
+
+
+# ── Bilateral (enrich-anomaly-bilateral-degree) ──────────────────────────────
+
+
+def _bimodel(order=3):
+    return BidirectionalModel(order=order).fit(_CORPUS)
+
+
+def test_bilateral_is_mean_of_forward_and_backward():
+    """A surpresa bilateral é a média exata das duas direções."""
+    m = _bimodel()
+    seq = _COMMON
+    i = 2
+    fwd = m.forward.surprise_of(seq, i).surprise_bits
+    bwd = m.backward.surprise_of(list(reversed(seq)), len(seq) - 1 - i).surprise_bits
+    assert m.surprise_bits(seq, i) == (fwd + bwd) / 2.0
+
+
+def test_bilateral_finite_and_deterministic():
+    a = _bimodel().score_sequence(_COMMON)
+    b = _bimodel().score_sequence(_COMMON)
+    assert a == b
+    assert all(math.isfinite(x) for x in a)
+
+
+def test_backward_context_looks_at_the_future():
+    """A direção reversa distingue o que vem DEPOIS.
+
+    Numa música A→B→C onde C é raro, o backward pontua B condicionando em C
+    (futuro). Se o backward ignorasse o futuro, forward e backward coincidiriam
+    para toda posição interna — construímos um caso em que diferem.
+    """
+    m = BidirectionalModel(order=2).fit([["T", "SD", "D"]] * 3 + [["T", "SD", "Dim"]])
+    seq = ["T", "SD", "Dim"]
+    fwd = m.forward.surprise_of(seq, 1).surprise_bits          # SD dado T (comum)
+    bwd = m.backward.surprise_of(["Dim", "SD", "T"], 1).surprise_bits  # SD dado Dim (raro)
+    assert bwd > fwd  # o futuro raro torna SD mais surpreendente por trás
+
+
+def test_bilateral_respects_song_boundary():
+    """Reverter é por-música: o backward não junta o fim de uma com o início da outra."""
+    m = BidirectionalModel(order=2).fit([["SD", "T"], ["T", "SD"]])
+    # 'T'→'T' não ocorre dentro de música NEM na versão revertida de cada música
+    assert m.backward._counts[2].get(("T", "T"), 0) == 0

@@ -62,17 +62,16 @@ def render_anomaly_report(conn, top_n: int = 25) -> str:
         "Onde a Trilha B (ML) alimenta a Trilha A (Chediak): a surpresa **ordena** o "
         "que adjudicar dentro das worklists que já são suspeitas por teoria.\n"
     )
-    cols = ["Música", "Pos", "Acorde", "Função", "Surpresa (bits)",
-            "n(trigrama)", "n(contexto)"]
+    cols = ["Música", "Pos", "Acorde", "Função", "Grau",
+            "Surpresa (bits)", "↳função", "↳grau"]
+    select = (
+        "SELECT title, position, symbol, function_code, degree, "
+        "ROUND(surprise_bits, 2), ROUND(surprise_function, 2), "
+        "ROUND(surprise_degree, 2) FROM v_anomaly_worklist"
+    )
 
     tritone = conn.execute(
-        """
-        SELECT title, position, symbol, function_code,
-               ROUND(surprise_bits, 2), ngram_count, context_count
-        FROM v_anomaly_worklist
-        WHERE in_tritone_ledger
-        ORDER BY surprise_bits DESC
-        """
+        f"{select} WHERE in_tritone_ledger ORDER BY surprise_bits DESC"
     ).fetchall()
     parts.append(
         f"\n### 2a. Ledger de trítono não-dominante — todas as {n_tritone}, "
@@ -81,14 +80,7 @@ def render_anomaly_report(conn, top_n: int = 25) -> str:
     parts.append(_table(cols, tritone))
 
     center = conn.execute(
-        """
-        SELECT title, position, symbol, function_code,
-               ROUND(surprise_bits, 2), ngram_count, context_count
-        FROM v_anomaly_worklist
-        WHERE in_center_diverge
-        ORDER BY surprise_bits DESC
-        LIMIT ?
-        """,
+        f"{select} WHERE in_center_diverge ORDER BY surprise_bits DESC LIMIT ?",
         [top_n],
     ).fetchall()
     parts.append(
@@ -99,26 +91,14 @@ def render_anomaly_report(conn, top_n: int = 25) -> str:
 
     # ── 3. Mais surpreendentes no geral (contexto, não veredito) ─────────────
     top = conn.execute(
-        """
-        SELECT title, position, symbol, function_code,
-               ROUND(surprise_bits, 2), ngram_count, context_count
-        FROM v_anomaly_worklist
-        ORDER BY surprise_bits DESC
-        LIMIT ?
-        """,
-        [top_n],
+        f"{select} ORDER BY surprise_bits DESC LIMIT ?", [top_n]
     ).fetchall()
     parts.append(f"\n## 3. Mais surpreendentes no corpus (top {top_n})\n")
     parts.append(
-        "Contexto descritivo — muitas serão MPB legítima; o denominador "
-        "(`n(trigrama)`/`n(contexto)`) mostra o quão raro é o caso:\n"
+        "Surpresa **bilateral** (média das direções) e **combinada** de dois canais — "
+        "os componentes `↳função`/`↳grau` ficam à vista (muitas serão MPB legítima; "
+        "grau `∅` = acorde sem grau diatônico):\n"
     )
-    parts.append(
-        _table(
-            ["Música", "Pos", "Acorde", "Função", "Surpresa (bits)",
-             "n(trigrama)", "n(contexto)"],
-            top,
-        )
-    )
+    parts.append(_table(cols, top))
     parts.append("")
     return "\n".join(parts)

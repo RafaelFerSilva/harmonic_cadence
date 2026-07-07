@@ -15,6 +15,9 @@ Import tardio de `duckdb`: o núcleo não o importa; só o subcomando `corpus an
 e o materializador puxam esta camada.
 """
 
-from harmonic_analysis.overlay.model import FunctionalSequenceModel
+from harmonic_analysis.overlay.model import (
+    BidirectionalModel,
+    FunctionalSequenceModel,
+)
 
-__all__ = ["FunctionalSequenceModel"]
+__all__ = ["FunctionalSequenceModel", "BidirectionalModel"]

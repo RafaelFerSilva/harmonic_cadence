@@ -64,8 +64,12 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
      o produto é uma **worklist de discordância ranqueada** (discordância = SINAL, não erro), cruzada
      com o ledger de trítono (43) e centro-diverge (46): a **Trilha B ordena o que a Trilha A
      adjudica**. Gates duros 293/293 intactos, `function_code` nunca reescrito (PRATA), +14 testes.
-   - Próximas (abertas): contexto bilateral / feature de grau no mesmo overlay; **embeddings de
-     progressão + retrieval de similaridade** (ferramenta musicológica descritiva).
+   - ✅ **2ª change — `enrich-anomaly-bilateral-degree` (feita):** surpresa **bilateral** (média
+     causal+reversa, `BidirectionalModel`) e **bi-canal** (função + grau, `NULL`→`∅`); combinado =
+     média dos canais, com componentes visíveis. Pega o que o causal-só-função perdia (resolução
+     atípica à direita; função comum em grau raro). Gates 293/293, coder intocado (PRATA), +5 testes.
+   - Próximas (abertas): peso função×grau / ordenação por componente; **embeddings de progressão +
+     retrieval de similaridade** (ferramenta musicológica descritiva).
 4. **Aprofundar o analytics musicológico** — o retorno de ter 293 músicas: novas views/relatórios
    descritivos (distribuições de cadência, trigramas de função, vocabulário por modo já existem;
    expandir), sempre **denominador visível, nunca placar**. Insumo direto p/ a adjudicação (A).

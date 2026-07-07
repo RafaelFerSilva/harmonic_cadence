@@ -125,3 +125,39 @@ class FunctionalSequenceModel:
         """Surpresa de cada posição da sequência (contexto causal, sem cruzar música)."""
         seq = list(sequence)
         return [self.surprise_of(seq, i) for i in range(len(seq))]
+
+
+class BidirectionalModel:
+    """Surpresa BILATERAL sobre um canal — média das direções causal e reversa.
+
+    Envolve dois `FunctionalSequenceModel`: um treinado esquerda→direita, outro sobre
+    as sequências REVERTIDAS (direita→esquerda). A surpresa reversa da posição `i` de
+    uma música é a surpresa da posição espelhada `L−1−i` na sequência revertida —
+    então o contexto reverso é o que vem DEPOIS, sem cruzar fronteira de música (cada
+    música é revertida isoladamente). O núcleo é agnóstico ao token, então isto serve
+    igual para função e para grau.
+    """
+
+    def __init__(self, order: int = 3) -> None:
+        self.order = order
+        self.forward = FunctionalSequenceModel(order=order)
+        self.backward = FunctionalSequenceModel(order=order)
+
+    def fit(self, sequences) -> "BidirectionalModel":
+        seqs = [list(s) for s in sequences]
+        self.forward.fit(seqs)
+        self.backward.fit([list(reversed(s)) for s in seqs])
+        return self
+
+    def surprise_bits(self, sequence, index: int) -> float:
+        """Média (bits) da surpresa causal e reversa da posição `index`."""
+        seq = list(sequence)
+        fwd = self.forward.surprise_of(seq, index).surprise_bits
+        rev = list(reversed(seq))
+        bwd = self.backward.surprise_of(rev, len(seq) - 1 - index).surprise_bits
+        return (fwd + bwd) / 2.0
+
+    def score_sequence(self, sequence) -> list[float]:
+        """Surpresa bilateral (bits) de cada posição da sequência."""
+        seq = list(sequence)
+        return [self.surprise_bits(seq, i) for i in range(len(seq))]
