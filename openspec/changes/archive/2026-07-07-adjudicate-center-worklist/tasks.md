@@ -34,4 +34,4 @@
 ## 6. Fecho
 
 - [x] 6.1 Atualizar AGENTS.md/ROADMAP: worklist de centro adjudicada (contagem por `winner`); anotar eventual change de fix downstream (armadilha ii-V / V-como-tônica).
-- [ ] 6.2 `openspec archive adjudicate-center-worklist` após validação (com sync das specs).
+- [x] 6.2 `openspec archive adjudicate-center-worklist` após validação (com sync das specs).
