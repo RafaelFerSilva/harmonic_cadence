@@ -204,11 +204,13 @@ class HarmonicCLI:
             "corpus", help="Persiste as análises do corpus local e audita os gates"
         )
         corpus_parser.add_argument(
-            "action", choices=["build", "gates", "report", "anomalies", "similar"],
+            "action",
+            choices=["build", "gates", "report", "anomalies", "similar", "clusters"],
             help="build: materializa cifras/*.md no banco; gates: audita os "
             "invariantes; report: relatório musicológico descritivo (Markdown); "
             "anomalies: worklist de anomalia funcional (overlay Camada C, PRATA); "
-            "similar: músicas harmonicamente próximas (--song <slug>)",
+            "similar: músicas harmonicamente próximas (--song <slug>); "
+            "clusters: famílias harmônicas do corpus (--k N)",
         )
         corpus_parser.add_argument(
             "--song", default=None,
@@ -543,6 +545,46 @@ class HarmonicCLI:
                 cad = ", ".join(traits["cadences"]) or "—"
                 print(f"  {sim:.3f}  {ntitle} ({nslug}){partial}")
                 print(f"         funções em comum: {shared} · cadências: {cad}")
+            conn.close()
+            return
+
+        if args.action == "clusters":
+            # Famílias harmônicas do corpus (Camada C, descritivo).
+            from harmonic_analysis.overlay.clustering import (
+                build_clusters,
+                cluster_traits,
+            )
+
+            summary = build_clusters(conn, k=args.k)
+            print(
+                f"\n{summary['k']} famílias harmônicas sobre {summary['n_songs']} "
+                f"músicas (k escolhido pelo usuário — descritivo, NÃO 'k ótimo'; "
+                "família ≠ qualidade)\n"
+            )
+            rows = conn.execute(
+                "SELECT cluster_id, song_id, song_title, song_slug, "
+                "completeness, is_medoid FROM v_song_cluster ORDER BY cluster_id, "
+                "is_medoid DESC, song_title"
+            ).fetchall()
+            from itertools import groupby
+
+            for cid, group in groupby(rows, key=lambda r: r[0]):
+                members = list(group)
+                ids = [m[1] for m in members]
+                traits = cluster_traits(conn, ids)
+                medoid = next((m for m in members if m[5]), members[0])
+                fn = ", ".join(traits["functions"]) or "—"
+                cad = ", ".join(traits["cadences"]) or "—"
+                print(f"Família {cid} — {len(members)} músicas · "
+                      f"protótipo: «{medoid[2]}» ({medoid[3]})")
+                print(f"  traços: funções {fn} · cadências {cad}")
+                shown = [m for m in members if not m[5]][:6]
+                for _cid, _sid, title, slug, compl, _med in shown:
+                    tag = "" if compl == "complete" else f"  [cifra {compl}]"
+                    print(f"    · {title} ({slug}){tag}")
+                if len(members) - 1 > len(shown):
+                    print(f"    … +{len(members) - 1 - len(shown)} músicas")
+                print()
             conn.close()
             return
         gates = {

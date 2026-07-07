@@ -72,9 +72,14 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
      DuckDB (reusa o `Fingerprint` de `style_fingerprint`, **transposição-invariante**), top-K
      vizinhos materializados (`song_neighbor`/`v_song_neighbor`) e `harmonic corpus similar --song
      <slug>` com traços compartilhados. Descritivo (similaridade ≠ qualidade). Gates 293/293, +8 testes.
+   - ✅ **4ª change — `harmonic-corpus-clustering` (feita):** famílias harmônicas + medoid por família
+     (aglomerativo average-linkage puro-Python sobre os embeddings de estilo, eixo global), materializa
+     `song_cluster`/`v_song_cluster` e `harmonic corpus clusters [--k N]`. Descritivo (k do usuário, sem
+     "k ótimo"). Achado (k=8): núcleo T-SD-D de 247/293 + satélites distintivos (família `Emp`, família
+     `Dsec`) = candidatos à curadoria. Gates 293/293, +7 testes.
    - Próximas (abertas): peso função×grau / ordenação por componente no overlay de anomalia;
-     embeddings aprendidos (song2vec); clustering / "música mais central"; `--metric` (JSD já no
-     domínio); ponderação por completude.
+     embeddings aprendidos (song2vec); `--linkage` (complete/Ward); traços por CONTRASTE vs. corpus;
+     `--metric` (JSD já no domínio); ponderação por completude.
 4. **Aprofundar o analytics musicológico** — o retorno de ter 293 músicas: novas views/relatórios
    descritivos (distribuições de cadência, trigramas de função, vocabulário por modo já existem;
    expandir), sempre **denominador visível, nunca placar**. Insumo direto p/ a adjudicação (A).

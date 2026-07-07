@@ -135,8 +135,23 @@ o "porquê" visível). Descritivo: similaridade ≠ qualidade; não reescreve co
 **Medido ao vivo:** gates **293/293**, coder intocado; vizinhos plausíveis (garota-de-ipanema →
 o-amor-que-acabou/alvorada, T/SD/Emp + cadências em comum). **+8 testes** (invariância de transposição:
 ii-V-I em Dó ≡ em Ré → sim 1.0; top-K sem auto-vizinho; determinismo; slug inexistente falha visível).
-Follow-ups: embeddings aprendidos (song2vec); clustering/"música mais central"; ponderação por
-completude; `--metric` (JSD já exposto no domínio).
+Follow-ups: embeddings aprendidos (song2vec); ponderação por completude; `--metric` (JSD já exposto
+no domínio).
+
+**Clustering de corpus (`harmonic-corpus-clustering`, 4ª change ML):** o mapa do corpus inteiro —
+**famílias harmônicas** + a **música-protótipo (medoid)** de cada uma. `overlay/clustering.py` faz
+agrupamento aglomerativo (*average-linkage*) **puro-Python** (sem dep; 293 músicas é trivial) sobre a
+distância de cosseno entre os embeddings de estilo, vetorizados num **eixo de funções global**
+(comparabilidade). Materializa `song_cluster` + view `v_song_cluster` (derivado/aditivo) e expõe
+**`harmonic corpus clusters [--k N]`**, mostrando por família: tamanho, protótipo, membros e os traços
+que a definem (funções/cadências dominantes). O `k` é do usuário — **sem "k ótimo"** (descritivo,
+não placar; família ≠ qualidade). **Achado no dado real (k=8):** um núcleo T-SD-D gigante (247/293 —
+fato da bossa, tamanho à vista) + satélites que são os **dialetos distintivos** (família com `Emp` =
+empréstimo modal: inutil-paisagem, samba-de-uma-nota-so; família com `Dsec` = secundários: rio). Cada
+satélite é candidato à curadoria (insumo da Trilha A). **Medido ao vivo:** gates **293/293**, coder
+intocado; **+7 testes** (cada música em 1 família; determinismo; perfis idênticos juntos; 1 medoid por
+família; k capado no nº de músicas). Follow-ups: `--linkage` (complete/Ward p/ partição mais
+equilibrada); traços por CONTRASTE vs. o corpus (o que a família tem A MAIS); ponderação por completude.
 
 **Camada de persistência (`persist-analysis-corpus`, frente #8):** a saída do motor deixou de ser
 efêmera — `harmonic_analysis/persistence/` disseca o `result` num banco **DuckDB** (11 tabelas,
