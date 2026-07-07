@@ -338,6 +338,62 @@ def _cadential_resolution_path(infos, present, ks_pc: int) -> Optional[Tuple[int
     return (X, mode) if mode is not None else None
 
 
+def _ii_v_bracket_path(
+    symbols: Sequence[str], ks_best: Tuple[int, str]
+) -> Optional[Tuple[int, str]]:
+    """Path D (bracket ii-V): corrige Y→X=(Y−7) na ARMADILHA do ii-V — um vamp `ii-V`
+    onde o K-S pega o **V** (Y) e o achador funcional pega o **ii**, e NENHUM pega o
+    **I** (X, o alvo do V). Chediak pp.84-85: o ii-V é tensão (SD+D), a tônica é o I.
+
+    Único path que CONSULTA o achador funcional (os A/B/C são estruturais): a simulação
+    ao vivo (293) provou que todo gate estrutural regride (o #7) — "abre em ii-V" quebra
+    agree/detect-certos. O bracket ("detect=V de X E funcional=ii de X") é o único
+    discriminador seguro (dispara só em bolinha/menina/rio; zero falso-positivo).
+
+    Import TARDIO de `chediak_functional_center` (sem ciclo: `functional_center` só
+    depende de `cifra_core` e NÃO chama `detect_key` — sem recursão), atrás das
+    pré-condições baratas (só computa o funcional quando a assinatura é plausível).
+    """
+    infos = _chord_infos(symbols)
+    present = [i for i in infos if i is not None]
+    if not present:
+        return None
+    ks_pc = ks_best[0]
+    X = (ks_pc - 7) % 12
+    if X == ks_pc:
+        return None
+    # (pré) ≥2 resoluções V7/SubV7 → X (baixo seguinte em X) na peça inteira.
+    dom, subv = (X + 7) % 12, (X + 1) % 12
+    resolutions = sum(
+        1
+        for cur, nxt in zip(infos, infos[1:])
+        if cur is not None
+        and nxt is not None
+        and cur[2] is Category.DOMINANT
+        and cur[0] in (dom, subv)
+        and nxt[1] == X
+    )
+    if resolutions < 2:
+        return None
+    # (pré) X aparece como repouso ao menos 1× (vamp: a tônica também soa I7/C9).
+    mode = _x_mode(present, X)
+    if mode is None:
+        return None
+    # (bracket) só agora consulta o achador funcional: ele pegou o ii de X (raiz X+2,
+    # menor)? Se sim, os dois métodos cercam X (V + ii) ⇒ X é a tônica.
+    from harmonic_analysis.validation.functional_center import (
+        chediak_functional_center,
+    )
+
+    center = chediak_functional_center(symbols)
+    if center is None:
+        return None
+    fc_root, fc_mode = center
+    if fc_mode != "minor" or fc_root != (X + 2) % 12:
+        return None
+    return (X, mode)
+
+
 def _tritone_gate(
     symbols: Sequence[str], ks_best: Tuple[int, str]
 ) -> Optional[Tuple[int, str]]:
@@ -451,6 +507,17 @@ def detect_key(symbols: Sequence[str]) -> Optional[KeyEstimate]:
     gated = _tritone_gate(symbols, (best_tonic, best_mode))
     if gated is not None and gated != (best_tonic, best_mode):
         best_tonic, best_mode = gated
+        best_score = next(
+            (s for s, t, m in ranked if (t, m) == (best_tonic, best_mode)),
+            best_score,
+        )
+
+    # Path D (bracket ii-V): a armadilha onde o K-S pega o V e o achador funcional pega
+    # o ii — os A/B/C não pegam (X não é o 1º acorde; a peça abre no ii). Único path que
+    # consulta o funcional (o #7 provou que o estrutural regride). Ver _ii_v_bracket_path.
+    bracketed = _ii_v_bracket_path(symbols, (best_tonic, best_mode))
+    if bracketed is not None and bracketed != (best_tonic, best_mode):
+        best_tonic, best_mode = bracketed
         best_score = next(
             (s for s, t, m in ranked if (t, m) == (best_tonic, best_mode)),
             best_score,

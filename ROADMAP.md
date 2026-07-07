@@ -63,9 +63,14 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
    anti-drift `scripts/audit_center_adjudication.py`. ANOTAÇÃO PRATA — **não toca `detect_key`**.
    Vereditos: **`functional` 28, `detect` 8, `neither_ii_v` 3 (armadilha ii-V), `modulating` 4,
    `ambiguous` 3**. Achado #7 preservado (sem vencedor único). Gates 293/293, detecção intocada, suíte
-   727 verde. **Follow-up downstream (não urgente):** gate cirúrgico do `detect_key` só se seguro
-   (V/ii-como-tônica alta-confiança com V→I limpo a repouso; ou a armadilha ii-V = achador preferir o
-   ALVO do V ao ii), sem tocar os `detect`-certo. Molde do fix: `add-cadential-v-as-tonic-path` (Path C).
+   727 verde. **Follow-up downstream FEITO (parcial):** `add-ii-v-bracket-center-path` — **Path D
+   (bracket ii-V)** no gate do `detect_key`: corrige `bolinha`/`menina`/`rio` → Dó/Dó/Fá quando o
+   detect pega o **V de X** e o funcional pega o **ii de X** (os dois cercam a tônica). Único path
+   que consulta o achador funcional (o #7 provou ao vivo que todo gate estrutural regride: "abre em
+   ii-V" quebra agree/detect-certos). **Zero regressão** (simulação 293 + baseline). Corrige o
+   detector, **não** move o placar (216/262: o funcional segue no ii → os 3 seguem `diverge`).
+   Restante do follow-up (fora de escopo): corrigir o achador funcional preferir o alvo do ii-V ao
+   ii (aí os 3 virariam agree, 216→219) — 2º subsistema do OURO, outra change.
 
 *Trilha B — DESENVOLVIMENTO (evoluir o produto sobre o corpus que temos):*
 3. **Camada C — overlay ML/NLP.** As análises do motor são **PRATA** (rótulos derivados de regra +

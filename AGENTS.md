@@ -212,6 +212,21 @@ vencedor único.** Medido ao vivo: gates **293/293**, detecção intocada (PRATA
 ledger 43 inalterados, suíte **727 verde**. **Distinto de `modal_centers`** (centro modal grego
 não-codificado); aqui é a divergência do centro TONAL entre dois métodos do motor.
 
+**Path D — bracket ii-V no `detect_key` (`add-ii-v-bracket-center-path`, 1º fix downstream da
+adjudicação de centro):** a armadilha do ii-V (`neither_ii_v`: bolinha/menina/rio) virou correção
+no motor. Novo `_ii_v_bracket_path` no gate de qualidade: corrige `Y→X=(Y−7)` quando o `detect_key`
+pega o **V de X** *e* o `chediak_functional_center` pega o **ii de X** (raiz X+2 menor) — os dois
+cercam a tônica (Chediak pp.84-85: ii-V é tensão SD+D, a tônica é o I). É o **único** path que
+consulta o achador funcional (A/B/C são estruturais) — a **simulação ao vivo (293) provou que todo
+gate estrutural REGRIDE** (o #7): "abre em ii-V" quebra `ceu-e-mar`/`pouca-duracao` (agree) e
+`feitinha`/`chora` (detect-certo); só o bracket ("ambos cercam X") é seguro. Import **tardio** do
+funcional (sem ciclo: `functional_center`→só `cifra_core`, não chama `detect_key`; sem recursão),
+atrás de pré-condições baratas. **Medido:** disparo em **exatamente** bolinha/menina/rio (→Dó/Dó/Fá),
+zero falso-positivo; 3 gates duros **293/293**, corroboração **216/262 INALTERADA** (corrige o
+detector, não o placar — o funcional segue no ii, os 3 seguem `diverge`), suíte **740 verde**.
+**Follow-up (fora de escopo):** corrigir o achador funcional preferir o alvo do ii-V ao ii → aí os
+3 viram agree (216→219); 2º subsistema do OURO, outra change.
+
 **Camada de persistência (`persist-analysis-corpus`, frente #8):** a saída do motor deixou de ser
 efêmera — `harmonic_analysis/persistence/` disseca o `result` num banco **DuckDB** (11 tabelas,
 grão = ocorrência de acorde) via `harmonic corpus build` (roda o motor sobre `cifras/*.md`, sem
