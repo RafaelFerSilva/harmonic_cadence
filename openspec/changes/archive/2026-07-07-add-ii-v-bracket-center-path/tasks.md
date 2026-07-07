@@ -18,4 +18,4 @@
 ## 4. Fecho
 
 - [x] 4.1 Atualizar AGENTS.md/ROADMAP: Path D (bracket ii-V) fechado; nota de que corrige o detector sem mover o placar; follow-up (achador funcional) registrado.
-- [ ] 4.2 `openspec archive add-ii-v-bracket-center-path` após validação (com sync das specs).
+- [x] 4.2 `openspec archive add-ii-v-bracket-center-path` após validação (com sync das specs).
