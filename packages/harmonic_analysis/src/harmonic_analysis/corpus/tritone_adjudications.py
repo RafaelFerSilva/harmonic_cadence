@@ -167,16 +167,18 @@ ADJUDICATIONS: tuple[TritoneVerdict, ...] = (
     _amb("aqui-o", 33, "Bb7(#5)",
          "Em: Bb7(#5) bV7 → Gb7M(9) (+8). Ambíguo."),
     _amb("aqui-o", 51, "Bb7(#11)",
-         "Em: Bb7(#11) bV7 → Bbm7(b5) (+0, mesma raiz). #11 sugere SubV mas a resolução "
-         "não confirma. Ambíguo."),
+         "E: Bm7 Bb7(#11) → Bbm7(b5) Eb7→Ab; bV7. HUMANO (2026-07-07): #11≠SubV (SubV "
+         "resolve ½t ABAIXO, p.114) — aqui troca de qualidade na MESMA raiz (Bb7→Bbm7b5), "
+         "sem resolução. Resíduo bV7 honesto."),
     _amb("aqui-o", 60, "Bb7(9/13)",
          "Em: Bb7 bV7 → Abm7(9) (+10). Ambíguo."),
     _amb("ausencia-de-voce", 65, "B7(#11)",
-         "Fm: B7(#11) bV7 → F7M por trítono (+6) ao I. #11 sugere SubV mas resolve por "
-         "trítono, não por semitom. Ambíguo."),
+         "Fm: Gb6 B7(#11) → F7M; bV7 (trítono). HUMANO (2026-07-07): #11≠SubV (SubV resolve "
+         "½t abaixo, p.114) — aqui resolve por TRÍTONO à tônica (F). Resíduo bV7 honesto."),
     _amb("beatriz", 47, "A7(#11)",
-         "Ebm: A7(#11) bV7 → A#m7(11) (+1, sobe um semitom). #11 sugere SubV, mas SubV "
-         "resolve DESCENDO um semitom. Ambíguo."),
+         "Eb maj: B7M(9) A7(#11) → A#m7(=Bbm7, a v); bV7. HUMANO (2026-07-07): #11≠SubV "
+         "(SubV resolve ½t ABAIXO, p.114) — aqui sobe ½t a um acorde MENOR (Bbm7), não "
+         "dominante; não é c) (não é estrutura constante). Resíduo bV7 honesto."),
     _amb("bye-bye-brasil", 29, "Bb7(9)",
          "Dm: F7M Bb7(9)→Em7(ii); Bb7 deg=8. HUMANO (2026-07-07): NÃO é emp_legitimate — o "
          "bVI7-subd.menor-alt. da p.113 é empréstimo em MAIOR resolvendo no I; aqui é tom MENOR "
@@ -222,8 +224,9 @@ ADJUDICATIONS: tuple[TritoneVerdict, ...] = (
     _amb("o-amor-e-chama", 53, "Bb7(9)",
          "Em: Bb7 bV7 (trítono) → Em7(9) por trítono (+6) ao i. Ambíguo."),
     _amb("samba-de-uma-nota-so", 3, "Ab7(#11)",
-         "Centro instável (None) — cadeia de dominantes da ponte; Ab7(#11) → Bm7 (+3). "
-         "#11 sugere SubV, mas sem centro o grau é irrecuperável. Ambíguo."),
+         "Ponte cromática descendente (Bm7 Bb7 Am7 Ab7…), centro=None. HUMANO (2026-07-07): "
+         "#11≠SubV (p.114); estrutura MISTA (m7/dom7), não é planagem constante pura da "
+         "categoria c); + centro=None → grau irrecuperável. Ambíguo por falta de centro."),
     _amb("samba-de-uma-nota-so", 7, "Ab7(#11)",
          "Centro None → Ab7(#11) → Dm7 por trítono (+6). Ambíguo por falta de centro."),
     _amb("samba-de-uma-nota-so", 25, "Ab7(#11)",
