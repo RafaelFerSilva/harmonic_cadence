@@ -120,8 +120,23 @@ normal pela esquerda mas atípico à direita (resolução), e função comum em 
 `desafinado` Gb7M `Crom`/VII° anômalo nos dois canais; `cancao-do-amanhecer` Gm7(9) `Outro`/vii sobe
 pelo grau). **Medido ao vivo:** 3 gates duros seguem **293/293**, `function_code`/`degree` do coder
 intocados (PRATA), **+5 testes** (bilateral espelha/fronteira-dupla; combinado=média-dos-canais).
-Follow-ups abertos: peso função×grau / ordenação por componente; embeddings+similaridade (próxima
-change da Camada C).
+Follow-ups abertos: peso função×grau / ordenação por componente.
+
+**Retrieval de similaridade harmônica (`harmonic-similarity-retrieval`, 3ª change ML):** responde
+"quais músicas são harmonicamente próximas desta?". `overlay/similarity.py` monta um **embedding
+por música** do DuckDB — **reusando** o `Fingerprint` de `domain/style_fingerprint` (distribuição de
+função + matriz de transição + cadências + modal + tensão), agora em grão de música (o fingerprint
+existente é de artista, em memória). A comparação **reusa `style_fingerprint.similarity`** (cosseno
+sobre o vetor concatenado) — **transposição-invariante** (features de FUNÇÃO, não de tom; alinha com
+o princípio central). Materializa os top-K vizinhos (`song_neighbor` + view `v_song_neighbor`,
+derivado/regenerável, aditivo) e expõe **`harmonic corpus similar --song <slug> [--k N]`**, que lista
+os vizinhos com a similaridade e os **traços compartilhados** (funções/cadências salientes em comum —
+o "porquê" visível). Descritivo: similaridade ≠ qualidade; não reescreve coder nem toca gates.
+**Medido ao vivo:** gates **293/293**, coder intocado; vizinhos plausíveis (garota-de-ipanema →
+o-amor-que-acabou/alvorada, T/SD/Emp + cadências em comum). **+8 testes** (invariância de transposição:
+ii-V-I em Dó ≡ em Ré → sim 1.0; top-K sem auto-vizinho; determinismo; slug inexistente falha visível).
+Follow-ups: embeddings aprendidos (song2vec); clustering/"música mais central"; ponderação por
+completude; `--metric` (JSD já exposto no domínio).
 
 **Camada de persistência (`persist-analysis-corpus`, frente #8):** a saída do motor deixou de ser
 efêmera — `harmonic_analysis/persistence/` disseca o `result` num banco **DuckDB** (11 tabelas,

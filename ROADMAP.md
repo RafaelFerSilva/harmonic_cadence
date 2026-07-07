@@ -68,8 +68,13 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
      causal+reversa, `BidirectionalModel`) e **bi-canal** (função + grau, `NULL`→`∅`); combinado =
      média dos canais, com componentes visíveis. Pega o que o causal-só-função perdia (resolução
      atípica à direita; função comum em grau raro). Gates 293/293, coder intocado (PRATA), +5 testes.
-   - Próximas (abertas): peso função×grau / ordenação por componente; **embeddings de progressão +
-     retrieval de similaridade** (ferramenta musicológica descritiva).
+   - ✅ **3ª change — `harmonic-similarity-retrieval` (feita):** embedding harmônico por música do
+     DuckDB (reusa o `Fingerprint` de `style_fingerprint`, **transposição-invariante**), top-K
+     vizinhos materializados (`song_neighbor`/`v_song_neighbor`) e `harmonic corpus similar --song
+     <slug>` com traços compartilhados. Descritivo (similaridade ≠ qualidade). Gates 293/293, +8 testes.
+   - Próximas (abertas): peso função×grau / ordenação por componente no overlay de anomalia;
+     embeddings aprendidos (song2vec); clustering / "música mais central"; `--metric` (JSD já no
+     domínio); ponderação por completude.
 4. **Aprofundar o analytics musicológico** — o retorno de ter 293 músicas: novas views/relatórios
    descritivos (distribuições de cadência, trigramas de função, vocabulário por modo já existem;
    expandir), sempre **denominador visível, nunca placar**. Insumo direto p/ a adjudicação (A).

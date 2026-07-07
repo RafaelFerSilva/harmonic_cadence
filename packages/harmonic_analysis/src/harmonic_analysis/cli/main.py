@@ -204,10 +204,18 @@ class HarmonicCLI:
             "corpus", help="Persiste as análises do corpus local e audita os gates"
         )
         corpus_parser.add_argument(
-            "action", choices=["build", "gates", "report", "anomalies"],
+            "action", choices=["build", "gates", "report", "anomalies", "similar"],
             help="build: materializa cifras/*.md no banco; gates: audita os "
             "invariantes; report: relatório musicológico descritivo (Markdown); "
-            "anomalies: worklist de anomalia funcional (overlay Camada C, PRATA)",
+            "anomalies: worklist de anomalia funcional (overlay Camada C, PRATA); "
+            "similar: músicas harmonicamente próximas (--song <slug>)",
+        )
+        corpus_parser.add_argument(
+            "--song", default=None,
+            help="slug da música para `corpus similar` (ex.: 'garota-de-ipanema')",
+        )
+        corpus_parser.add_argument(
+            "--k", type=int, default=10, help="nº de vizinhos (padrão: 10)"
         )
         corpus_parser.add_argument(
             "--db", default="corpus.duckdb", help="Caminho do banco (padrão: corpus.duckdb)"
@@ -488,6 +496,53 @@ class HarmonicCLI:
                 f"{summary['n_songs']} músicas."
             )
             print(f"Relatório gerado: {out}  (o ML rankeia; o Chediak adjudica)")
+            conn.close()
+            return
+
+        if args.action == "similar":
+            # Retrieval de similaridade harmônica (Camada C, descritivo).
+            from harmonic_analysis.overlay.similarity import (
+                build_neighbors,
+                fingerprint_from_db,
+                neighbors_up_to_date,
+                resolve_slug,
+                shared_traits,
+            )
+
+            if not args.song:
+                print("Erro: informe --song <slug> (ex.: --song garota-de-ipanema).")
+                conn.close()
+                sys.exit(1)
+            song_id = resolve_slug(conn, args.song)
+            if song_id is None:
+                print(
+                    f"Música '{args.song}' não está no corpus (run corrente). "
+                    "Confira o slug com `harmonic corpus report` ou `openspec`."
+                )
+                conn.close()
+                sys.exit(1)
+            if not neighbors_up_to_date(conn):
+                build_neighbors(conn, k=max(args.k, 10))
+            rows = conn.execute(
+                "SELECT neighbor_id, neighbor_title, neighbor_slug, "
+                "neighbor_completeness, similarity FROM v_song_neighbor "
+                "WHERE song_id = ? ORDER BY rank LIMIT ?",
+                [song_id, args.k],
+            ).fetchall()
+            base_fp = fingerprint_from_db(conn, song_id)
+            title = conn.execute(
+                "SELECT title FROM v_song_current WHERE song_id = ?", [song_id]
+            ).fetchone()[0]
+            print(f"\nMúsicas harmonicamente próximas de «{title}» ({args.song})")
+            print("(similaridade descritiva por FUNÇÃO — invariante a tom; não é "
+                  "juízo de qualidade)\n")
+            for nid, ntitle, nslug, ncompl, sim in rows:
+                traits = shared_traits(base_fp, fingerprint_from_db(conn, nid))
+                partial = "" if ncompl == "complete" else f"  [cifra {ncompl}]"
+                shared = ", ".join(traits["functions"]) or "—"
+                cad = ", ".join(traits["cadences"]) or "—"
+                print(f"  {sim:.3f}  {ntitle} ({nslug}){partial}")
+                print(f"         funções em comum: {shared} · cadências: {cad}")
             conn.close()
             return
         gates = {
