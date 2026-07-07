@@ -34,4 +34,4 @@
 ## 6. Fecho
 
 - [x] 6.1 Atualizar AGENTS.md/ROADMAP: ledger de trítono adjudicado (contagem por veredito); anotar eventual change de fix downstream sugerida pelos vereditos `subv`/`chromatic_approach`.
-- [ ] 6.2 `openspec archive adjudicate-tritone-ledger` após validação.
+- [x] 6.2 `openspec archive adjudicate-tritone-ledger` após validação.
