@@ -12,7 +12,11 @@ import textwrap
 
 import pytest
 
-from harmonic_analysis.overlay.clustering import build_clusters, cluster_traits
+from harmonic_analysis.overlay.clustering import (
+    build_clusters,
+    cluster_traits,
+    corpus_baseline,
+)
 from harmonic_analysis.overlay.similarity import resolve_slug
 from harmonic_analysis.persistence.db import init_db
 from harmonic_analysis.persistence.materialize import build_corpus
@@ -109,10 +113,24 @@ def test_k_capped_at_song_count(conn):
     assert summary["k"] == summary["n_songs"]
 
 
-def test_cluster_traits_are_descriptive(conn):
+def test_cluster_traits_by_contrast(conn):
+    """Traços são por CONTRASTE (lift vs. corpus), com o valor visível."""
     build_clusters(conn, k=2)
+    base = corpus_baseline(conn)
     clusters = _clusters(conn)
-    some = list(next(iter(clusters.values())))
-    traits = cluster_traits(conn, some)
-    assert "functions" in traits and "cadences" in traits
-    assert isinstance(traits["functions"], list)
+    for members in clusters.values():
+        traits = cluster_traits(conn, list(members), base)
+        # forma: lista de (nome, lift) com lift > 0
+        for name, lift in traits["functions"] + traits["cadences"]:
+            assert isinstance(name, str)
+            assert lift > 0  # só sobre-representados
+
+
+def test_whole_corpus_has_no_distinctive_traits(conn):
+    """O corpus inteiro contra si mesmo (baseline) → sem traço distintivo."""
+    base = corpus_baseline(conn)
+    all_ids = [
+        r[0] for r in conn.execute("SELECT song_id FROM v_song_current").fetchall()
+    ]
+    traits = cluster_traits(conn, all_ids, base)
+    assert traits["functions"] == [] and traits["cadences"] == []

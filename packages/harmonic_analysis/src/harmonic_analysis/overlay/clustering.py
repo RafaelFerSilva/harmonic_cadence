@@ -115,25 +115,65 @@ def _medoid(cluster: list[int], sim: dict) -> int:
     return max(cluster, key=lambda x: (avg(x), -x))
 
 
-def cluster_traits(conn: "duckdb.DuckDBPyConnection", song_ids: list[int], top: int = 3) -> dict:
-    """Traços salientes que definem a família: top funções e cadências agregadas.
+def corpus_baseline(conn: "duckdb.DuckDBPyConnection") -> dict:
+    """Participação média por função e taxa por família de cadência (por música).
 
-    Descritivo (o "porquê" da família), com denominador visível — não veredito.
+    O baseline contra o qual o lift de cada família é medido. Computado uma vez.
     """
+    song_ids = [
+        r[0]
+        for r in conn.execute(
+            "SELECT song_id FROM v_song_current"
+        ).fetchall()
+    ]
+    return _profile(conn, song_ids)
+
+
+def _profile(conn: "duckdb.DuckDBPyConnection", song_ids: list[int]) -> dict:
+    """Perfil médio de um conjunto de músicas: função (participação) e cadência (taxa/música)."""
     from collections import Counter
 
+    n = len(song_ids) or 1
     fn: Counter = Counter()
     cad: Counter = Counter()
     for sid in song_ids:
         fp = fingerprint_from_db(conn, sid)
         for f, share in fp.function_distribution.items():
             fn[f] += share
-        for family, n in fp.cadence_counts.items():
-            cad[family] += n
+        for family, count in fp.cadence_counts.items():
+            cad[family] += count
     return {
-        "functions": [f for f, _ in fn.most_common(top)],
-        "cadences": [c for c, _ in cad.most_common(top)],
+        "functions": {f: s / n for f, s in fn.items()},   # participação média
+        "cadences": {c: v / n for c, v in cad.items()},   # cadências por música
     }
+
+
+def cluster_traits(
+    conn: "duckdb.DuckDBPyConnection",
+    song_ids: list[int],
+    baseline: dict,
+    top: int = 3,
+) -> dict:
+    """Traços que DISTINGUEM a família: funções/cadências sobre-representadas vs. o corpus.
+
+    lift = participação/taxa média na família − no corpus. Só lift > 0 (o que a
+    família tem A MAIS), ordenado desc, com o valor visível. Lista vazia = a família
+    é o baseline do corpus (sem traço distintivo). Descritivo, não veredito.
+    """
+    prof = _profile(conn, song_ids)
+
+    def _lift(kind: str) -> list[tuple[str, float]]:
+        base = baseline[kind]
+        lifts = [
+            (key, share - base.get(key, 0.0))
+            for key, share in prof[kind].items()
+        ]
+        return [
+            (k, round(v, 3)) for k, v in sorted(lifts, key=lambda t: -t[1])
+            if v > 1e-6
+        ][:top]
+
+    return {"functions": _lift("functions"), "cadences": _lift("cadences")}
 
 
 def build_clusters(conn: "duckdb.DuckDBPyConnection", k: int = 8) -> dict:

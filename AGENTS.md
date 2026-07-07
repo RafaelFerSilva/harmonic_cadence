@@ -151,7 +151,20 @@ empréstimo modal: inutil-paisagem, samba-de-uma-nota-so; família com `Dsec` = 
 satélite é candidato à curadoria (insumo da Trilha A). **Medido ao vivo:** gates **293/293**, coder
 intocado; **+7 testes** (cada música em 1 família; determinismo; perfis idênticos juntos; 1 medoid por
 família; k capado no nº de músicas). Follow-ups: `--linkage` (complete/Ward p/ partição mais
-equilibrada); traços por CONTRASTE vs. o corpus (o que a família tem A MAIS); ponderação por completude.
+equilibrada); ponderação por completude.
+
+**Traços de família por contraste (`cluster-contrast-traits`, 5ª change ML):** o clustering v1
+descrevia cada família por traços ABSOLUTOS (top funções/cadências) — mas T/SD/D dominam o corpus,
+então toda família grande mostrava as mesmas, sem distinguir nada. Agora o traço é por **contraste**:
+`corpus_baseline` computa a participação média de cada função/cadência por música, e `cluster_traits`
+retorna só o que a família tem A MAIS (**lift** = média_família − média_corpus > 0), ordenado, com o
+valor visível; família sem nada acima da média é sinalizada como **baseline** (não inventa traço). A
+CLI `corpus clusters` passa a mostrar o dialeto real: **Fam `Emp`(+0.15)** = empréstimo modal (imagem,
+samba-de-uma-nota-so); **Fam `Dsec`(+0.096)** = secundários (e-nada-mais); Fam `Deceptiva
+diatônica`(+3.08) (beatriz); Fam `Plagal`(+0.84) (reza) — enquanto o núcleo de 247 mostra lifts
+minúsculos (~+0.006), honestamente quase-baseline. Só código (traço computado na consulta, sem
+schema). **Medido ao vivo:** gates **293/293**, coder intocado; **+2 testes** (só lift > 0; corpus-vs-
+si-mesmo → zero traço distintivo). Follow-ups: cutoff mínimo de lift/suporte; normalizar por desvio.
 
 **Camada de persistência (`persist-analysis-corpus`, frente #8):** a saída do motor deixou de ser
 efêmera — `harmonic_analysis/persistence/` disseca o `result` num banco **DuckDB** (11 tabelas,

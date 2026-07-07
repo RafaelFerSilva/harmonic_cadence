@@ -553,9 +553,11 @@ class HarmonicCLI:
             from harmonic_analysis.overlay.clustering import (
                 build_clusters,
                 cluster_traits,
+                corpus_baseline,
             )
 
             summary = build_clusters(conn, k=args.k)
+            baseline = corpus_baseline(conn)
             print(
                 f"\n{summary['k']} famílias harmônicas sobre {summary['n_songs']} "
                 f"músicas (k escolhido pelo usuário — descritivo, NÃO 'k ótimo'; "
@@ -571,13 +573,21 @@ class HarmonicCLI:
             for cid, group in groupby(rows, key=lambda r: r[0]):
                 members = list(group)
                 ids = [m[1] for m in members]
-                traits = cluster_traits(conn, ids)
+                traits = cluster_traits(conn, ids, baseline)
                 medoid = next((m for m in members if m[5]), members[0])
-                fn = ", ".join(traits["functions"]) or "—"
-                cad = ", ".join(traits["cadences"]) or "—"
                 print(f"Família {cid} — {len(members)} músicas · "
                       f"protótipo: «{medoid[2]}» ({medoid[3]})")
-                print(f"  traços: funções {fn} · cadências {cad}")
+                if not traits["functions"] and not traits["cadences"]:
+                    print("  traços: — família-baseline (nada acima da média do corpus)")
+                else:
+                    fn = ", ".join(
+                        f"{k} (+{v})" for k, v in traits["functions"]
+                    ) or "—"
+                    cad = ", ".join(
+                        f"{k} (+{v})" for k, v in traits["cadences"]
+                    ) or "—"
+                    print(f"  distingue-se por (lift vs. corpus): funções {fn} · "
+                          f"cadências {cad}")
                 shown = [m for m in members if not m[5]][:6]
                 for _cid, _sid, title, slug, compl, _med in shown:
                     tag = "" if compl == "complete" else f"  [cifra {compl}]"
