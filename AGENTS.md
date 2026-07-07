@@ -176,6 +176,26 @@ usuário, sem "ótimo". Só código, `average` default (compatível). **Medido a
 coder intocado; **+4 testes** (complete determinístico; maior-família(complete) ≤ maior(average);
 idênticos juntos nos dois; linkage inválido rejeitado). Follow-up: Ward (exige métrica euclidiana).
 
+**Ledger de trítono — malha FECHADA (`adjudicate-tritone-ledger`, Trilha A #1):** a adjudicação
+deixou de ser Markdown solto e virou **corpus tipado** (`corpus.tritone_adjudications`, molde do
+`modal_centers`): cada ocorrência do ledger residual (43, todas `Emp`/dom-7/`degree=?`) recebe um
+`TritoneVerdict` com **`Citation` obrigatória como gate** (sem página o fato não existe) e `verdict`
+de enum fechado (`subv`/`chromatic_approach`/`emp_legitimate`/`dsec_deceptive`/`ambiguous`). É
+**ANOTAÇÃO (PRATA): não reescreve `function_code`/`degree`** (invariante testado) — um veredito que
+confirme defeito real do coder vira change de *fix downstream* separada (precedente:
+`TRITONE-ADJUDICATION.md`→`fix-tritone-t-by-degree`). O veredito+página cruzam na
+`v_ledger_tritone_nondominant` (LEFT JOIN à tabela derivada `tritone_adjudication`, aditivo) e no
+`corpus report`; `scripts/audit_tritone_adjudication.py` (molde `audit_completeness`) **falha** se
+alguma ocorrência ficar sem veredito ou houver órfão (anti-drift). **Draft conservador** (geometria
+re-derivada do DuckDB, regra "nunca chute"): **6 `chromatic_approach`** (dom-7 um semitom abaixo do
+dominante real — cita a p.111, classe cromática) + **37 `ambiguous`** com nota geométrica precisa
+(bV7 deg=6 resolvendo por trítono; centro instável em `flora`/`samba-de-uma-nota-so`). Achado que
+**corrige a hipótese da própria proposta**: os `#11` (samba, beatriz, ausência) NÃO resolvem como
+SubV (sobem um semitom / resolvem por trítono / sem centro) — honestamente ambíguos, não forçados.
+**Medido ao vivo:** 3 gates duros **293/293**, coder intocado (PRATA), ledger 43 e centro 216/262
+inalterados; suíte **628 verde**. **Pendente:** revisão do curador (autoridade Chediak) para promover
+ambíguos→decisivos com página antes de arquivar.
+
 **Camada de persistência (`persist-analysis-corpus`, frente #8):** a saída do motor deixou de ser
 efêmera — `harmonic_analysis/persistence/` disseca o `result` num banco **DuckDB** (11 tabelas,
 grão = ocorrência de acorde) via `harmonic corpus build` (roda o motor sobre `cifras/*.md`, sem

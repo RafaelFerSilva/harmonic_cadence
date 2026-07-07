@@ -54,11 +54,16 @@ WHERE f.is_resolving = TRUE
 -- TRITONE-ADJUDICATION.md): I7 blues→T (p.112(3)), IV7 blues→SD (p.112(3)),
 -- II7 subd. alterada→SD (p.113(4)), bVII7/bVI7 subd. menor→Emp (p.112(1)).
 -- Worklist de adjudicação, não placar; informativo em `corpus gates`.
+-- O LEFT JOIN em `tritone_adjudication` cruza o veredito curado + página Chediak
+-- (aditivo; ocorrência não-adjudicada → verdict/chediak_page NULL, não some da view).
 CREATE OR REPLACE VIEW v_ledger_tritone_nondominant AS
-SELECT o.song_id, o.position, o.symbol, o.function_code
+SELECT o.song_id, o.position, o.symbol, o.function_code,
+       adj.verdict, adj.chediak_page
 FROM chord_occurrence o
 JOIN v_song_current sc ON o.song_id = sc.song_id
 JOIN chord_vocab v ON o.symbol = v.symbol
+LEFT JOIN tritone_adjudication adj
+       ON adj.song_id = o.song_id AND adj.position = o.position
 WHERE v.has_real_tritone = TRUE
   AND (o.function_code IS NULL
        OR (UPPER(o.function_code) NOT LIKE '%D%'

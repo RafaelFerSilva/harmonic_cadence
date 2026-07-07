@@ -146,6 +146,25 @@ def render_report(conn, top_n: int = 15) -> str:
     parts.append(_table(
         ["Função-alvo", "Grau", "Qualidade", "n", "Músicas", "Exemplo"], patterns
     ))
+
+    # Distribuição por veredito adjudicado (anotação PRATA; foto de curadoria, não placar).
+    verdicts = _rows(
+        conn,
+        "SELECT COALESCE(verdict, '(pendente)') AS v, COUNT(*) "
+        "FROM v_ledger_tritone_nondominant GROUP BY 1 ORDER BY 2 DESC",
+    )
+    if verdicts:
+        n_cited = _one(
+            conn,
+            "SELECT COUNT(*) FROM v_ledger_tritone_nondominant "
+            "WHERE chediak_page IS NOT NULL",
+        )[0]
+        parts.append(
+            f"\n**Adjudicação Chediak** (de {total_ledger}, "
+            f"{n_cited} com página citada; `ambiguous` = resíduo honesto declarado):\n"
+        )
+        parts.append(_table(["Veredito", "Ocorrências"], verdicts))
+
     quarantined_ledger = _one(
         conn,
         "SELECT COUNT(*) FROM v_ledger_tritone_nondominant l "

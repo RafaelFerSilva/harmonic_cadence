@@ -20,6 +20,7 @@ from cifra_core.slug import slugify
 from cifra_core.theory import parse as parse_chord
 
 from harmonic_analysis.corpus.completeness import completeness_for
+from harmonic_analysis.corpus.tritone_adjudications import ADJUDICATIONS
 from harmonic_analysis.domain.chord import Chord
 from harmonic_analysis.domain.harmony import HarmonicAnalysis
 from harmonic_analysis.domain.key_detection import detect_key
@@ -324,8 +325,32 @@ def build_corpus(conn, corpus_glob: str = "cifras/*.md") -> dict:
                 [diag_id, song_id, d.get("section"), d.get("error")],
             )
 
+    # ── tritone_adjudication (anotação PRATA do ledger, do corpus-em-código) ──────
+    # Mapeia o corpus de vereditos (chave slug|position) para o song_id deste run.
+    slug_to_id = {
+        slug: sid
+        for sid, slug in conn.execute(
+            "SELECT song_id, slug FROM song WHERE run_id = ?", [run_id]
+        ).fetchall()
+    }
+    n_adj = 0
+    for adj in ADJUDICATIONS:
+        adj_slug, position = adj.key
+        sid = slug_to_id.get(adj_slug)
+        if sid is None:
+            continue  # veredito de música fora deste run (corpus congelado): ignora
+        page = adj.citation.page if adj.citation is not None else None
+        conn.execute(
+            "INSERT INTO tritone_adjudication "
+            "(song_id, position, symbol, verdict, chediak_page, note) "
+            "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (song_id, position) DO NOTHING",
+            [sid, position, adj.symbol, adj.verdict, page, adj.note],
+        )
+        n_adj += 1
+
     return {
         "run_id": run_id,
         "n_songs": len(songs),
         "failures": failures,
+        "n_adjudications": n_adj,
     }

@@ -10,5 +10,20 @@ from harmonic_analysis.corpus.modal_centers import (
     ModalCenterFact,
     lookup_modal_center,
 )
+from harmonic_analysis.corpus.tritone_adjudications import (
+    ADJUDICATIONS,
+    TritoneVerdict,
+    TritoneVerdictKind,
+    lookup_tritone_verdict,
+)
 
-__all__ = ["CORPUS", "Citation", "ModalCenterFact", "lookup_modal_center"]
+__all__ = [
+    "CORPUS",
+    "Citation",
+    "ModalCenterFact",
+    "lookup_modal_center",
+    "ADJUDICATIONS",
+    "TritoneVerdict",
+    "TritoneVerdictKind",
+    "lookup_tritone_verdict",
+]

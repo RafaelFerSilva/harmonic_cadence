@@ -130,3 +130,17 @@ CREATE TABLE IF NOT EXISTS diagnostic (
     section  TEXT NOT NULL,             -- "chord_extraction", "voice_leading"…
     message  TEXT NOT NULL
 );
+
+-- Vereditos curados do ledger de trítono (anotação PRATA, derivada do corpus-em-código
+-- `harmonic_analysis.corpus.tritone_adjudications`). Grão = ocorrência (song_id, position).
+-- NÃO muta o coder: só anota o veredito+página Chediak p/ cruzar no ledger/report.
+-- Regenerável no build; rollback = DROP + reverter a view do ledger.
+CREATE TABLE IF NOT EXISTS tritone_adjudication (
+    song_id   INTEGER NOT NULL REFERENCES song(song_id),
+    position  INTEGER NOT NULL,
+    symbol    TEXT NOT NULL,
+    verdict   TEXT NOT NULL,            -- subv | chromatic_approach | emp_legitimate | dsec_deceptive | ambiguous
+    chediak_page INTEGER,               -- NULL só p/ ambiguous (sem página, sem fato)
+    note      TEXT NOT NULL,
+    PRIMARY KEY (song_id, position)
+);

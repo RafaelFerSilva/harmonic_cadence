@@ -46,9 +46,17 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
 **Próximos passos — duas trilhas (o norte das próximas sessões):**
 
 *Trilha A — ANÁLISE (adjudicação com Chediak; ZERO dado novo, tudo já no repo):*
-1. **Adjudicar o ledger de trítono (43 ocorrências, 20 músicas)** contra Chediak (`base_estudo/`),
-   pela GEOMETRIA (raiz vs. tônica + resolução), não pelo rótulo — vira fatos citados; o resíduo
-   bV7→Emp genérico segue ambíguo honesto. Molde pronto: `TRITONE-ADJUDICATION.md` (arquivado).
+1. 🔶 **Ledger de trítono (43) — INFRAESTRUTURA + DRAFT feitos (`adjudicate-tritone-ledger`).** A
+   malha neuro-simbólica FECHOU: corpus tipado `corpus.tritone_adjudications` (veredito citado, a
+   `Citation` é gate; enum `subv`/`chromatic_approach`/`emp_legitimate`/`dsec_deceptive`/`ambiguous`),
+   auditoria anti-drift (`scripts/audit_tritone_adjudication.py`), cruzamento na
+   `v_ledger_tritone_nondominant` (+`verdict`/`chediak_page`) e no `corpus report`. **É ANOTAÇÃO
+   (PRATA): não muta `function_code`** — fix do coder = change downstream. Draft conservador
+   (geometria re-derivada do DuckDB): **6 `chromatic_approach`** (dom-7 um semitom abaixo do dominante
+   real, cita p.111) + **37 `ambiguous`** com nota geométrica (bV7 deg=6 / centro instável — o resíduo
+   honesto declarado). Correção da própria hipótese: os `#11` (samba/beatriz/ausência) NÃO resolvem
+   como SubV. Gates 293/293, coder intocado, +tests. **Falta: revisão do curador (Chediak) para
+   promover ambíguos→decisivos com página; depois arquivar.**
 2. **Adjudicar a worklist de centro (46 diverge)** — `detect_key` × critério funcional. Achado de
    `#7`: não há regra-cega segura; um gate do `detect_key` só é seguro se **cirúrgico** (V/ii-como-
    tônica alta-confiança com V→I limpo a repouso), sem tocar os detect-certo. Candidata a change.
