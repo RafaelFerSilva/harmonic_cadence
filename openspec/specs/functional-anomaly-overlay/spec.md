@@ -1,7 +1,12 @@
 # functional-anomaly-overlay Specification
 
 ## Purpose
-TBD - created by syncing change function-anomaly-worklist. Update Purpose after archive.
+Overlay estatístico (Camada C) que ranqueia as ocorrências de acorde do corpus persistido por
+SURPRESA funcional — subordinado ao símbolo (**PRATA**: o ML rankeia, o Chediak adjudica). Treina
+um LM de sequência sobre os `function_code`s do coder e materializa uma worklist de curadoria que
+prioriza as worklists de trítono/centro já suspeitas por teoria (Trilha B alimenta Trilha A). NUNCA
+reescreve rótulo, NUNCA arbitra centro, NUNCA é avaliado por acurácia contra o coder — discordância
+é sinal, não erro, o que mata a circularidade de treinar/medir sobre a saída do próprio motor.
 ## Requirements
 ### Requirement: Modelo de sequência funcional suavizado
 
