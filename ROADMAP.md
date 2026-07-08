@@ -121,9 +121,26 @@ musicológicas descritivas + `harmonic corpus report`. PDF do Chediak Vol. I em 
    - ✅ **6ª change — `cluster-linkage-option` (feita):** `corpus clusters --linkage {average,complete}`.
      Complete quebra o núcleo-247 numa partição equilibrada (k=8: `[75,71,44,34,31,18,15,5]` vs.
      average `[247,22,8,...]`). average default (compatível). Gates 293/293, +4 testes.
+   - ✅ **7ª change — `adjudication-precedent-assist` (feita, Frente C viável):** assistente de
+     adjudicação por **precedente (case-based reasoning)** — a única frente "IA aprendida" que
+     sobrevive aos princípios (DL é NO-GO, ver `PROBE-EMBEDDINGS-FINDINGS.md`). `overlay/precedent.py`
+     re-deriva a **geometria harmônica** por ocorrência (função/grau/qualidade/intervalos, features de
+     FUNÇÃO/INTERVALO — transposição-invariante) e recupera os `k` casos **já adjudicados por humano**
+     mais próximos dos corpora tipados, emitindo um veredito **DRAFT** = veredito+`Citation` HERDADOS
+     do precedente (**nunca extraída do PDF** — fronteira de copyright), com confiança por concordância.
+     CLI `harmonic corpus assist [--occurrence <slug>:<pos>] [--k N] [--ledger tritone|center]` +
+     view aditiva `v_draft_verdict` (rollback = DROP). **PRATA**: draft NUNCA conta como adjudicado
+     (só o humano promove); `function_code`/`degree`/gates/`detect_key` intocados. Avaliação
+     **descritiva leave-one-out** (hold-out humano, nunca vs. coder): **trítono 38/43 (88%)**, centro
+     28/46 (61%). Sub-uso: **rankeia candidatos à armadilha ii-V** além dos 3 conhecidos (achou
+     `eh-menina`) como sugestão PRATA, sem tocar `detect_key`. Zero dep nova (núcleo stdlib-puro).
+     Gates **293/293**, coder intocado, ledger 43/centro 216 inalterados, anti-drift OK, **+16 testes**.
+     **Fase 2 (LLM-drafting em escala) ADIADA** — o CBR já entrega no trítono; LLM só se o curador
+     quiser cobrir o resíduo ambíguo (não urgente).
    - Próximas (abertas): peso função×grau / ordenação por componente no overlay de anomalia;
      embeddings aprendidos (song2vec); Ward-linkage; `--metric` (JSD já no domínio); ponderação por
-     completude; cutoff de lift/suporte no contraste.
+     completude; cutoff de lift/suporte no contraste; ordenar varredura do `assist` por surpresa da
+     `v_anomaly_worklist` quando surgirem pendências.
 4. **Aprofundar o analytics musicológico** — o retorno de ter 293 músicas: novas views/relatórios
    descritivos (distribuições de cadência, trigramas de função, vocabulário por modo já existem;
    expandir), sempre **denominador visível, nunca placar**. Insumo direto p/ a adjudicação (A).

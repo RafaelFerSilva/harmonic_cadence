@@ -205,12 +205,23 @@ class HarmonicCLI:
         )
         corpus_parser.add_argument(
             "action",
-            choices=["build", "gates", "report", "anomalies", "similar", "clusters"],
+            choices=["build", "gates", "report", "anomalies", "similar",
+                     "clusters", "assist"],
             help="build: materializa cifras/*.md no banco; gates: audita os "
             "invariantes; report: relatório musicológico descritivo (Markdown); "
             "anomalies: worklist de anomalia funcional (overlay Camada C, PRATA); "
             "similar: músicas harmonicamente próximas (--song <slug>); "
-            "clusters: famílias harmônicas do corpus (--k N)",
+            "clusters: famílias harmônicas do corpus (--k N); "
+            "assist: rascunha vereditos por precedente (CBR, PRATA; --ledger/--occurrence)",
+        )
+        corpus_parser.add_argument(
+            "--ledger", choices=["tritone", "center"], default="tritone",
+            help="ledger do `assist`: tritone (padrão) ou center",
+        )
+        corpus_parser.add_argument(
+            "--occurrence", default=None,
+            help="ocorrência p/ `assist`: <slug>:<pos> (trítono) ou <slug> (centro). "
+            "Sem isto, avalia o ledger inteiro (leave-one-out) + drafts pendentes.",
         )
         corpus_parser.add_argument(
             "--song", default=None,
@@ -602,6 +613,52 @@ class HarmonicCLI:
                 print()
             conn.close()
             return
+
+        if args.action == "assist":
+            # Assistente de adjudicação por precedente (CBR, Camada C Fase 1, PRATA).
+            from harmonic_analysis.overlay.materialize import build_draft_verdicts
+            from harmonic_analysis.overlay.precedent import assist_occurrence
+            from harmonic_analysis.overlay.report import render_precedent_report
+
+            build_draft_verdicts(conn, k=max(args.k, 5))
+
+            if args.occurrence:
+                slug, _, pos = args.occurrence.partition(":")
+                position = int(pos) if pos else None
+                try:
+                    draft = assist_occurrence(
+                        conn, args.ledger, slug, position, k=max(args.k, 5)
+                    )
+                except ValueError as exc:
+                    print(f"Erro: {exc}")
+                    conn.close()
+                    sys.exit(1)
+                cit = draft.citation
+                cit_str = f"Vol.{cit.volume} p.{cit.page}" if cit else "—"
+                print(f"\nDRAFT (precedente, NÃO adjudicação) — {args.ledger} «{slug}»"
+                      + (f":{position}" if position is not None else ""))
+                print(f"  veredito rascunhado: {draft.verdict}  (citação herdada: {cit_str})")
+                print(f"  confiança: {draft.confidence:.0%} de {draft.denominator} "
+                      f"vizinhos · dist do +próximo: {draft.nearest_distance:.2f}")
+                print("  precedentes mais próximos:")
+                for case, dist in draft.neighbors[: max(args.k, 5)]:
+                    key = f":{case.key[1]}" if len(case.key) > 1 else ""
+                    print(f"    {dist:.2f}  {case.slug}{key} → {case.verdict} "
+                          f"({case.note[:60]})")
+                print("\n(o CBR rascunha; o Chediak adjudica — promova só após conferir)")
+                conn.close()
+                return
+
+            out = ("precedent-assist.md" if args.out == "corpus-report.md" else args.out)
+            md = render_precedent_report(conn, ledger=args.ledger, k=max(args.k, 5))
+            with open(out, "w", encoding="utf-8") as f:
+                f.write(md)
+            print(f"Assistente de precedente ({args.ledger}) — relatório: {out}")
+            print("(leave-one-out vs. veredito humano + drafts pendentes; o CBR "
+                  "rascunha, o Chediak adjudica)")
+            conn.close()
+            return
+
         gates = {
             "diminuto (XXI-XXII)": "v_gate_diminished",
             "D2 resolução (XIX)": "v_gate_d2",

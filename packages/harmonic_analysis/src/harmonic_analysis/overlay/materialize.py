@@ -149,3 +149,108 @@ def _ensure_score_schema(conn: "duckdb.DuckDBPyConnection") -> None:
     if existing and not _V2_COLUMNS.issubset(existing):
         conn.execute("DROP TABLE anomaly_score")
     conn.execute(_SCORE_DDL)
+
+
+# ═══ Draft de adjudicação por precedente (CBR) — ADITIVO, PRATA ══════════════
+# Materializa os vereditos DRAFT das ocorrências PENDENTES (ainda sem veredito
+# humano) dos ledgers de trítono e centro. Tabela + view derivadas/regeneráveis;
+# rollback = DROP das duas. Drafts NUNCA contam como adjudicação: a auditoria
+# anti-drift e o denominador de completude ignoram esta tabela.
+_DRAFT_DDL = """
+CREATE TABLE IF NOT EXISTS draft_verdict (
+    run_id          INTEGER,
+    ledger          VARCHAR,   -- 'tritone' | 'center'
+    slug            VARCHAR,
+    position        INTEGER,   -- NULL p/ centro (grão de música)
+    draft_verdict   VARCHAR,   -- herdado do precedente mais próximo (ou 'ambiguous')
+    chediak_page    INTEGER,   -- herdado do precedente; NULL p/ ambiguous
+    confidence      DOUBLE,    -- concordância dos k vizinhos
+    denominator     INTEGER,   -- k efetivo
+    nearest_slug    VARCHAR,   -- o precedente mais próximo (auditável)
+    nearest_dist    DOUBLE,
+    status          VARCHAR DEFAULT 'draft',
+    PRIMARY KEY (run_id, ledger, slug, position)
+);
+"""
+
+_DRAFT_VIEW = """
+CREATE OR REPLACE VIEW v_draft_verdict AS
+SELECT run_id, ledger, slug, position, draft_verdict, chediak_page,
+       confidence, denominator, nearest_slug, nearest_dist, status
+FROM draft_verdict
+WHERE run_id = (SELECT max(run_id) FROM analysis_run)
+ORDER BY ledger, confidence DESC, slug;
+"""
+
+
+def build_draft_verdicts(
+    conn: "duckdb.DuckDBPyConnection", k: int = 5
+) -> dict:
+    """Rascunha por precedente as ocorrências PENDENTES dos dois ledgers.
+
+    Pendente = no ledger mas sem veredito humano (`verdict`/`winner` NULL). A base de
+    casos são SÓ os vereditos confirmados (o CBR nunca usa draft como precedente).
+    Idempotente: recomputa o run corrente. Aditivo: não toca nenhuma tabela canônica.
+    """
+    from harmonic_analysis.corpus.modal_centers import Citation  # noqa: F401
+    from harmonic_analysis.overlay.precedent import (
+        center_geometry,
+        draft_verdict,
+        load_case_base,
+        tritone_geometry,
+    )
+
+    run_id = _current_run_id(conn)
+    conn.execute(_DRAFT_DDL)
+    conn.execute("DELETE FROM draft_verdict WHERE run_id = ?", [run_id])
+
+    records: list[tuple] = []
+
+    # ── Trítono: ocorrências do ledger sem veredito (grão de ocorrência) ─────
+    tri_base = load_case_base(conn, "tritone")
+    tri_pending = conn.execute(
+        "SELECT l.song_id, l.position, s.slug "
+        "FROM v_ledger_tritone_nondominant l "
+        "JOIN v_song_current s ON l.song_id = s.song_id "
+        "WHERE l.verdict IS NULL"
+    ).fetchall()
+    for song_id, position, slug in tri_pending:
+        d = draft_verdict(
+            tritone_geometry(conn, song_id, position),
+            tri_base, ledger="tritone", key=(slug, position), k=k,
+        )
+        page = d.citation.page if d.citation is not None else None
+        near = d.neighbors[0][0].slug if d.neighbors else None
+        records.append((run_id, "tritone", slug, position, d.verdict, page,
+                        d.confidence, d.denominator, near, d.nearest_distance))
+
+    # ── Centro: músicas `diverge` sem veredito (grão de música) ──────────────
+    ctr_base = load_case_base(conn, "center")
+    ctr_pending = conn.execute(
+        "SELECT song_id, slug FROM v_center_worklist WHERE winner IS NULL"
+    ).fetchall()
+    for song_id, slug in ctr_pending:
+        d = draft_verdict(
+            center_geometry(conn, song_id),
+            ctr_base, ledger="center", key=(slug,), k=k,
+        )
+        page = d.citation.page if d.citation is not None else None
+        near = d.neighbors[0][0].slug if d.neighbors else None
+        records.append((run_id, "center", slug, None, d.verdict, page,
+                        d.confidence, d.denominator, near, d.nearest_distance))
+
+    if records:
+        conn.executemany(
+            "INSERT INTO draft_verdict (run_id, ledger, slug, position, draft_verdict, "
+            "chediak_page, confidence, denominator, nearest_slug, nearest_dist) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            records,
+        )
+    conn.execute(_DRAFT_VIEW)
+    return {
+        "run_id": run_id,
+        "n_drafts": len(records),
+        "n_tritone_pending": len(tri_pending),
+        "n_center_pending": len(ctr_pending),
+        "k": k,
+    }

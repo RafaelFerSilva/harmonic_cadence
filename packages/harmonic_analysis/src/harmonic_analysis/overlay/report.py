@@ -102,3 +102,103 @@ def render_anomaly_report(conn, top_n: int = 25) -> str:
     parts.append(_table(cols, top))
     parts.append("")
     return "\n".join(parts)
+
+
+_ASSIST_DISCLAIMER = (
+    "> Assistente de adjudicação por **precedente** (case-based reasoning, Camada C "
+    "Fase 1). Cada linha é um veredito **DRAFT** — rascunhado por analogia a um caso já "
+    "adjudicado por humano, **NUNCA** uma decisão. O símbolo/Chediak **adjudica**; o CBR "
+    "**rascunha**. Citação é sempre **herdada** do precedente (fato já curado), nunca "
+    "extraída do livro. A avaliação é **leave-one-out** vs. o veredito humano (hold-out "
+    "do curador), não acurácia contra o coder. Precedente distante → draft `ambiguous` "
+    "honesto.\n"
+)
+
+
+def _fmt_citation(cit) -> str:
+    if cit is None:
+        return "—"
+    return f"Vol.{cit.volume} p.{cit.page}"
+
+
+def render_precedent_report(conn, ledger: str = "tritone", k: int = 5) -> str:
+    """Relatório MD PT-BR do assistente de precedente para um ledger.
+
+    Mostra: a avaliação leave-one-out (taxa de confirmação humana, descritiva), os
+    drafts das ocorrências PENDENTES (se houver), e os candidatos à armadilha ii-V.
+    """
+    from harmonic_analysis.overlay.precedent import (
+        ii_v_trap_candidates,
+        leave_one_out,
+    )
+
+    parts: list[str] = [
+        f"# Assistente de adjudicação por precedente — ledger `{ledger}`\n",
+        _ASSIST_DISCLAIMER,
+    ]
+
+    # ── Leave-one-out: o CBR reproduz o veredito humano quando ele é escondido? ──
+    loo = leave_one_out(conn, ledger, k=k)
+    parts.append(
+        f"\n## Avaliação leave-one-out (k={loo['k']}) — descritiva, hold-out humano\n"
+    )
+    parts.append(
+        f"O CBR reproduz **{loo['agree']}/{loo['n']}** dos vereditos humanos "
+        f"({loo['rate']:.0%}) quando cada um é escondido da base. Mede o ALCANCE do "
+        "precedente, não valida o corpus.\n"
+    )
+    rows = []
+    for case, draft in loo["drafts"]:
+        mark = "✓" if draft.verdict == case.verdict else "✗"
+        rows.append((
+            mark, case.slug,
+            case.key[1] if len(case.key) > 1 else "—",
+            case.verdict, draft.verdict,
+            f"{draft.confidence:.0%} ({draft.denominator})",
+            f"{draft.nearest_distance:.2f}",
+        ))
+    parts.append(_table(
+        ["", "música", "pos", "humano", "draft (LOO)", "confiança", "dist"],
+        rows,
+    ))
+
+    # ── Drafts das pendentes (sem veredito humano ainda) ────────────────────────
+    pending = conn.execute(
+        "SELECT slug, position, draft_verdict, chediak_page, confidence, "
+        "denominator, nearest_slug, nearest_dist "
+        "FROM v_draft_verdict WHERE ledger = ? ORDER BY confidence DESC, slug",
+        [ledger],
+    ).fetchall()
+    parts.append(f"\n## Drafts pendentes (ocorrências sem veredito humano) — {len(pending)}\n")
+    if pending:
+        prows = [
+            (slug, pos if pos is not None else "—", verdict,
+             f"p.{page}" if page is not None else "—",
+             f"{conf:.0%} ({denom})", near, f"{dist:.2f}")
+            for slug, pos, verdict, page, conf, denom, near, dist in pending
+        ]
+        parts.append(_table(
+            ["música", "pos", "draft", "pág (herdada)", "confiança", "precedente", "dist"],
+            prows,
+        ))
+    else:
+        parts.append(
+            "_Nenhuma pendência: o ledger está 100% adjudicado por humano. O assistente "
+            "entra em ação quando novas ocorrências suspeitas surgirem._\n"
+        )
+
+    # ── Candidatos à armadilha ii-V (ranking PRATA) ─────────────────────────────
+    if ledger == "center":
+        cands = ii_v_trap_candidates(conn)
+        parts.append(f"\n## Candidatos à armadilha ii-V (PRATA) — {len(cands)}\n")
+        parts.append(
+            "> pós-Path D: detect pega o I (corrigido), funcional segue no ii do mesmo I. "
+            "NÃO toca `detect_key` nem o placar de centro; candidatos a olhar, não veredito.\n"
+        )
+        crows = [
+            (c["title"], c["slug"], "conhecido" if c["known"] else "**novo**")
+            for c in cands
+        ]
+        parts.append(_table(["música", "slug", "status"], crows))
+
+    return "\n".join(parts)
