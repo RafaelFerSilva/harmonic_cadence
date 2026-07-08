@@ -201,10 +201,12 @@ contra o Vol. I pp.111-116 (PDF em `base_estudo/`). Resultado: **6 `chromatic_ap
 hipóteses do draft **caíram na leitura**: **bVI7** (bye-bye/ilusao) refutada (o quadro p.113 é
 empréstimo em MAIOR resolvendo no I; aqui é menor + resolve no ii); **#11** refutada (#11≠SubV, que
 resolve ½t abaixo — p.114). O **resíduo bV7/#IV7** (25) confirmado indecidível ("Emp genérico sem
-página que decida", consistente com `TRITONE-ADJUDICATION.md` n=170). **Flag p/ fix downstream:**
-`disa/30` (Db7→Ab7 por 4ªJ) pode ser Dext mis-codado Emp — revisar no coder. Final: **6 decididas
-citadas + 37 ambiguous honestas**, nenhuma forçada (regra de ouro: refutar > inflar). Só notas/
-citação no corpus-em-código (PRATA; DuckDB rebuildado, `chediak_page`=116 nos 6).
+página que decida", consistente com `TRITONE-ADJUDICATION.md` n=170). Flag `disa/30` (possível Dext
+mis-codado) **REFUTADA na verificação:** Db7→Ab7 é +7 (4ªJ descendente), não o +5 do Dext (4ªJ
+ascendente, harmony.py:169) — é estrutura constante cromática (XXXIV c), Emp defensável; **SEM fix
+downstream** (o coder está certo). Final: **6 decididas citadas + 37 ambiguous honestas**, nenhuma
+forçada (regra de ouro: refutar > inflar). Só notas/citação no corpus-em-código (PRATA; DuckDB
+rebuildado, `chediak_page`=116 nos 6). **Nenhum fix downstream do coder pendente.**
 
 **Worklist de centro — malha FECHADA (`adjudicate-center-worklist`, Trilha A #2):** mesmo padrão do
 trítono, agora para as **46 divergências** de centro (`detect_key` × `chediak_functional_center`,

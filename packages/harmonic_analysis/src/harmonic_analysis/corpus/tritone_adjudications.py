@@ -120,9 +120,11 @@ class TritoneVerdict:
 #   • resíduo bV7/#IV7 (25 casos, deg=6 salvo flora=None e embarcacao=bII modulante)
 #     CONFIRMADO indecidível — não é SubV/c)/bVI7; classe "Emp genérico sem página que
 #     decida", consistente com TRITONE-ADJUDICATION.md (n=170). Ficam ambiguous honestos.
-#   • FLAG p/ FIX DOWNSTREAM (não veredito): disa/30 (Db7→Ab7 por 4ªJ) pode ser Dext
-#     mis-codado Emp — revisar no coder, não aqui.
+#   • disa/30: flag de "Dext mis-codado" REFUTADA (2026-07-07) — Db7→Ab7 é +7 (4ªJ
+#     descendente), não o +5 do Dext (4ªJ ascendente, harmony.py:169). É estrutura
+#     constante cromática (XXXIV c); Emp é defensável. SEM fix downstream.
 # Resultado: 6 decididas citadas + 37 ambiguous honestas (nenhuma forçada). PRATA intacto.
+# NENHUM fix downstream do coder pendente (a única flag caiu na verificação).
 # ---------------------------------------------------------------------------
 
 _P116 = Citation(
@@ -201,10 +203,10 @@ ADJUDICATIONS: tuple[TritoneVerdict, ...] = (
     _amb("disa", 13, "Db7(9)",
          "Gm: Db7 bV7 (trítono do centro) → Eb7M (+2). Ambíguo."),
     _amb("disa", 30, "Db7(9)",
-         "Gm: Db7 → Ab7 por 4ªJ descendente (outro dominante). HUMANO (2026-07-07): "
-         "assinatura de dominante ESTENDIDO (Dext, XXVIII pp.107-108), não Emp — se for, "
-         "o coder codar Emp é DEFEITO → candidato a FIX DOWNSTREAM (não cadeia clara isolada, "
-         "então fica flag de revisão de coder, não veredito). Ambíguo aqui."),
+         "Gm: sequência F7 Eb7 Db7 (dominantes descendo por TOM inteiro), depois Db7→Ab7→G. "
+         "HUMANO (2026-07-07): NÃO é Dext — Dext resolve por 4ªJ ASCENDENTE (+5, harmony.py:169); "
+         "Db→Ab é +7 (4ªJ descendente). Nem cadeia SubV (exige ½t). É estrutura constante "
+         "cromática (XXXIV c); o coder codar Emp (não-dominante) é defensável. SEM fix. Ambíguo."),
     _amb("embarcacao", 12, "A7(b5)",
          "Abm: A7(b5) raiz bII (deg=1) → A7 (prolonga). SubV/I? (bII7 resolve ao I por "
          "semitom, mas aqui prolonga). Ambíguo."),
